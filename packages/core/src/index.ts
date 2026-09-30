@@ -12,6 +12,8 @@ export type {
   Size,
 } from './chart.ts'
 export { buildChart, Chart, chartToString, resolveSize } from './chart.ts'
+export type { AreaOptions } from './charts/area.ts'
+export { area } from './charts/area.ts'
 export type {
   CartesianData,
   CartesianOptions,

@@ -14,6 +14,12 @@ export interface LineOptions extends CartesianOptions {
   connectNulls?: boolean
   /** Fill the area under each line. Defaults to `false` (`true` for `area`). */
   area?: boolean
+  /**
+   * Area fill style: a vertical fade (strength set by `--tc-area-gradient-start`
+   * / `--tc-area-gradient-end`) or a flat wash (`--tc-area-opacity`).
+   * Defaults to `'gradient'`.
+   */
+  fill?: 'gradient' | 'solid'
 }
 
 /** Points in pixels for a series; `null` for missing values. */
@@ -43,22 +49,46 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     points = 'none',
     pointRadius = 4,
     connectNulls = false,
-    area: fillOption = fill,
+    area: filled = fill,
+    fill: fillStyle = 'gradient',
   } = options
   const overhang = points === 'none' ? 2 : pointRadius + 2
-  const layout = cartesianLayout(options, ctx, { scale: 'point', zero: fillOption, overhang })
+  const layout = cartesianLayout(options, ctx, { scale: 'point', zero: filled, overhang })
   const { x, y, labels } = layout
   const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
+  const gradient = filled && fillStyle === 'gradient'
+  const fadeId = `${ctx.id}-fade`
 
-  const series = options.data.series.map((s, index) => {
-    const pts = seriesPoints(s, labels.length, (i) => x.at(i), y, connectNulls)
+  const all = options.data.series.map((s) =>
+    seriesPoints(s, labels.length, (i) => x.at(i), y, connectNulls),
+  )
+
+  // All areas go below all lines, so a filled series never covers another line.
+  const areas =
+    filled &&
+    h(
+      'g',
+      { class: 'tc-areas' },
+      options.data.series.map((s, index) =>
+        h(
+          'g',
+          seriesAttrs(s, index),
+          h('path', {
+            class: ['tc-area', gradient && 'tc-area-gradient'],
+            d: areaPath(all[index] as Point[], baseline, { curve }),
+            mask: gradient ? `url(#${fadeId})` : undefined,
+          }),
+        ),
+      ),
+    )
+
+  const lines = options.data.series.map((s, index) => {
+    const pts = all[index] as Point[]
     const valid = pts.filter((p): p is readonly [number, number] => p != null)
     const dots = points === 'all' ? valid : points === 'last' ? valid.slice(-1) : []
-
     return h(
       'g',
       seriesAttrs(s, index),
-      fillOption && h('path', { class: 'tc-area', d: areaPath(pts, baseline, { curve }) }),
       h('path', { class: 'tc-line', d: linePath(pts, { curve }) }),
       dots.length > 0 &&
         h(
@@ -72,11 +102,30 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   })
 
   return [
-    h('defs', null, layout.clip.def),
+    h('defs', null, layout.clip.def, gradient && fadeMask(fadeId)),
     layout.background,
-    h('g', { class: 'tc-series-list', 'clip-path': layout.clip.url }, series),
+    h('g', { class: 'tc-series-list', 'clip-path': layout.clip.url }, areas, lines),
     layout.foreground,
   ]
+}
+
+/**
+ * A vertical luminance mask shared by all gradient areas. Areas keep their
+ * series color from CSS; the mask only fades them, with stop opacities read
+ * from `--tc-area-gradient-start` / `--tc-area-gradient-end`.
+ */
+function fadeMask(id: string) {
+  return h(
+    'mask',
+    { id, maskContentUnits: 'objectBoundingBox' },
+    h(
+      'linearGradient',
+      { id: `${id}-gradient`, x1: 0, y1: 0, x2: 0, y2: 1 },
+      h('stop', { class: 'tc-fade-start', offset: 0 }),
+      h('stop', { class: 'tc-fade-end', offset: 1 }),
+    ),
+    h('rect', { width: 1, height: 1, fill: `url(#${id}-gradient)` }),
+  )
 }
 
 /**

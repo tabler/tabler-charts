@@ -52,6 +52,9 @@ describe('style.css', () => {
       'tc-tick-line',
       'tc-line',
       'tc-area',
+      'tc-area-gradient',
+      'tc-fade-start',
+      'tc-fade-end',
       'tc-bar',
       'tc-point',
     ]

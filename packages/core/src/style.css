@@ -38,6 +38,8 @@
   --tc-stroke-width: 2px;
   --tc-grid-width: 1px;
   --tc-area-opacity: 0.1;
+  --tc-area-gradient-start: 0.24;
+  --tc-area-gradient-end: 0;
   --tc-point-ring: 2px;
 
   --tc-duration: 400ms;
@@ -165,6 +167,21 @@
   fill: var(--tc-series-color);
   fill-opacity: var(--tc-area-opacity);
   stroke: none;
+}
+
+/* Gradient areas are faded by a shared mask; the fill itself stays opaque. */
+.tc-area-gradient {
+  fill-opacity: 1;
+}
+
+.tc-fade-start {
+  stop-color: #fff;
+  stop-opacity: var(--tc-area-gradient-start);
+}
+
+.tc-fade-end {
+  stop-color: #fff;
+  stop-opacity: var(--tc-area-gradient-end);
 }
 
 .tc-bar {

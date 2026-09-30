@@ -46,6 +46,16 @@
         "default": "./dist/line.cjs"
       }
     },
+    "./area": {
+      "import": {
+        "types": "./dist/area.d.ts",
+        "default": "./dist/area.js"
+      },
+      "require": {
+        "types": "./dist/area.d.cts",
+        "default": "./dist/area.cjs"
+      }
+    },
     "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },
