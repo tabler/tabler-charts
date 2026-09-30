@@ -1,0 +1,53 @@
+{
+  "name": "@tabler/charts",
+  "version": "0.0.0",
+  "description": "Zero-dependency SVG charts styled with CSS.",
+  "keywords": [
+    "charts",
+    "svg",
+    "css",
+    "dataviz",
+    "graph",
+    "zero-dependency",
+    "ssr"
+  ],
+  "license": "MIT",
+  "author": "Paweł Kuna",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codecalm/tabler-charts.git",
+    "directory": "packages/core"
+  },
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc -p .",
+    "lint:pkg": "publint && attw --pack . --profile node16"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
