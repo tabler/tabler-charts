@@ -23,7 +23,7 @@ dostępność (a11y) i tree-shaking per typ wykresu.
    to zmienne CSS (`--tc-color-1…n`, `--tc-grid-color`, `--tc-font`, `--tc-duration`).
    Opcje JS tylko dla danych i struktury.
 5. **Tree-shaking:** każdy typ wykresu jako osobny eksport (`import { line } from '@tabler/charts/line'`),
-   `sideEffects: false`, ESM-first (+ CJS i IIFE/UMD dla CDN i Bootstrapa).
+   `sideEffects` tylko dla plików CSS, ESM-first (+ CJS i IIFE/UMD dla CDN i Bootstrapa).
 6. **Responsywność:** `viewBox` + jeden współdzielony `ResizeObserver`, render w `requestAnimationFrame`
    (batching wielu aktualizacji w jedną klatkę).
 7. **Dostępność:** `role="img"`, `<title>`/`<desc>`, opcjonalna ukryta tabela danych,
@@ -136,8 +136,8 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 1a. `chore: set up vercel deployment` – projekt `tabler-charts` (codecalm) na Vercelu, Root Directory `apps/docs`, placeholder strony; auto-deploy z GitHuba.
 - [x] 2. `chore: add typescript and build tooling` – `tsconfig.base.json`, tsdown, skrypty `build`/`dev`.
 - [x] 3. `chore: add vitest, lint and formatting` – Vitest, Biome, skrypt `check`.
-- [x] 4. `chore(core): scaffold @tabler/charts package` – `package.json` z `exports`, `sideEffects:false`, pusty `index.ts` (eksport `VERSION`), test „smoke”, `lint:pkg` (publint + attw).
-- [ ] 5. `ci: add github actions workflow` – install, check, test, build.
+- [x] 4. `chore(core): scaffold @tabler/charts package` – `package.json` z `exports`, `sideEffects` tylko dla CSS, pusty `index.ts` (eksport `VERSION`), test „smoke”, `lint:pkg` (publint + attw).
+- [x] 5. `ci: add github actions workflow` – install, lint, typecheck, test, build, lint:pkg.
 
 ### M1 – Fundament renderowania
 - [ ] 6. `feat(core): add vnode and h() helper` + testy.
