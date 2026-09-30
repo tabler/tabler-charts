@@ -1,6 +1,7 @@
 import { hoverOverlay, hoverUnderlay } from './components/hover.ts'
 import type { Locale } from './format.ts'
 import { type Hit, type HitTester, hitKey, toChartPoint } from './interaction.ts'
+import { defaultHidden, type LegendItem, type LegendOptions, legendContent } from './legend.ts'
 import { render } from './render/dom.ts'
 import { renderToString } from './render/string.ts'
 import { observeResize } from './resize.ts'
@@ -19,6 +20,8 @@ export interface RenderContext {
   id: string
   /** Register how points map to data, for pointer interaction (ignored in SSR). */
   onHitTest(tester: HitTester): void
+  /** Keys of legend entries (series) currently hidden. */
+  hidden: ReadonlySet<string>
 }
 
 /**
@@ -28,7 +31,11 @@ export interface RenderContext {
 export interface ChartType<O extends object = object> {
   readonly name: string
   render(options: O, context: RenderContext): ChildInput
+  /** Entries for the legend (series, slices); charts without it get no legend. */
+  legend?(options: O): LegendItem[]
 }
+
+export type { LegendItem }
 
 /** Options shared by every chart type. */
 export interface BaseOptions {
@@ -57,6 +64,8 @@ export interface BaseOptions {
   tooltip?: boolean | TooltipOptions
   /** Show a vertical crosshair on hover (point charts). Defaults to `true`. */
   crosshair?: boolean
+  /** Show a legend with toggles. Defaults to showing it for two or more entries. */
+  legend?: boolean | LegendOptions
 }
 
 /** Full chart configuration: base options, the chart type and its options. */
@@ -98,19 +107,34 @@ function renderContent<O extends object>(
   size: Size,
   id: string,
   onHitTest: (tester: HitTester) => void,
+  hidden: ReadonlySet<string>,
 ): ChildInput {
-  const { type } = config
-  if (!type || typeof type.render !== 'function') {
-    throw new TypeError('@tabler/charts: `type` must be a chart type, e.g. `type: line`.')
-  }
-  return type.render(config, {
+  return config.type.render(config, {
     width: size.width,
     height: size.height,
     fontSize: config.fontSize ?? DEFAULT_FONT_SIZE,
     locale: config.locale,
     id,
     onHitTest,
+    hidden,
   })
+}
+
+function assertType(config: ChartConfig<object>): void {
+  if (!config.type || typeof config.type.render !== 'function') {
+    throw new TypeError('@tabler/charts: `type` must be a chart type, e.g. `type: line`.')
+  }
+}
+
+/** Legend entries of a config, and whether the legend is shown. */
+export function resolveLegend<O extends object>(
+  config: ChartConfig<O>,
+): { items: LegendItem[]; show: boolean; position: 'top' | 'bottom' } {
+  const items = config.type.legend?.(config) ?? []
+  const option = config.legend
+  const show = option === undefined ? items.length >= 2 : option !== false && items.length > 0
+  const position = typeof option === 'object' && option.position === 'bottom' ? 'bottom' : 'top'
+  return { items, show, position }
 }
 
 /** Wrap chart content (and hover layers) in the accessible root `<svg>`. */
@@ -154,7 +178,9 @@ export function buildChart<O extends object>(
   id: string = config.id ?? 'tc',
   onHitTest: (tester: HitTester) => void = () => {},
 ): VNode {
-  const content = renderContent(config, size, id, onHitTest)
+  assertType(config as ChartConfig<object>)
+  const hidden = defaultHidden(resolveLegend(config).items)
+  const content = renderContent(config, size, id, onHitTest, hidden)
   return composeChart(config as ChartConfig<object>, size, id, content)
 }
 
@@ -170,6 +196,8 @@ export function chartToString<O extends object>(config: ChartConfig<O>, size: Si
 }
 
 export interface ChartEvents {
+  /** A legend entry was toggled (by the user or `toggleSeries()`). */
+  'legend-toggle': { key: string; name: string; index: number; hidden: boolean }
   /** After the chart content rendered into the DOM (not on hover-only updates). */
   render: { size: Size }
   /**
@@ -210,9 +238,12 @@ export class Chart<O extends object = object> {
   private active: Hit | null = null
   /** Chart type output of the last render, reused while only hover state changes. */
   private cache:
-    | { cfg: ChartConfig<O>; width: number; height: number; content: ChildInput }
+    | { cfg: ChartConfig<O>; width: number; height: number; hidden: string; content: ChildInput }
     | undefined
   private tooltipEl: HTMLElement | undefined
+  private legendEl: HTMLElement | undefined
+  /** Visibility set by the user, overriding each entry's default. */
+  private readonly toggled = new Map<string, boolean>()
   private readonly addedContainerClass: boolean
 
   constructor(target: Element | string, config: ChartConfig<O>) {
@@ -244,7 +275,37 @@ export class Chart<O extends object = object> {
 
   /** Size of the last render. */
   get size(): Size {
-    return resolveSize(this.cfg, this.measured)
+    // In 'container' height mode the legend takes part of the container.
+    const legend = this.legendEl?.isConnected ? this.legendEl.offsetHeight : 0
+    const measured =
+      legend && this.measured.height
+        ? { ...this.measured, height: this.measured.height - legend }
+        : this.measured
+    return resolveSize(this.cfg, measured)
+  }
+
+  /**
+   * Show or hide a legend entry (series) by key, name or index; toggles when
+   * `hidden` is omitted. Re-renders in the next frame.
+   */
+  toggleSeries(target: string | number, hidden?: boolean): this {
+    const { items } = resolveLegend(this.cfg)
+    const item =
+      typeof target === 'number'
+        ? items.find((entry) => entry.index === target)
+        : (items.find((entry) => entry.key === target) ??
+          items.find((entry) => entry.name === target))
+    if (!item) return this
+    const next = hidden ?? !this.hiddenSet(items).has(item.key)
+    this.toggled.set(item.key, next)
+    this.emit('legend-toggle', { key: item.key, name: item.name, index: item.index, hidden: next })
+    this.schedule()
+    return this
+  }
+
+  /** Whether a legend entry is hidden. */
+  isHidden(key: string): boolean {
+    return this.hiddenSet(resolveLegend(this.cfg).items).has(key)
   }
 
   /** Merge `options` into the configuration and re-render in the next frame. */
@@ -270,18 +331,33 @@ export class Chart<O extends object = object> {
   render(): this {
     if (this.destroyed) return this
     cancel(this)
-    const size = this.size
     const cfg = this.cfg
+    assertType(cfg as ChartConfig<object>)
+    const legend = resolveLegend(cfg)
+    const hidden = this.hiddenSet(legend.items)
+    const hiddenKey = [...hidden].sort().join('\u0000')
+    this.renderLegend(legend, hidden)
+    const size = this.size
 
     let cache = this.cache
     const stale =
-      !cache || cache.cfg !== cfg || cache.width !== size.width || cache.height !== size.height
+      !cache ||
+      cache.cfg !== cfg ||
+      cache.width !== size.width ||
+      cache.height !== size.height ||
+      cache.hidden !== hiddenKey
     if (!cache || stale) {
       this.tester = undefined
-      const content = renderContent(cfg, size, this.id, (tester) => {
-        this.tester = tester
-      })
-      cache = { cfg, width: size.width, height: size.height, content }
+      const content = renderContent(
+        cfg,
+        size,
+        this.id,
+        (tester) => {
+          this.tester = tester
+        },
+        hidden,
+      )
+      cache = { cfg, width: size.width, height: size.height, hidden: hiddenKey, content }
       this.cache = cache
     }
 
@@ -301,6 +377,7 @@ export class Chart<O extends object = object> {
         hit && hoverOverlay(hit),
       ),
     )
+    this.placeLegend()
     if (stale) this.emit('render', { size })
     this.updateTooltip()
     return this
@@ -336,6 +413,10 @@ export class Chart<O extends object = object> {
     if (this.tooltipEl) {
       render(this.tooltipEl, null)
       this.tooltipEl.remove()
+    }
+    if (this.legendEl) {
+      render(this.legendEl, null)
+      this.legendEl.remove()
     }
     if (this.addedContainerClass) this.element.classList.remove('tc-container')
   }
@@ -441,6 +522,59 @@ export class Chart<O extends object = object> {
       // Commit the position before becoming visible, so it does not glide in from the old spot.
       void getComputedStyle(tip).transform
       tip.setAttribute('data-visible', '')
+    }
+  }
+
+  private hiddenSet(items: readonly LegendItem[]): Set<string> {
+    const hidden = new Set<string>()
+    for (const item of items) {
+      if (this.toggled.get(item.key) ?? item.hidden) hidden.add(item.key)
+    }
+    return hidden
+  }
+
+  /** Render (or remove) the legend above or below the SVG. */
+  private renderLegend(
+    legend: ReturnType<typeof resolveLegend>,
+    hidden: ReadonlySet<string>,
+  ): void {
+    if (!legend.show || typeof document === 'undefined') {
+      if (this.legendEl) {
+        render(this.legendEl, null)
+        this.legendEl.remove()
+        this.legendEl = undefined
+      }
+      return
+    }
+    let el = this.legendEl
+    if (!el) {
+      el = this.element.ownerDocument.createElement('div')
+      el.className = 'tc-legend'
+      el.addEventListener('click', (event) => {
+        const button = (event.target as Element).closest?.('.tc-legend-item')
+        const key = button?.getAttribute('data-key')
+        if (key != null) this.toggleSeries(key)
+      })
+      this.legendEl = el
+    }
+    el.dataset.position = legend.position
+    render(el, legendContent(legend.items, hidden))
+    this.placeLegend()
+  }
+
+  /** Keep the legend right before or after the SVG, whatever else lives in the container. */
+  private placeLegend(): void {
+    const el = this.legendEl
+    if (!el) return
+    const svg = this.element.querySelector(':scope > svg.tc-chart')
+    if (el.dataset.position === 'bottom') {
+      if (!svg) {
+        if (!el.isConnected) this.element.appendChild(el)
+      } else if (svg.nextElementSibling !== el) {
+        svg.after(el)
+      }
+    } else if (!el.isConnected || el.nextElementSibling !== svg) {
+      this.element.insertBefore(el, svg ?? this.element.firstChild)
     }
   }
 

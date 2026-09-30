@@ -7,6 +7,8 @@ import {
   categoryHitTester,
   type Series,
   seriesAttrs,
+  seriesKey,
+  seriesLegend,
 } from './cartesian.ts'
 
 export interface LineOptions extends CartesianOptions {
@@ -66,8 +68,10 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   const gradient = filled && fillStyle === 'gradient'
   const fadeId = `${ctx.id}-fade`
 
+  // Hidden series keep their index (and color slot) but draw nothing.
+  const visible = (s: Series) => !ctx.hidden.has(seriesKey(s))
   const all = options.data.series.map((s) =>
-    seriesPoints(s, labels.length, (i) => x.at(i), y, connectNulls),
+    visible(s) ? seriesPoints(s, labels.length, (i) => x.at(i), y, connectNulls) : [],
   )
 
   // All areas go below all lines, so a filled series never covers another line.
@@ -76,20 +80,23 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     h(
       'g',
       { class: 'tc-areas' },
-      options.data.series.map((s, index) =>
-        h(
-          'g',
-          seriesAttrs(s, index),
-          h('path', {
-            class: ['tc-area', gradient && 'tc-area-gradient'],
-            d: areaPath(all[index] as Point[], baseline, { curve }),
-            mask: gradient ? `url(#${fadeId})` : undefined,
-          }),
-        ),
+      options.data.series.map(
+        (s, index) =>
+          visible(s) &&
+          h(
+            'g',
+            seriesAttrs(s, index),
+            h('path', {
+              class: ['tc-area', gradient && 'tc-area-gradient'],
+              d: areaPath(all[index] as Point[], baseline, { curve }),
+              mask: gradient ? `url(#${fadeId})` : undefined,
+            }),
+          ),
       ),
     )
 
   const lines = options.data.series.map((s, index) => {
+    if (!visible(s)) return null
     const pts = all[index] as Point[]
     const valid = pts.filter((p): p is readonly [number, number] => p != null)
     const dots = points === 'all' ? valid : points === 'last' ? valid.slice(-1) : []
@@ -148,4 +155,5 @@ function fadeMask(id: string) {
 export const line: ChartType<LineOptions> = {
   name: 'line',
   render: (options, ctx) => renderLines(options, ctx, false),
+  legend: (options) => seriesLegend(options.data),
 }

@@ -6,6 +6,8 @@ import {
   cartesianLayout,
   categoryHitTester,
   seriesAttrs,
+  seriesKey,
+  seriesLegend,
 } from './cartesian.ts'
 
 export interface BarOptions extends CartesianOptions {
@@ -42,7 +44,13 @@ export const bar: ChartType<BarOptions> = {
     })
     const { x, y, labels } = layout
     const { series } = options.data
-    const n = Math.max(1, series.length)
+    // Hidden series keep their color slot but give up their place in the group.
+    const slots = new Map<number, number>()
+    series.forEach((s, index) => {
+      if (!ctx.hidden.has(seriesKey(s))) slots.set(index, slots.size)
+    })
+    const order = [...slots.keys()]
+    const n = Math.max(1, slots.size)
     const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
 
     const barWidth = Math.max(0, Math.min(maxBarWidth, (x.bandwidth - gap * (n - 1)) / n))
@@ -50,7 +58,7 @@ export const bar: ChartType<BarOptions> = {
     const offset = (x.bandwidth - groupWidth) / 2
 
     const barLeft = (seriesIndex: number, i: number) =>
-      x.at(i) + offset + seriesIndex * (barWidth + gap)
+      x.at(i) + offset + (slots.get(seriesIndex) ?? 0) * (barWidth + gap)
 
     ctx.onHitTest(
       categoryHitTester(
@@ -61,28 +69,31 @@ export const bar: ChartType<BarOptions> = {
         (px, _, i) => {
           // The bar under the pointer, gaps included, so thin bars are easy to hit.
           const slot = Math.floor((px - (x.at(i) + offset) + gap / 2) / (barWidth + gap))
-          return slot >= 0 && slot < series.length && series[slot]?.values[i] != null
-            ? slot
+          const seriesIndex = order[slot]
+          return seriesIndex !== undefined && series[seriesIndex]?.values[i] != null
+            ? seriesIndex
             : undefined
         },
       ),
     )
 
-    const groups = series.map((s, index) =>
-      h(
-        'g',
-        seriesAttrs(s, index),
-        labels.map((label, i) => {
-          const value = s.values[i]
-          if (value == null || !Number.isFinite(value)) return null
-          const left = barLeft(index, i)
-          return h('path', {
-            key: label,
-            class: ['tc-bar', value < 0 && 'tc-bar-negative'],
-            d: barPath(left, barWidth, baseline, y(value), radius),
-          })
-        }),
-      ),
+    const groups = series.map(
+      (s, index) =>
+        slots.has(index) &&
+        h(
+          'g',
+          seriesAttrs(s, index),
+          labels.map((label, i) => {
+            const value = s.values[i]
+            if (value == null || !Number.isFinite(value)) return null
+            const left = barLeft(index, i)
+            return h('path', {
+              key: label,
+              class: ['tc-bar', value < 0 && 'tc-bar-negative'],
+              d: barPath(left, barWidth, baseline, y(value), radius),
+            })
+          }),
+        ),
     )
 
     return [
@@ -92,4 +103,5 @@ export const bar: ChartType<BarOptions> = {
       layout.foreground,
     ]
   },
+  legend: (options) => seriesLegend(options.data),
 }

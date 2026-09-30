@@ -1,4 +1,4 @@
-import type { RenderContext } from '../chart.ts'
+import type { LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { formatNumber, type NumberFormat } from '../format.ts'
@@ -32,6 +32,8 @@ export interface Series {
   color?: string
   /** Extra classes on the series group. */
   class?: ClassValue
+  /** Start hidden (toggle it back from the legend). */
+  hidden?: boolean
 }
 
 export interface CartesianData {
@@ -109,6 +111,19 @@ export interface CartesianLayout {
 const TICK_SPACING = 60
 const EDGE = 8
 
+/** Stable key of a series: its `id`, or its name. */
+export const seriesKey = (series: Series): string => series.id ?? series.name
+
+/** Legend entries for series-based charts. */
+export function seriesLegend(data: CartesianData): LegendItem[] {
+  return data.series.map((series, index) => {
+    const item: LegendItem = { key: seriesKey(series), name: series.name, index }
+    if (series.color) item.color = series.color
+    if (series.hidden) item.hidden = true
+    return item
+  })
+}
+
 /** Categories from `data.labels`, or `1…n` for the longest series. */
 export function resolveLabels(data: CartesianData): Label[] {
   if (data.labels) return data.labels.slice()
@@ -122,8 +137,9 @@ export function valueDomain(
   options: ValueAxisOptions,
   zeroDefault: boolean,
   count: number,
+  hidden: ReadonlySet<string> = new Set(),
 ): [number, number] {
-  const values = data.series.flatMap((s) => s.values)
+  const values = data.series.filter((s) => !hidden.has(seriesKey(s))).flatMap((s) => s.values)
   let [lo, hi] = extent(values) ?? [0, 1]
   if (options.zero ?? zeroDefault) {
     lo = Math.min(lo, 0)
@@ -167,7 +183,7 @@ export function cartesianLayout(
   const showX = xOptions.show !== false && labels.length > 0
 
   const count = yOptions.ticks ?? Math.max(2, Math.round(height / TICK_SPACING))
-  const domain = valueDomain(data, yOptions, layout.zero, count)
+  const domain = valueDomain(data, yOptions, layout.zero, count, ctx.hidden)
   const probeY = linearTicks(linear(domain, [1, 0]), { count, format: yOptions.format, locale })
 
   // Margins: labels outside the plot, half a line above the top tick,
@@ -246,7 +262,7 @@ export function cartesianLayout(
 /** Attributes shared by every series group. */
 export function seriesAttrs(series: Series, index: number): Record<string, string | ClassValue> {
   return {
-    key: series.id ?? series.name,
+    key: seriesKey(series),
     class: ['tc-series', `tc-series-${index + 1}`, series.class],
     'data-series': series.name,
     ...(series.color ? { style: `--tc-series-color:${series.color}` } : {}),
@@ -288,7 +304,9 @@ export function categoryHitTester(
     const start = x.at(index)
     const center = start + x.bandwidth / 2
     const label = labels[index] as Label
-    const items: HitItem[] = data.series.map((series, seriesIndex) => {
+    const items: HitItem[] = []
+    data.series.forEach((series, seriesIndex) => {
+      if (ctx.hidden.has(seriesKey(series))) return
       const raw = series.values[index]
       const value = raw == null || !Number.isFinite(raw) ? null : raw
       const point = value === null ? { x: center, y: null } : anchor(seriesIndex, index, value)
@@ -301,7 +319,7 @@ export function categoryHitTester(
         y: point.y,
       }
       if (series.color) item.color = series.color
-      return item
+      items.push(item)
     })
     const hit: Hit = { index, label, title: formatLabel(label, index), x: center, area, items }
     if (x.bandwidth > 0) hit.band = { x: start, width: x.bandwidth }

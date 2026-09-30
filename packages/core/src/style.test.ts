@@ -66,6 +66,11 @@ describe('style.css', () => {
       'tc-tooltip-name',
       'tc-tooltip-value',
       'tc-tooltip-footer',
+      'tc-legend',
+      'tc-legend-items',
+      'tc-legend-item',
+      'tc-legend-swatch',
+      'tc-legend-item-hidden',
     ]
     for (const name of classes) {
       expect(css, name).toMatch(new RegExp(`\\.${name}[\\s,{]`))

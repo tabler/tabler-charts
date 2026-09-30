@@ -11,7 +11,7 @@ export type {
   RenderContext,
   Size,
 } from './chart.ts'
-export { buildChart, Chart, chartToString, resolveSize } from './chart.ts'
+export { buildChart, Chart, chartToString, resolveLegend, resolveSize } from './chart.ts'
 export type { AreaOptions } from './charts/area.ts'
 export { area } from './charts/area.ts'
 export type { BarOptions } from './charts/bar.ts'
@@ -24,7 +24,7 @@ export type {
   Series,
   ValueAxisOptions,
 } from './charts/cartesian.ts'
-export { categoryHitTester } from './charts/cartesian.ts'
+export { categoryHitTester, seriesKey, seriesLegend } from './charts/cartesian.ts'
 export type { LineOptions } from './charts/line.ts'
 export { line } from './charts/line.ts'
 export type { AxisOptions, AxisPosition, LinearTicksOptions, Tick } from './components/axis.ts'
@@ -44,6 +44,8 @@ export {
 export type { Hit, HitItem, HitTester } from './interaction.ts'
 export type { Insets, InsetsInput, Rect } from './layout.ts'
 export { estimateTextWidth, innerRect, insets, LINE_HEIGHT } from './layout.ts'
+export type { LegendItem, LegendOptions } from './legend.ts'
+export { defaultHidden, legendContent } from './legend.ts'
 export { render } from './render/dom.ts'
 export type { RenderToStringOptions } from './render/string.ts'
 export { escapeAttr, escapeText, renderToString } from './render/string.ts'
