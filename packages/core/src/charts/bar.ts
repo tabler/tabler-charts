@@ -6,6 +6,7 @@ import {
   cartesianLayout,
   categoryInteraction,
   labelKey,
+  plottable,
   resolveLabels,
   seriesAttrs,
   seriesKey,
@@ -98,7 +99,7 @@ export const bar: ChartType<BarOptions> = {
     const segment = (seriesIndex: number, i: number): Segment | null => {
       if (stacks) return stacks[seriesIndex]?.[i] ?? null
       const v = series[seriesIndex]?.values[i]
-      return v == null || !Number.isFinite(v) ? null : { y0: 0, y1: v }
+      return plottable(v, options.y) ? { y0: 0, y1: v } : null
     }
 
     // In a stack only the outermost segment of each sign gets rounded.

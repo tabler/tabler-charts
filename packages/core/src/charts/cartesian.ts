@@ -162,6 +162,18 @@ export function resolveLabels(data: CartesianData): Label[] {
   return Array.from({ length: n }, (_, i) => i + 1)
 }
 
+/**
+ * Whether a value can be plotted on the axis: finite, and positive on a log
+ * scale (zero and negatives become gaps there).
+ */
+export function plottable(
+  value: number | null | undefined,
+  axis: ValueAxisOptions | undefined,
+): value is number {
+  if (value == null || !Number.isFinite(value)) return false
+  return axis?.scale !== 'log' || value > 0
+}
+
 /** Whether the category axis carries time (dates or timestamps in order). */
 export const isTimeAxis = (options: CartesianOptions): boolean => options.x?.type === 'time'
 
@@ -581,7 +593,7 @@ export function categoryInteraction(
     data.series.forEach((series, seriesIndex) => {
       if (ctx.hidden.has(seriesKey(series))) return
       const raw = series.values[index]
-      const value = raw == null || !Number.isFinite(raw) ? null : raw
+      const value = plottable(raw, options.y) ? raw : null
       const point = value === null ? empty : anchor(seriesIndex, index, value)
       const item: HitItem = {
         name: series.name,

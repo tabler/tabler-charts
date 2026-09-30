@@ -9,7 +9,7 @@ import type { LegendItem } from '../legend.ts'
 import { extent } from '../scales/extent.ts'
 import { linear } from '../scales/linear.ts'
 import { type ClassValue, h } from '../vnode.ts'
-import { domainOf, type ValueAxisOptions } from './cartesian.ts'
+import { domainOf, plottable, type ValueAxisOptions } from './cartesian.ts'
 
 /** A point of a scatter or bubble chart. */
 export interface ScatterPoint {
@@ -62,6 +62,10 @@ interface Placed {
 }
 
 const seriesKey = (series: ScatterSeries): string => series.id ?? series.name
+
+/** A point's bubble size, or `undefined` when it has none (or an invalid one). */
+const sizeOf = (p: ScatterPoint): number | undefined =>
+  p.size != null && Number.isFinite(p.size) && p.size > 0 ? p.size : undefined
 const round = (value: number): number => Math.round(value * 100) / 100
 
 /** SVG path of a circle of radius `r` around the origin. */
@@ -74,7 +78,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   const radius = options.radius ?? 4
   const visible = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
   const points = visible.flatMap((s) => s.points)
-  const sizes = points.map((p) => p.size).filter((v): v is number => v != null && v > 0)
+  const sizes = points.map(sizeOf).filter((v): v is number => v !== undefined)
   const maxSize = extent(sizes)?.[1] ?? 0
   const rMin = options.size?.min ?? 4
   const rMax = options.size?.max ?? 24
@@ -87,14 +91,17 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
 
   const countY = yOptions.ticks ?? Math.max(2, Math.round(height / 60))
   const countX = xOptions.ticks ?? Math.max(2, Math.round(width / 80))
+  // Only points that can be plotted on both axes take part.
+  const usable = (p: ScatterPoint) => plottable(p.x, xOptions) && plottable(p.y, yOptions)
+  const shown = points.filter(usable)
   const xDomain = domainOf(
-    points.map((p) => p.x),
+    shown.map((p) => p.x),
     xOptions,
     false,
     countX,
   )
   const yDomain = domainOf(
-    points.map((p) => p.y),
+    shown.map((p) => p.y),
     yOptions,
     false,
     countY,
@@ -136,14 +143,14 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   options.data.series.forEach((series, seriesIndex) => {
     if (ctx.hidden.has(seriesKey(series))) return
     series.points.forEach((point, pointIndex) => {
-      if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return
+      if (!usable(point)) return
       placed.push({
         seriesIndex,
         pointIndex,
         point,
         cx: x(point.x),
         cy: y(point.y),
-        r: bubble(point.size),
+        r: bubble(sizeOf(point)),
       })
     })
   })
@@ -154,7 +161,8 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   const fs = formatNumber(undefined, locale)
   const hitFor = (p: Placed, index: number): Hit => {
     const series = options.data.series[p.seriesIndex] as ScatterSeries
-    const size = p.point.size != null ? ` · ${fs(p.point.size)}` : ''
+    const sz = sizeOf(p.point)
+    const size = sz === undefined ? '' : ` · ${fs(sz)}`
     const item: HitItem = {
       name: series.name,
       seriesIndex: p.seriesIndex,
@@ -227,14 +235,13 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
         },
         series.points.map(
           (point, i) =>
-            Number.isFinite(point.x) &&
-            Number.isFinite(point.y) &&
+            usable(point) &&
             h('circle', {
               key: i,
-              class: ['tc-point', point.size != null && 'tc-bubble'],
+              class: ['tc-point', sizeOf(point) !== undefined && 'tc-bubble'],
               cx: round(x(point.x)),
               cy: round(y(point.y)),
-              r: round(bubble(point.size)),
+              r: round(bubble(sizeOf(point))),
             }),
         ),
       ),
@@ -295,7 +302,7 @@ function scatterTable(
         ...(withLabel ? [p.label ?? ''] : []),
         fx(p.x),
         fy(p.y),
-        ...(withSize ? [p.size == null ? '–' : fs(p.size)] : []),
+        ...(withSize ? [sizeOf(p) === undefined ? '–' : fs(sizeOf(p) as number)] : []),
       ])
     }),
   }

@@ -6,6 +6,7 @@ import {
   type CartesianOptions,
   cartesianLayout,
   categoryInteraction,
+  plottable,
   resolveLabels,
   type Series,
   seriesAttrs,
@@ -54,11 +55,12 @@ function seriesPoints(
   x: (i: number) => number,
   y: (v: number) => number,
   connectNulls: boolean,
+  valid: (v: number | null | undefined) => v is number,
 ): Point[] {
   const points: Point[] = []
   for (let i = 0; i < count; i++) {
     const v = series.values[i]
-    if (v == null || !Number.isFinite(v)) {
+    if (!valid(v)) {
       if (!connectNulls) points.push(null)
     } else {
       points.push([x(i), y(v)])
@@ -115,7 +117,14 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     // Stacked series draw their running total.
     const stack = stacks?.[index]
     if (stack) return stack.map((seg, i): Point => (seg ? [x.at(i), y(seg.y1)] : null))
-    return seriesPoints(s, labels.length, (i) => x.at(i), y, connectNulls)
+    return seriesPoints(
+      s,
+      labels.length,
+      (i) => x.at(i),
+      y,
+      connectNulls,
+      (v) => plottable(v, options.y),
+    )
   })
   /** Indices drawn per series: a downsampled subset when `decimate` is set. */
   const kept = all.map((pts) =>

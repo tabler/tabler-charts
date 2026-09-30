@@ -159,6 +159,26 @@ describe('log axis', () => {
     expect((ys[0] ?? 0) - (ys[1] ?? 0)).toBeCloseTo((ys[1] ?? 0) - (ys[2] ?? 0))
   })
 
+  test('turns zero and negative values into gaps instead of plotting them at -infinity', () => {
+    const node = render({
+      data: { labels: ['a', 'b', 'c', 'd'], series: [{ name: 'U', values: [10, 0, -5, 1000] }] },
+    })
+    const d = String(findByClass(node, 'tc-line')[0]?.attrs.d)
+    // Two valid points in separate runs: two subpaths, no coordinate far off-plot.
+    expect(d.match(/M/g)).toHaveLength(2)
+    for (const n of d.match(/-?[\d.]+/g) ?? []) expect(Math.abs(Number(n))).toBeLessThan(1000)
+    const bars = buildChart(
+      {
+        ...base,
+        type: bar,
+        data: { labels: ['a', 'b'], series: [{ name: 'U', values: [0, 5] }] },
+      } as ChartConfig<object>,
+      size,
+      'lb',
+    )
+    expect(findByClass(bars, 'tc-bar')).toHaveLength(1)
+  })
+
   test('ignores zero and negative values and works for horizontal bars', () => {
     const node = render({
       data: { labels: ['a', 'b', 'c'], series: [{ name: 'U', values: [0, 5, 500] }] },

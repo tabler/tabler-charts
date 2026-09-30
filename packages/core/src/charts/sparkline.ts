@@ -46,6 +46,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
     name = 'Value',
   } = options
   const values = options.data.map((v) => (v == null || !Number.isFinite(v) ? null : v))
+  // (No log option on sparklines, so finite is all that matters here.)
   const count = values.length
   const dots = point === 'last' || markers === 'minmax'
   // Room for the stroke and dots so nothing is clipped at the edges.

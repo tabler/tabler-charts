@@ -152,6 +152,31 @@ describe('scatter', () => {
     expect(circles(node)).toHaveLength(1)
   })
 
+  test('treats invalid sizes as no size and skips non-positive values on log axes', () => {
+    const node = render({
+      data: {
+        series: [
+          {
+            name: 'S',
+            points: [
+              { x: 1, y: 1, size: Number.NaN },
+              { x: 0, y: 2 },
+              { x: 5, y: -1 },
+            ],
+          },
+        ],
+      },
+      x: { scale: 'log' },
+      y: { scale: 'log' },
+    })
+    expect(circles(node)).toHaveLength(1)
+    expect(findByClass(node, 'tc-bubble')).toHaveLength(0)
+    const hit = interactionOf({
+      data: { series: [{ name: 'S', points: [{ x: 1, y: 1, size: Number.NaN }] }] },
+    }).hitIndex(0)
+    expect(hit?.items[0]?.text).toBe('1, 1')
+  })
+
   test('finds the nearest of many points quickly', () => {
     const many = {
       series: [
