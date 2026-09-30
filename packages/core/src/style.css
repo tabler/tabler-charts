@@ -211,6 +211,98 @@
   paint-order: stroke;
 }
 
+/* -- Motion ----------------------------------------------------------------- */
+
+/*
+ * Updates: marks keep their DOM nodes between renders, so transitions on
+ * their geometry animate data changes (d is not animatable in Safari, which
+ * simply jumps). Entrances: keyframes run only for newly inserted nodes.
+ * Everything is timed by --tc-duration (0 with reduced motion or animate: false).
+ */
+
+@keyframes tc-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes tc-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes tc-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.tc-line,
+.tc-area {
+  transition: d var(--tc-duration) var(--tc-easing);
+}
+
+/* Lines and areas draw in from the left (no fill mode, so the plot clip returns after). */
+.tc-chart-line .tc-series-list,
+.tc-chart-area .tc-series-list {
+  animation: tc-reveal calc(var(--tc-duration) * 2) var(--tc-easing);
+}
+
+/* Series shown again from the legend fade in. */
+.tc-series-list .tc-series,
+.tc-areas .tc-series {
+  animation: tc-fade-in var(--tc-duration) var(--tc-easing);
+}
+
+/* Bars grow from the baseline: up, or down for negative values. */
+.tc-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: d var(--tc-duration) var(--tc-easing);
+  animation: tc-grow var(--tc-duration) var(--tc-easing);
+}
+
+.tc-bar-negative {
+  transform-origin: 50% 0;
+}
+
+.tc-point {
+  transition:
+    cx var(--tc-duration) var(--tc-easing),
+    cy var(--tc-duration) var(--tc-easing);
+}
+
+.tc-series-list .tc-point {
+  animation: tc-fade-in var(--tc-duration) var(--tc-easing);
+}
+
+/* Ticks and grid lines glide to new positions; new ones fade in. */
+.tc-tick,
+.tc-grid-line {
+  transition: transform var(--tc-duration) var(--tc-easing);
+  animation: tc-fade-in var(--tc-duration) var(--tc-easing);
+}
+
+/* Hover marks follow the pointer immediately. */
+.tc-hover .tc-point {
+  transition: none;
+  animation: none;
+}
+
+/* While the container is being resized, jump instead of chasing the pointer. */
+.tc-chart[data-resizing],
+.tc-chart[data-resizing] * {
+  transition: none;
+}
+
+.tc-static {
+  --tc-duration: 0ms;
+}
+
 /* -- Hover ------------------------------------------------------------------ */
 
 /* Positioning context for the tooltip; zero specificity so page styles win. */

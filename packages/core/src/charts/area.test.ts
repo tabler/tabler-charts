@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
-import { findByClass, findByTag } from '../test-utils.ts'
+import { findByClass, findByTag, gridLineOffset } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { type AreaOptions, area } from './area.ts'
 import { line } from './line.ts'
@@ -76,7 +76,7 @@ describe('area', () => {
 
   test('closes areas against the zero baseline', () => {
     const d = findByClass(render({ curve: 'linear' }), 'tc-area')[0]?.attrs.d as string
-    const zeroY = Number((findByClass(render(), 'tc-grid-line-zero')[0] as VNode).attrs.y1)
+    const zeroY = gridLineOffset(findByClass(render(), 'tc-grid-line-zero')[0])
     expect(d).toMatch(new RegExp(`L[\\d.]+,${zeroY}L[\\d.]+,${zeroY}Z$`))
   })
 

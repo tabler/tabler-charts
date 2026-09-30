@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
-import { findByClass } from '../test-utils.ts'
+import { findByClass, gridLineOffset } from '../test-utils.ts'
 import { type BarOptions, bar } from './bar.ts'
 
 const size = { width: 400, height: 200 }
@@ -66,7 +66,7 @@ describe('bar', () => {
   })
 
   test('always includes zero and grows bars from it', () => {
-    const zero = Number(findByClass(render(), 'tc-grid-line-zero')[0]?.attrs.y1)
+    const zero = gridLineOffset(findByClass(render(), 'tc-grid-line-zero')[0])
     for (const b of barsOf(render())) expect(bounds(b.attrs.d).bottom).toBe(zero)
   })
 
@@ -96,7 +96,7 @@ describe('bar', () => {
     const node = render({
       data: { labels: ['a', 'b'], series: [{ name: 'Profit', values: [20, -10] }] },
     })
-    const zero = Number(findByClass(node, 'tc-grid-line-zero')[0]?.attrs.y1)
+    const zero = gridLineOffset(findByClass(node, 'tc-grid-line-zero')[0])
     const [pos, neg] = barsOf(node)
     expect(pos?.attrs.class).toBe('tc-bar')
     expect(neg?.attrs.class).toBe('tc-bar tc-bar-negative')

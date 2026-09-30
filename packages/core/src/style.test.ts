@@ -77,6 +77,24 @@ describe('style.css', () => {
     }
   })
 
+  test('times every animation and transition with the --tc-duration tokens', () => {
+    const timed = [...css.matchAll(/(?:animation|transition)(?:-duration)?:\s*([^;]+);/g)]
+      .map((m) => m[1] ?? '')
+      .filter((value) => value.trim() !== 'none')
+    expect(timed.length).toBeGreaterThan(5)
+    for (const value of timed) {
+      // No literal durations like 300ms / 0.2s: they would ignore reduced motion.
+      expect(value, value).not.toMatch(/(^|[\s,(])\d*\.?\d+m?s\b/)
+      expect(value, value).toMatch(/var\(--tc-duration(-fast)?\)/)
+    }
+  })
+
+  test('defines the entrance keyframes', () => {
+    for (const name of ['tc-reveal', 'tc-grow', 'tc-fade-in']) {
+      expect(css).toContain(`@keyframes ${name} {`)
+    }
+  })
+
   test('drives all motion through --tc-duration', () => {
     expect(css).not.toContain('!important')
     expect(block('@media (prefers-reduced-motion: reduce)')).toContain('--tc-duration: 0ms')

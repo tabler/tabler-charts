@@ -66,6 +66,8 @@ export interface BaseOptions {
   crosshair?: boolean
   /** Show a legend with toggles. Defaults to showing it for two or more entries. */
   legend?: boolean | LegendOptions
+  /** Animate entrances and data updates. Defaults to `true` (reduced motion always wins). */
+  animate?: boolean
 }
 
 /** Full chart configuration: base options, the chart type and its options. */
@@ -152,7 +154,12 @@ function composeChart(
   return h(
     'svg',
     {
-      class: ['tc-chart', `tc-chart-${config.type.name}`, config.class],
+      class: [
+        'tc-chart',
+        `tc-chart-${config.type.name}`,
+        config.animate === false && 'tc-static',
+        config.class,
+      ],
       viewBox: `0 0 ${width} ${height}`,
       width,
       height,
@@ -242,6 +249,7 @@ export class Chart<O extends object = object> {
     | undefined
   private tooltipEl: HTMLElement | undefined
   private legendEl: HTMLElement | undefined
+  private resizeTimer: ReturnType<typeof setTimeout> | undefined
   /** Visibility set by the user, overriding each entry's default. */
   private readonly toggled = new Map<string, boolean>()
   private readonly addedContainerClass: boolean
@@ -262,7 +270,10 @@ export class Chart<O extends object = object> {
       const changed =
         width !== this.measured.width || (followsHeight && height !== this.measured.height)
       this.measured = { width, height }
-      if (changed) this.schedule()
+      if (changed) {
+        this.markResizing()
+        this.schedule()
+      }
     })
     this.unlisten = this.listen()
     this.render()
@@ -406,6 +417,7 @@ export class Chart<O extends object = object> {
     if (this.destroyed) return
     this.destroyed = true
     cancel(this)
+    clearTimeout(this.resizeTimer)
     this.unobserve()
     this.unlisten()
     this.handlers.clear()
@@ -576,6 +588,15 @@ export class Chart<O extends object = object> {
     } else if (!el.isConnected || el.nextElementSibling !== svg) {
       this.element.insertBefore(el, svg ?? this.element.firstChild)
     }
+  }
+
+  /** Suspend transitions while the container keeps resizing (see `[data-resizing]` in CSS). */
+  private markResizing(): void {
+    const svg = this.element.querySelector(':scope > svg.tc-chart')
+    if (!svg) return
+    svg.setAttribute('data-resizing', '')
+    clearTimeout(this.resizeTimer)
+    this.resizeTimer = setTimeout(() => svg.removeAttribute('data-resizing'), 200)
   }
 
   private schedule(): void {

@@ -23,9 +23,22 @@ export function grid(options: GridOptions): VNode {
       return h('line', {
         key: tick.value,
         class: ['tc-grid-line', tick.value === 0 && 'tc-grid-line-zero'],
+        // Positioned with a transitionable transform, so lines glide when the scale changes.
         ...(direction === 'y'
-          ? { x1: area.x, x2: area.x + area.width, y1: p, y2: p }
-          : { x1: p, x2: p, y1: area.y, y2: area.y + area.height }),
+          ? {
+              x1: area.x,
+              x2: area.x + area.width,
+              y1: 0,
+              y2: 0,
+              style: `transform:translateY(${p}px)`,
+            }
+          : {
+              x1: 0,
+              x2: 0,
+              y1: area.y,
+              y2: area.y + area.height,
+              style: `transform:translateX(${p}px)`,
+            }),
       })
     }),
   )

@@ -222,6 +222,28 @@ describe('Chart', () => {
     expect(chart.size).toEqual({ width: 400, height: 180 })
   })
 
+  test('animate: false marks the svg static', () => {
+    new Chart(el, { type: dots, data: [], animate: false })
+    expect(el.querySelector('svg')?.classList.contains('tc-static')).toBe(true)
+  })
+
+  test('suspends transitions while the container is resizing', () => {
+    vi.useFakeTimers()
+    try {
+      new Chart(el, { type: dots, data: [] })
+      const svg = el.querySelector('svg')
+      resizeTo(el, 420)
+      expect(svg?.hasAttribute('data-resizing')).toBe(true)
+      flush()
+      // Our own render must not drop the flag set outside the vnode tree.
+      expect(svg?.hasAttribute('data-resizing')).toBe(true)
+      vi.advanceTimersByTime(250)
+      expect(svg?.hasAttribute('data-resizing')).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   test('unsubscribes event handlers', () => {
     const chart = new Chart(el, { type: dots, data: [] })
     const spy = vi.fn()

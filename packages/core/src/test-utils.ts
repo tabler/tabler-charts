@@ -16,3 +16,9 @@ export function findByTag(node: Child, tag: string, out: VNode[] = []): VNode[] 
   for (const child of node.children) findByTag(child, tag, out)
   return out
 }
+
+/** Offset of a grid line positioned with `transform:translateX/Y(<n>px)`. */
+export function gridLineOffset(node: VNode | undefined): number {
+  const match = String(node?.attrs.style ?? '').match(/translate[XY]\((-?[\d.]+)px\)/)
+  return match ? Number(match[1]) : Number.NaN
+}

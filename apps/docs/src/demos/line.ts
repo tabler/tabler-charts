@@ -25,7 +25,7 @@ export const lineDemo: Demo = {
   id: 'line',
   title: 'Line chart',
   description:
-    'Built-in line type: nice y domain, auto margins from label sizes, gaps for missing values (April), crosshair and tooltip on hover.',
+    'Built-in line type: nice y domain, auto margins from label sizes, gaps for missing values (April), crosshair and tooltip on hover. Shuffle to see CSS transitions on the same DOM nodes.',
   mount(el, controls) {
     const chart = new Chart(el, {
       type: line,
@@ -46,6 +46,9 @@ export const lineDemo: Demo = {
     )
     controls.select('Gaps', ['leave', 'connect'] as const, 'leave', (gaps) =>
       chart.update({ connectNulls: gaps === 'connect' }),
+    )
+    controls.select('Animate', ['on', 'off'] as const, 'on', (value) =>
+      chart.update({ animate: value === 'on' }),
     )
     controls.select('Fill', ['off', 'on'] as const, 'off', (fill) =>
       chart.update({ area: fill === 'on' }),

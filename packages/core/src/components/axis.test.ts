@@ -128,17 +128,17 @@ describe('axis()', () => {
       if (typeof tick === 'string' || !tick) throw new Error('expected a tick')
       const text = tick.children[0]
       if (typeof text === 'string' || !text) throw new Error('expected a label')
-      return { transform: tick.attrs.transform, ...text.attrs }
+      return { transform: tick.attrs.style, ...text.attrs }
     }
-    expect(at('bottom')).toMatchObject({ transform: 'translate(100,210)', y: 8 })
-    expect(at('top')).toMatchObject({ transform: 'translate(100,10)', y: -8 })
+    expect(at('bottom')).toMatchObject({ transform: 'transform:translate(100px,210px)', y: 8 })
+    expect(at('top')).toMatchObject({ transform: 'transform:translate(100px,10px)', y: -8 })
     expect(at('left')).toMatchObject({
-      transform: 'translate(40,100)',
+      transform: 'transform:translate(40px,100px)',
       x: -8,
       'text-anchor': 'end',
     })
     expect(at('right')).toMatchObject({
-      transform: 'translate(340,100)',
+      transform: 'transform:translate(340px,100px)',
       x: 8,
       'text-anchor': 'start',
     })
@@ -162,8 +162,8 @@ describe('grid()', () => {
     const node = grid({ direction: 'x', ticks: bandTicks(x), area })
     expect(renderToString(node)).toBe(
       '<g class="tc-grid tc-grid-x" aria-hidden="true">' +
-        '<line class="tc-grid-line" x1="40" x2="40" y1="10" y2="210"/>' +
-        '<line class="tc-grid-line" x1="340" x2="340" y1="10" y2="210"/></g>',
+        '<line class="tc-grid-line" x1="0" x2="0" y1="10" y2="210" style="transform:translateX(40px)"/>' +
+        '<line class="tc-grid-line" x1="0" x2="0" y1="10" y2="210" style="transform:translateX(340px)"/></g>',
     )
   })
 })

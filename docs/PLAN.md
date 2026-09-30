@@ -158,7 +158,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 19. `feat(core): add event delegation and nearest-point hit testing` – `ctx.onHitTest()` (layout liczony raz), `categoryHitTester()`, zdarzenia `hover`/`click`, `chart.hitTest()`, odświeżanie hover po zmianie danych, dotyk.
 - [x] 20. `feat(core): add tooltip and crosshair` (+ dema) – warstwy hover (crosshair / pas kategorii / aktywne punkty) w drzewie SVG z cache treści typu wykresu, tooltip HTML (`.tc-tooltip`, `format`, `footer`), pozycjonowanie z odbiciem przy krawędzi, opcje `tooltip` / `crosshair`.
 - [x] 21. `feat(core): add legend with series toggle` – legenda HTML (przyciski z `aria-pressed`), auto od 2 serii, `ChartType.legend()` (gotowe pod wycinki pie), ukryte serie zachowują slot koloru, `toggleSeries()`, zdarzenie `legend-toggle`, `Series.hidden`.
-- [ ] 22. `feat(core): animate data updates via css transitions`.
+- [x] 22. `feat(core): animate data updates via css transitions` – przejścia `d`/`cx`/`cy`/`transform` na tych samych węzłach, wejścia (odsłanianie linii, wzrost słupków od bazy, fade), bez animacji przy zmianie rozmiaru, `animate: false`, wszystko przez `--tc-duration`. Safari: `d` nie animuje się (przeskok).
 - [ ] 23. `feat(core): add accessibility (title/desc, keyboard nav, data table)`.
 
 ### M3 – Kolejne typy

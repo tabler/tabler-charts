@@ -30,6 +30,8 @@ export interface LineOptions extends CartesianOptions {
   fill?: 'gradient' | 'solid'
 }
 
+const round = (value: number): number => Math.round(value * 100) / 100
+
 /** Points in pixels for a series; `null` for missing values. */
 function seriesPoints(
   series: Series,
@@ -109,7 +111,13 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
           'g',
           { class: 'tc-points' },
           dots.map(([cx, cy]) =>
-            h('circle', { key: cx, class: 'tc-point', cx, cy, r: pointRadius }),
+            h('circle', {
+              key: cx,
+              class: 'tc-point',
+              cx: round(cx),
+              cy: round(cy),
+              r: pointRadius,
+            }),
           ),
         ),
     )

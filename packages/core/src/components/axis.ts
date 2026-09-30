@@ -157,9 +157,10 @@ export function axis(options: AxisOptions): VNode {
         {
           key: tick.value,
           class: 'tc-tick',
-          transform: horizontal
-            ? `translate(${round(tick.position)},${round(edge)})`
-            : `translate(${round(edge)},${round(tick.position)})`,
+          // An inline style (not the transform attribute) so CSS can transition it.
+          style: horizontal
+            ? `transform:translate(${round(tick.position)}px,${round(edge)}px)`
+            : `transform:translate(${round(edge)}px,${round(tick.position)}px)`,
         },
         tickSize > 0 && h('line', { class: 'tc-tick-line', ...tickLine }),
         h('text', { class: 'tc-tick-label', ...label }, tick.label),
