@@ -108,6 +108,7 @@ describe('pie', () => {
     const table = pie.table?.(
       base,
       renderContext(base, size, 'p', () => {}, new Set()),
+      100,
     )
     expect(table).toEqual({
       columns: ['', 'Value', 'Share'],

@@ -127,6 +127,7 @@ describe('scatter', () => {
     const table = scatter.table?.(
       base,
       renderContext(base, size, 's', () => {}, new Set()),
+      100,
     )
     expect(table?.columns).toEqual(['', 'Label', 'x', 'y'])
     expect(table?.rows[0]).toEqual(['North', 'Oslo', '10', '20'])

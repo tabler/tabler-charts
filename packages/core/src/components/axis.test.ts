@@ -71,6 +71,21 @@ describe('thinTicks()', () => {
     expect(thinTicks(make(10, 10), 'left', 12).map((t) => t.value)).toEqual([0, 3, 6, 9])
   })
 
+  test('thins ten thousand labels quickly to a readable few', () => {
+    const many = Array.from({ length: 10000 }, (_, i) => ({
+      value: i,
+      position: i * 0.1,
+      label: `L${i}`,
+    }))
+    const start = performance.now()
+    const kept = thinTicks(many, 'bottom', 12)
+    expect(performance.now() - start).toBeLessThan(50)
+    expect(kept.length).toBeGreaterThan(5)
+    expect(kept.length).toBeLessThan(40)
+    expect(kept[0]?.value).toBe(0)
+    expect(kept[kept.length - 1]?.value).toBe(9999)
+  })
+
   test('handles tiny inputs', () => {
     expect(thinTicks([], 'bottom', 12)).toEqual([])
     expect(thinTicks(make(1, 0), 'bottom', 12)).toHaveLength(1)

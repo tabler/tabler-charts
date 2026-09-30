@@ -101,6 +101,21 @@ describe('Chart accessibility', () => {
     expect(el.querySelector('.tc-table')).toBeNull()
   })
 
+  test('caps huge tables and says so in the caption', () => {
+    const labels = Array.from({ length: 5000 }, (_, i) => `r${i}`)
+    const values = labels.map((_, i) => i)
+    chart = new Chart(el, {
+      ...base,
+      data: { labels, series: [{ name: 'V', values }] },
+    } as ChartConfig<object>)
+    expect(el.querySelectorAll('.tc-table tbody tr')).toHaveLength(1000)
+    expect(el.querySelector('.tc-table caption')?.textContent).toBe('Traffic (1,000 of 5,000 rows)')
+    chart.update({ table: { maxRows: 20 } } as Partial<ChartConfig<object>>).render()
+    expect(el.querySelectorAll('.tc-table tbody tr')).toHaveLength(20)
+    chart.update({ table: { visible: true, maxRows: 20 } } as Partial<ChartConfig<object>>).render()
+    expect(el.querySelector('.tc-table-wrap')?.classList.contains('tc-sr-only')).toBe(false)
+  })
+
   test('makes the svg focusable unless keyboard is disabled', () => {
     chart = new Chart(el, base)
     expect(svg().getAttribute('tabindex')).toBe('0')

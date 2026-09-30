@@ -7,6 +7,8 @@ export interface DataTable {
   columns: string[]
   /** Rows of display text; the first cell of each row is its header. */
   rows: string[][]
+  /** Total number of rows when `rows` was cut to a limit. */
+  total?: number
 }
 
 /**

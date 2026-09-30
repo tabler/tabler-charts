@@ -65,7 +65,11 @@ export function thinTicks(
     ((sizes[i] as number) + (sizes[j] as number)) / 2 + gap
 
   const last = ticks.length - 1
-  for (let step = 1; step <= last; step++) {
+  // Start from the step the total label size demands, instead of trying every one.
+  const span = Math.abs((ticks[last] as Tick).position - (ticks[0] as Tick).position)
+  const total = sizes.reduce((sum, size) => sum + size + gap, 0)
+  const first = span > 0 ? Math.max(1, Math.floor(total / span)) : last
+  for (let step = first; step <= last; step++) {
     let fits = true
     for (let i = step; i <= last && fits; i += step) fits = fitsBetween(i - step, i)
     if (!fits) continue
@@ -107,7 +111,7 @@ export function axisSize(
   if (ticks.length === 0) return 0
   const labels = isHorizontal(position)
     ? fontSize * LINE_HEIGHT
-    : Math.max(...ticks.map((t) => estimateTextWidth(t.label, fontSize)))
+    : ticks.reduce((max, t) => Math.max(max, estimateTextWidth(t.label, fontSize)), 0)
   return Math.ceil(labels + tickSize + tickPadding)
 }
 

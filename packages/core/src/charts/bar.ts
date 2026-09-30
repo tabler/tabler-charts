@@ -187,5 +187,5 @@ export const bar: ChartType<BarOptions> = {
     ]
   },
   legend: (options) => seriesLegend(options.data),
-  table: (options, ctx) => seriesTable(options, ctx),
+  table: (options, ctx, limit) => seriesTable(options, ctx, limit),
 }

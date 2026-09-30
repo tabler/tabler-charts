@@ -61,6 +61,7 @@ describe('time axis', () => {
     const table = line.table?.(
       config,
       renderContext(config, size, 't', () => {}, new Set()),
+      100,
     )
     expect(table?.rows[0]?.[0]).toBe('Sep 1, 2026')
   })
@@ -104,6 +105,23 @@ describe('time axis', () => {
     const ticks = axisLabels(node, 'tc-axis-x')
     expect(ticks).toHaveLength(4)
     expect(ticks[0]).toBe('Sep 1, 2026')
+  })
+})
+
+describe('time axis with many points', () => {
+  test('lays out 200k points without overflowing the stack', () => {
+    const n = 200_000
+    const labels = Array.from({ length: n }, (_, i) => day(1) + i * 60_000)
+    const values = labels.map((_, i) => Math.sin(i / 500) * 10)
+    const config = {
+      type: line,
+      data: { labels, series: [{ name: 'S', values }] },
+      x: { type: 'time', utc: true },
+      decimate: 300,
+      id: 'm',
+    } as ChartConfig<object>
+    const node = buildChart(config, size, 'm')
+    expect(String(findByClass(node, 'tc-line')[0]?.attrs.d).match(/C/g)?.length).toBe(299)
   })
 })
 

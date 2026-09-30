@@ -223,9 +223,9 @@ function valueTicks(
  */
 function timePointScale(labels: readonly Label[], range: [number, number], utc: boolean) {
   const stamps = labels.map(toMs)
+  // Spreading large arrays into Math.min/max overflows the stack, so scan.
+  const [lo, hi] = extent(stamps) ?? [0, 1]
   const valid = stamps.filter((t) => Number.isFinite(t))
-  const lo = valid.length ? Math.min(...valid) : 0
-  const hi = valid.length ? Math.max(...valid) : 1
   const t = time([lo, hi], range, { utc })
   const positions = stamps.map((ms) => t(ms))
   const at = (i: number): number => positions[i] ?? range[0]
@@ -644,13 +644,19 @@ export function categoryInteraction(
 }
 
 /** Accessible table of series values: one row per category, one column per visible series. */
-export function seriesTable(options: CartesianOptions, ctx: RenderContext): DataTable {
-  const labels = resolveLabels(options.data)
+export function seriesTable(
+  options: CartesianOptions,
+  ctx: RenderContext,
+  limit: number = Number.POSITIVE_INFINITY,
+): DataTable {
+  const all = resolveLabels(options.data)
+  const labels = all.length > limit ? all.slice(0, limit) : all
   const formatLabel = labelFormatter(options, ctx)
   const formatValue = formatNumber(options.y?.format, ctx.locale)
   const series = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
   return {
     columns: ['', ...series.map((s) => s.name)],
+    total: all.length,
     rows: labels.map((label, i) => [
       formatLabel(label, i),
       ...series.map((s) => {

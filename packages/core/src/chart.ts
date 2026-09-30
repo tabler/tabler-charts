@@ -34,8 +34,11 @@ export interface ChartType<O extends object = object> {
   render(options: O, context: RenderContext): ChildInput
   /** Entries for the legend (series, slices); charts without it get no legend. */
   legend?(options: O): LegendItem[]
-  /** The data as a text table, for screen readers and the visible table option. */
-  table?(options: O, context: RenderContext): DataTable
+  /**
+   * The data as a text table, for screen readers and the visible table
+   * option. `limit` is the most rows wanted; report the real count in `total`.
+   */
+  table?(options: O, context: RenderContext, limit: number): DataTable
 }
 
 export type { DataTable, LegendItem }
@@ -74,8 +77,10 @@ export interface BaseOptions {
   /**
    * Render the data as an HTML table: visually hidden for screen readers
    * (`true`, the default), shown below the chart (`'visible'`), or not at all.
+   * An object sets `visible` and `maxRows` (default 1000; longer data is cut
+   * and the caption says so).
    */
-  table?: boolean | 'visible'
+  table?: boolean | 'visible' | { visible?: boolean; maxRows?: number }
   /** Make the chart focusable and navigable with arrow keys. Defaults to `true`. */
   keyboard?: boolean
   /**

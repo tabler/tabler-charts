@@ -6,6 +6,7 @@ import { formatNumber } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets, LINE_HEIGHT } from '../layout.ts'
 import type { LegendItem } from '../legend.ts'
+import { extent } from '../scales/extent.ts'
 import { linear } from '../scales/linear.ts'
 import { type ClassValue, h } from '../vnode.ts'
 import { domainOf, type ValueAxisOptions } from './cartesian.ts'
@@ -74,7 +75,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   const visible = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
   const points = visible.flatMap((s) => s.points)
   const sizes = points.map((p) => p.size).filter((v): v is number => v != null && v > 0)
-  const maxSize = sizes.length ? Math.max(...sizes) : 0
+  const maxSize = extent(sizes)?.[1] ?? 0
   const rMin = options.size?.min ?? 4
   const rMax = options.size?.max ?? 24
   // Area-proportional bubbles: the radius grows with the square root of the size.
@@ -270,24 +271,33 @@ function scatterLegend(options: ScatterOptions): LegendItem[] {
   })
 }
 
-function scatterTable(options: ScatterOptions, ctx: RenderContext): DataTable {
+function scatterTable(
+  options: ScatterOptions,
+  ctx: RenderContext,
+  limit: number = Number.POSITIVE_INFINITY,
+): DataTable {
   const fx = formatNumber(options.x?.format, ctx.locale)
   const fy = formatNumber(options.y?.format, ctx.locale)
   const fs = formatNumber(undefined, ctx.locale)
   const series = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
   const withSize = series.some((s) => s.points.some((p) => p.size != null))
   const withLabel = series.some((s) => s.points.some((p) => p.label != null))
+  const total = series.reduce((sum, s) => sum + s.points.length, 0)
+  let left = limit
   return {
     columns: ['', ...(withLabel ? ['Label'] : []), 'x', 'y', ...(withSize ? ['Size'] : [])],
-    rows: series.flatMap((s) =>
-      s.points.map((p) => [
+    total,
+    rows: series.flatMap((s) => {
+      const take = s.points.slice(0, Math.max(0, left))
+      left -= take.length
+      return take.map((p) => [
         s.name,
         ...(withLabel ? [p.label ?? ''] : []),
         fx(p.x),
         fy(p.y),
         ...(withSize ? [p.size == null ? '–' : fs(p.size)] : []),
-      ]),
-    ),
+      ])
+    }),
   }
 }
 
