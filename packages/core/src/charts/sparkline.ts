@@ -6,7 +6,7 @@ import { linear } from '../scales/linear.ts'
 import { barPath } from '../shapes/bar.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { h } from '../vnode.ts'
-import { domainOf, type Label } from './cartesian.ts'
+import { domainOf, type Label, labelKey } from './cartesian.ts'
 
 export interface SparklineOptions {
   /** The values; `null` leaves a gap. */
@@ -90,7 +90,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
     }
     const hit: Hit = {
       index: i,
-      label: options.labels?.[i] ?? i + 1,
+      label: labelKey(options.labels?.[i] ?? i + 1),
       title: labelOf(i),
       x: px,
       area,

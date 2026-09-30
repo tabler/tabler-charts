@@ -168,7 +168,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 25. `feat(core): add arc generator and pie/donut chart` (+ demo) – `arcPath()` zgodny z d3-shape (60k przypadków), odstęp 2 px o stałej szerokości, `pie` / `donut` z sumą w środku, wycinki w legendzie / tabeli / klawiaturze, tooltip z udziałem, aureola przy hover (`Hit.mark`), wejście `@tabler/charts/pie`.
 - [x] 26. `feat(core): add scatter chart` (+ demo) – dwie osie liczbowe (`domainOf()`), bąbelki proporcjonalne polem (`size`), najbliższy punkt w 2D (wyszukiwanie binarne po x), aureola przy hover, klawiatura po punktach, tabela punktów, wejście `@tabler/charts/scatter`.
 - [x] 27. `feat(core): add sparkline` (+ demo z kafelkami) – warianty line/area/bar, bez osi/legendy/tabeli, dopasowany zakres dla linii, kropka na ostatniej wartości, znaczniki min/max, tooltip, wejście `@tabler/charts/sparkline`.
-- [ ] 28. `feat(core): add time and log scales`.
+- [x] 28. `feat(core): add time and log scales` (+ demo) – `time()` z tickami kalendarzowymi (sekundy…lata, lokalnie / UTC, większa jednostka na granicy), `log()`; `x: { type: 'time' }` dla line/area (prawdziwe odstępy, binarne szukanie najbliższego punktu), `y: { scale: 'log' }` dla wszystkich osi wartości; 2 commity.
 - [ ] 29. `perf(core): add LTTB decimation module`.
 
 ### M4 – Adaptery

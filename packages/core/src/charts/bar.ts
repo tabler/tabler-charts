@@ -5,6 +5,7 @@ import {
   type CartesianOptions,
   cartesianLayout,
   categoryInteraction,
+  labelKey,
   resolveLabels,
   seriesAttrs,
   seriesKey,
@@ -164,7 +165,7 @@ export const bar: ChartType<BarOptions> = {
             const rounded = !stacks || (negative ? outer[i]?.down : outer[i]?.up) === index
             const draw = horizontal ? hbarPath : barPath
             return h('path', {
-              key: label,
+              key: labelKey(label),
               class: ['tc-bar', negative && 'tc-bar-negative', horizontal && 'tc-bar-horizontal'],
               d: draw(
                 barLeft(index, i),

@@ -8,8 +8,18 @@ import { lineDemo } from './demos/line.ts'
 import { pieDemo } from './demos/pie.ts'
 import { scatterDemo } from './demos/scatter.ts'
 import { sparklineDemo } from './demos/sparkline.ts'
+import { timeDemo } from './demos/time.ts'
 
-const demos: Demo[] = [sparklineDemo, lineDemo, areaDemo, barDemo, pieDemo, scatterDemo, customType]
+const demos: Demo[] = [
+  sparklineDemo,
+  lineDemo,
+  timeDemo,
+  areaDemo,
+  barDemo,
+  pieDemo,
+  scatterDemo,
+  customType,
+]
 
 // -- Theme switch -------------------------------------------------------------
 

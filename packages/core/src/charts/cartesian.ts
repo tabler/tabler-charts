@@ -1,7 +1,7 @@
 import type { DataTable, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
-import { formatNumber, type NumberFormat } from '../format.ts'
+import { formatDate, formatNumber, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import {
   estimateTextWidth,
@@ -14,11 +14,17 @@ import {
 import { type BandKey, type BandScale, band, point } from '../scales/band.ts'
 import { extent } from '../scales/extent.ts'
 import { type LinearScale, linear } from '../scales/linear.ts'
+import { log } from '../scales/log.ts'
 import { niceDomain } from '../scales/ticks.ts'
+import { time } from '../scales/time.ts'
 import { type ClassValue, h, type VNode } from '../vnode.ts'
 
 /** Category label on the x axis. */
-export type Label = string | number
+export type Label = string | number | Date
+
+/** A label as a `key` for keyed rendering (dates by their timestamp). */
+export const labelKey = (label: Label): string | number =>
+  label instanceof Date ? label.getTime() : label
 
 /** One data series. `null` values are gaps. */
 export interface Series {
@@ -59,6 +65,8 @@ export interface ValueAxisOptions {
   /** Approximate tick count. Defaults to one per ~60px of height. */
   ticks?: number
   format?: NumberFormat
+  /** `'log'` for a logarithmic axis (positive values only). Defaults to `'linear'`. */
+  scale?: 'linear' | 'log'
 }
 
 /** Options for the category (x) axis. */
@@ -69,8 +77,16 @@ export interface CategoryAxisOptions {
   grid?: boolean
   /** Draw the axis line along the bottom edge. Defaults to `false`. */
   line?: boolean
-  /** Format a label for display. */
+  /** Format a label for display (axis ticks for categories, tooltips and the table). */
   format?: (label: Label, index: number) => string
+  /**
+   * `'time'` treats labels as dates or timestamps: line and area charts place
+   * points at their real distance in time, with calendar-aware ticks.
+   * Labels must be in ascending order. Defaults to `'category'`.
+   */
+  type?: 'category' | 'time'
+  /** Align time ticks to UTC instead of local time (use it for SSR). */
+  utc?: boolean
 }
 
 export interface CartesianOptions {
@@ -146,6 +162,99 @@ export function resolveLabels(data: CartesianData): Label[] {
   return Array.from({ length: n }, (_, i) => i + 1)
 }
 
+/** Whether the category axis carries time (dates or timestamps in order). */
+export const isTimeAxis = (options: CartesianOptions): boolean => options.x?.type === 'time'
+
+/** Formatter for category labels in tooltips and tables. */
+export function labelFormatter(
+  options: CartesianOptions,
+  ctx: RenderContext,
+): (label: Label, index: number) => string {
+  if (options.x?.format) return options.x.format
+  if (!isTimeAxis(options)) return (label) => String(label)
+  const labels = resolveLabels(options.data)
+  const first = labels[0]
+  const last = labels[labels.length - 1]
+  const span = first !== undefined && last !== undefined ? Math.abs(toMs(last) - toMs(first)) : 0
+  // Show the time of day when the whole series spans less than a few days.
+  const withTime = span > 0 && span < 3 * 24 * 60 * 60 * 1000
+  const fmt = formatDate(
+    {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      ...(withTime ? { hour: 'numeric', minute: '2-digit' } : {}),
+      ...(options.x?.utc ? { timeZone: 'UTC' } : {}),
+    },
+    ctx.locale,
+  )
+  return (label) =>
+    label instanceof Date || typeof label === 'number' ? fmt(label) : String(label)
+}
+
+const toMs = (label: Label): number =>
+  label instanceof Date ? label.getTime() : typeof label === 'number' ? label : Number.NaN
+
+/** Value scale for a domain: linear, or logarithmic with positive-only ticks. */
+function valueScale(
+  domain: [number, number],
+  range: [number, number],
+  options: ValueAxisOptions,
+): LinearScale {
+  return options.scale === 'log' ? log(domain, range) : linear(domain, range)
+}
+
+/** Ticks of a value scale with labels; log scales format each power as is. */
+function valueTicks(
+  scale: LinearScale,
+  options: ValueAxisOptions,
+  count: number,
+  format: NumberFormat | undefined,
+  locale: RenderContext['locale'],
+): Tick[] {
+  if (options.scale !== 'log') return linearTicks(scale, { count, format, locale })
+  const fmt = formatNumber(format, locale)
+  return scale.ticks(count).map((value) => ({ value, position: scale(value), label: fmt(value) }))
+}
+
+/**
+ * A point scale over time: categories sit at their real distance apart.
+ * Conforms to `BandScale` (zero bandwidth) so charts and hit testing work unchanged.
+ */
+function timePointScale(labels: readonly Label[], range: [number, number], utc: boolean) {
+  const stamps = labels.map(toMs)
+  const valid = stamps.filter((t) => Number.isFinite(t))
+  const lo = valid.length ? Math.min(...valid) : 0
+  const hi = valid.length ? Math.max(...valid) : 1
+  const t = time([lo, hi], range, { utc })
+  const positions = stamps.map((ms) => t(ms))
+  const at = (i: number): number => positions[i] ?? range[0]
+  const scale = Object.assign((key: BandKey) => positions[labels.indexOf(key as Label)], {
+    domain: labels.map(labelKey),
+    range,
+    bandwidth: 0,
+    step: valid.length > 1 ? (range[1] - range[0]) / (valid.length - 1) : 0,
+    at,
+    center: (key: BandKey) => positions[labels.indexOf(key as Label)],
+    indexAt(pixel: number): number {
+      // Labels are sorted, so the nearest position is found by binary search.
+      if (positions.length === 0) return -1
+      let lo = 0
+      let hi = positions.length - 1
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1
+        if ((positions[mid] as number) < pixel) lo = mid + 1
+        else hi = mid
+      }
+      const prev = lo - 1
+      return prev >= 0 && pixel - (positions[prev] as number) < (positions[lo] as number) - pixel
+        ? prev
+        : lo
+    },
+  })
+  return { scale: scale as BandScale, time: t }
+}
+
 /** Y domain from the data and axis options. */
 export function valueDomain(
   data: CartesianData,
@@ -167,6 +276,20 @@ export function domainOf(
   zeroDefault: boolean,
   count: number,
 ): [number, number] {
+  if (options.scale === 'log') {
+    // Only positive values can be shown; nice to whole powers of ten.
+    const positive = values.filter((v): v is number => v != null && v > 0 && Number.isFinite(v))
+    let [lo, hi] = extent(positive) ?? [1, 10]
+    if (options.min !== undefined && options.min > 0) lo = options.min
+    if (options.max !== undefined && options.max > 0) hi = options.max
+    if (lo === hi) hi = lo * 10
+    if (options.nice !== false) {
+      const niced = log([lo, hi], [0, 1]).nice().domain
+      if (options.min === undefined) lo = niced[0]
+      if (options.max === undefined) hi = niced[1]
+    }
+    return [lo, hi]
+  }
   let [lo, hi] = extent(values) ?? [0, 1]
   if (options.zero ?? zeroDefault) {
     lo = Math.min(lo, 0)
@@ -205,9 +328,10 @@ export function cartesianLayout(
   const overhang = layout.overhang ?? 0
   const pad = insets(options.padding)
   const labels = resolveLabels(data)
-  const format = xOptions.format ?? ((label: Label) => String(label))
+  const format = labelFormatter(options, ctx)
   const showY = yOptions.show !== false
   const showX = xOptions.show !== false && labels.length > 0
+  const timed = isTimeAxis(options) && layout.scale === 'point'
 
   const horizontal = layout.horizontal === true
   const count =
@@ -218,15 +342,30 @@ export function cartesianLayout(
   if (horizontal) {
     return horizontalLayout(options, ctx, layout, labels, domain, count, tickFormat)
   }
-  const probeY = linearTicks(linear(domain, [1, 0]), { count, format: tickFormat, locale })
+  const probeY = valueTicks(
+    valueScale(domain, [1, 0], yOptions),
+    yOptions,
+    count,
+    tickFormat,
+    locale,
+  )
+  const countX = Math.max(2, Math.round(width / TICK_SPACING_X))
+  // Time ticks come from the scale; their labels are what sits at the edges.
+  const probeTime = timed ? timePointScale(labels, [0, 1], xOptions.utc === true).time : undefined
+  const timeFormat = probeTime
+    ? xOptions.format
+      ? (d: Date) => (xOptions.format as (l: Label, i: number) => string)(d, -1)
+      : probeTime.tickFormat(countX, locale)
+    : undefined
+  const edgeLabels = probeTime
+    ? probeTime.ticks(countX).map((d) => (timeFormat as (d: Date) => string)(d))
+    : [format(labels[0] as Label, 0), format(labels[labels.length - 1] as Label, labels.length - 1)]
 
   // Margins: labels outside the plot, half a line above the top tick,
   // half of the first/last x label for point scales.
   const halfLine = Math.ceil((fontSize * LINE_HEIGHT) / 2)
-  const firstLabel = showX ? estimateTextWidth(format(labels[0] as Label, 0), fontSize) : 0
-  const lastLabel = showX
-    ? estimateTextWidth(format(labels[labels.length - 1] as Label, labels.length - 1), fontSize)
-    : 0
+  const firstLabel = showX ? estimateTextWidth(edgeLabels[0] ?? '', fontSize) : 0
+  const lastLabel = showX ? estimateTextWidth(edgeLabels[edgeLabels.length - 1] ?? '', fontSize) : 0
   const edgeX = layout.scale === 'point'
   const margins = {
     top: pad.top + Math.max(showY ? halfLine : 0, overhang, EDGE / 2),
@@ -246,23 +385,27 @@ export function cartesianLayout(
   const area = innerRect(width, height, margins)
 
   const xRange: [number, number] = [area.x, area.x + area.width]
-  const x =
-    layout.scale === 'point'
-      ? point(labels, xRange)
-      : band(labels, xRange, {
+  const keys = labels.map(labelKey)
+  const timeScale = timed ? timePointScale(labels, xRange, xOptions.utc === true) : undefined
+  const x = timeScale
+    ? timeScale.scale
+    : layout.scale === 'point'
+      ? point(keys, xRange)
+      : band(keys, xRange, {
           paddingInner: layout.paddingInner ?? 0.3,
           paddingOuter: layout.paddingOuter ?? 0.15,
         })
-  const y = linear(domain, [area.y + area.height, area.y])
+  const y = valueScale(domain, [area.y + area.height, area.y], yOptions)
 
-  const yTicks = linearTicks(y, { count, format: tickFormat, locale })
-  const xTicks = showX
-    ? thinTicks(
-        bandTicks(x, (key: BandKey, i) => format(key, i)),
-        'bottom',
-        fontSize,
-      )
-    : []
+  const yTicks = valueTicks(y, yOptions, count, tickFormat, locale)
+  const rawXTicks: Tick[] = timeScale
+    ? timeScale.time.ticks(countX).map((d) => ({
+        value: d.getTime(),
+        position: timeScale.time(d),
+        label: (timeFormat as (d: Date) => string)(d),
+      }))
+    : bandTicks(x, (_: BandKey, i) => format(labels[i] as Label, i))
+  const xTicks = showX ? thinTicks(rawXTicks, 'bottom', fontSize) : []
 
   const background: VNode[] = []
   if (yOptions.grid !== false) background.push(grid({ direction: 'y', ticks: yTicks, area }))
@@ -322,13 +465,19 @@ function horizontalLayout(
   const { fontSize, locale, width, height } = ctx
   const overhang = layout.overhang ?? 0
   const pad = insets(options.padding)
-  const format = xOptions.format ?? ((label: Label) => String(label))
+  const format = labelFormatter(options, ctx)
   const showValues = yOptions.show !== false
   const showCategories = xOptions.show !== false && labels.length > 0
 
-  const probeValues = linearTicks(linear(domain, [0, 1]), { count, format: tickFormat, locale })
+  const probeValues = valueTicks(
+    valueScale(domain, [0, 1], yOptions),
+    yOptions,
+    count,
+    tickFormat,
+    locale,
+  )
   const probeCategories: Tick[] = labels.map((label, i) => ({
-    value: label,
+    value: labelKey(label),
     position: 0,
     label: format(label, i),
   }))
@@ -352,15 +501,15 @@ function horizontalLayout(
   }
   const area = innerRect(width, height, margins)
 
-  const x = band(labels, [area.y, area.y + area.height], {
+  const x = band(labels.map(labelKey), [area.y, area.y + area.height], {
     paddingInner: layout.paddingInner ?? 0.3,
     paddingOuter: layout.paddingOuter ?? 0.15,
   })
-  const y = linear(domain, [area.x, area.x + area.width])
-  const yTicks = linearTicks(y, { count, format: tickFormat, locale })
+  const y = valueScale(domain, [area.x, area.x + area.width], yOptions)
+  const yTicks = valueTicks(y, yOptions, count, tickFormat, locale)
   const xTicks = showCategories
     ? thinTicks(
-        bandTicks(x, (key: BandKey, i) => format(key, i)),
+        bandTicks(x, (_: BandKey, i) => format(labels[i] as Label, i)),
         'left',
         fontSize,
       )
@@ -419,7 +568,7 @@ export function categoryInteraction(
 ): Interaction {
   const { area, x, labels, horizontal } = layout
   const { data } = options
-  const formatLabel = options.x?.format ?? ((label: Label) => String(label))
+  const formatLabel = labelFormatter(options, ctx)
   const formatValue = formatNumber(options.y?.format, ctx.locale)
 
   const hitAt = (index: number): Hit => {
@@ -449,7 +598,7 @@ export function categoryInteraction(
     if (horizontal) {
       const hit: Hit = {
         index,
-        label,
+        label: labelKey(label),
         title,
         x: area.x + area.width / 2,
         y: center,
@@ -460,7 +609,7 @@ export function categoryInteraction(
       hit.band = { x: area.x, y: start, width: area.width, height: x.bandwidth }
       return hit
     }
-    const hit: Hit = { index, label, title, x: center, area, items }
+    const hit: Hit = { index, label: labelKey(label), title, x: center, area, items }
     if (x.bandwidth > 0) hit.band = { x: start, y: area.y, width: x.bandwidth, height: area.height }
     return hit
   }
@@ -497,7 +646,7 @@ export function categoryInteraction(
 /** Accessible table of series values: one row per category, one column per visible series. */
 export function seriesTable(options: CartesianOptions, ctx: RenderContext): DataTable {
   const labels = resolveLabels(options.data)
-  const formatLabel = options.x?.format ?? ((label: Label) => String(label))
+  const formatLabel = labelFormatter(options, ctx)
   const formatValue = formatNumber(options.y?.format, ctx.locale)
   const series = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
   return {
