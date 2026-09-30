@@ -1,4 +1,6 @@
 import { getDateFormat, type Locale } from '../format.ts'
+import type { BandKey, BandScale } from './band.ts'
+import { extent } from './extent.ts'
 import { tickStep } from './ticks.ts'
 
 /** A point in time: a `Date` or a timestamp in milliseconds. */
@@ -276,4 +278,48 @@ export function time(
       return time(d1 < d0 ? [hi, lo] : [lo, hi], range, options)
     },
   })
+}
+
+/**
+ * A point scale over time for category charts: each category sits at its
+ * real distance in time. Conforms to `BandScale` (zero bandwidth), so line
+ * and area charts and their hit testing work unchanged. `stamps` must be
+ * ascending; `keys` are the categories' keys.
+ */
+export function timePointScale(
+  stamps: readonly number[],
+  keys: readonly BandKey[],
+  range: readonly [number, number],
+  utc: boolean,
+): { scale: BandScale; time: TimeScale } {
+  // Spreading large arrays into Math.min/max overflows the stack, so scan.
+  const [lo, hi] = extent(stamps) ?? [0, 1]
+  const valid = stamps.filter((t) => Number.isFinite(t))
+  const t = time([lo, hi], range, { utc })
+  const positions = stamps.map((ms) => t(ms))
+  const at = (i: number): number => positions[i] ?? range[0]
+  const scale = Object.assign((key: BandKey) => positions[keys.indexOf(key)], {
+    domain: keys.slice(),
+    range,
+    bandwidth: 0,
+    step: valid.length > 1 ? (range[1] - range[0]) / (valid.length - 1) : 0,
+    at,
+    center: (key: BandKey) => positions[keys.indexOf(key)],
+    indexAt(pixel: number): number {
+      // Stamps are sorted, so the nearest position is found by binary search.
+      if (positions.length === 0) return -1
+      let a = 0
+      let b = positions.length - 1
+      while (a < b) {
+        const mid = (a + b) >> 1
+        if ((positions[mid] as number) < pixel) a = mid + 1
+        else b = mid
+      }
+      const prev = a - 1
+      return prev >= 0 && pixel - (positions[prev] as number) < (positions[a] as number) - pixel
+        ? prev
+        : a
+    },
+  })
+  return { scale: scale as BandScale, time: t }
 }

@@ -1,3 +1,4 @@
+import '../decimate.ts'
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig } from '../chart.ts'
 import { area } from '../charts/area.ts'

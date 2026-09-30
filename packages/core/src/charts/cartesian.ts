@@ -1,6 +1,7 @@
 import type { DataTable, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
+import { feature } from '../features.ts'
 import { formatDate, formatNumber, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import {
@@ -14,9 +15,7 @@ import {
 import { type BandKey, type BandScale, band, point } from '../scales/band.ts'
 import { extent } from '../scales/extent.ts'
 import { type LinearScale, linear } from '../scales/linear.ts'
-import { log } from '../scales/log.ts'
 import { niceDomain } from '../scales/ticks.ts'
-import { time } from '../scales/time.ts'
 import { type ClassValue, h, type VNode } from '../vnode.ts'
 
 /** Category label on the x axis. */
@@ -104,11 +103,6 @@ export interface CartesianLayoutOptions {
   values?: readonly (number | null | undefined)[]
   /** Format of the value axis ticks, when it differs from `y.format` (percent stacks). */
   tickFormat?: NumberFormat
-  /**
-   * Lay categories out along y and values along x (horizontal bars). The
-   * `x` / `y` options keep meaning category / value axis.
-   */
-  horizontal?: boolean
   /** Default for `y.zero`. */
   zero: boolean
   /** Space marks need beyond the plot edge (point radius, stroke). */
@@ -137,10 +131,11 @@ export interface CartesianLayout {
   clip: { def: VNode; url: string }
 }
 
-const TICK_SPACING = 60
+export const TICK_SPACING = 60
 /** Horizontal value axes need more room per label. */
-const TICK_SPACING_X = 80
-const EDGE = 8
+export const TICK_SPACING_X = 80
+/** Minimal margin around the plot, in pixels. */
+export const EDGE = 8
 
 /** Stable key of a series: its `id`, or its name. */
 export const seriesKey = (series: Series): string => series.id ?? series.name
@@ -204,20 +199,21 @@ export function labelFormatter(
     label instanceof Date || typeof label === 'number' ? fmt(label) : String(label)
 }
 
-const toMs = (label: Label): number =>
+/** A label as a timestamp (`NaN` for strings). */
+export const toMs = (label: Label): number =>
   label instanceof Date ? label.getTime() : typeof label === 'number' ? label : Number.NaN
 
 /** Value scale for a domain: linear, or logarithmic with positive-only ticks. */
-function valueScale(
+export function valueScale(
   domain: [number, number],
   range: [number, number],
   options: ValueAxisOptions,
 ): LinearScale {
-  return options.scale === 'log' ? log(domain, range) : linear(domain, range)
+  return options.scale === 'log' ? feature('log')(domain, range) : linear(domain, range)
 }
 
 /** Ticks of a value scale with labels; log scales format each power as is. */
-function valueTicks(
+export function valueTicks(
   scale: LinearScale,
   options: ValueAxisOptions,
   count: number,
@@ -227,44 +223,6 @@ function valueTicks(
   if (options.scale !== 'log') return linearTicks(scale, { count, format, locale })
   const fmt = formatNumber(format, locale)
   return scale.ticks(count).map((value) => ({ value, position: scale(value), label: fmt(value) }))
-}
-
-/**
- * A point scale over time: categories sit at their real distance apart.
- * Conforms to `BandScale` (zero bandwidth) so charts and hit testing work unchanged.
- */
-function timePointScale(labels: readonly Label[], range: [number, number], utc: boolean) {
-  const stamps = labels.map(toMs)
-  // Spreading large arrays into Math.min/max overflows the stack, so scan.
-  const [lo, hi] = extent(stamps) ?? [0, 1]
-  const valid = stamps.filter((t) => Number.isFinite(t))
-  const t = time([lo, hi], range, { utc })
-  const positions = stamps.map((ms) => t(ms))
-  const at = (i: number): number => positions[i] ?? range[0]
-  const scale = Object.assign((key: BandKey) => positions[labels.indexOf(key as Label)], {
-    domain: labels.map(labelKey),
-    range,
-    bandwidth: 0,
-    step: valid.length > 1 ? (range[1] - range[0]) / (valid.length - 1) : 0,
-    at,
-    center: (key: BandKey) => positions[labels.indexOf(key as Label)],
-    indexAt(pixel: number): number {
-      // Labels are sorted, so the nearest position is found by binary search.
-      if (positions.length === 0) return -1
-      let lo = 0
-      let hi = positions.length - 1
-      while (lo < hi) {
-        const mid = (lo + hi) >> 1
-        if ((positions[mid] as number) < pixel) lo = mid + 1
-        else hi = mid
-      }
-      const prev = lo - 1
-      return prev >= 0 && pixel - (positions[prev] as number) < (positions[lo] as number) - pixel
-        ? prev
-        : lo
-    },
-  })
-  return { scale: scale as BandScale, time: t }
 }
 
 /** Y domain from the data and axis options. */
@@ -296,7 +254,7 @@ export function domainOf(
     if (options.max !== undefined && options.max > 0) hi = options.max
     if (lo === hi) hi = lo * 10
     if (options.nice !== false) {
-      const niced = log([lo, hi], [0, 1]).nice().domain
+      const niced = feature('log')([lo, hi], [0, 1]).nice().domain
       if (options.min === undefined) lo = niced[0]
       if (options.max === undefined) hi = niced[1]
     }
@@ -345,15 +303,9 @@ export function cartesianLayout(
   const showX = xOptions.show !== false && labels.length > 0
   const timed = isTimeAxis(options) && layout.scale === 'point'
 
-  const horizontal = layout.horizontal === true
-  const count =
-    yOptions.ticks ??
-    Math.max(2, Math.round(horizontal ? width / TICK_SPACING_X : height / TICK_SPACING))
+  const count = yOptions.ticks ?? Math.max(2, Math.round(height / TICK_SPACING))
   const domain = valueDomain(data, yOptions, layout.zero, count, ctx.hidden, layout.values)
   const tickFormat = layout.tickFormat ?? yOptions.format
-  if (horizontal) {
-    return horizontalLayout(options, ctx, layout, labels, domain, count, tickFormat)
-  }
   const probeY = valueTicks(
     valueScale(domain, [1, 0], yOptions),
     yOptions,
@@ -363,7 +315,12 @@ export function cartesianLayout(
   )
   const countX = Math.max(2, Math.round(width / TICK_SPACING_X))
   // Time ticks come from the scale; their labels are what sits at the edges.
-  const probeTime = timed ? timePointScale(labels, [0, 1], xOptions.utc === true).time : undefined
+  const keys = labels.map(labelKey)
+  const timePoints = timed
+    ? (range: [number, number]) =>
+        feature('time').points(labels.map(toMs), keys, range, xOptions.utc === true)
+    : undefined
+  const probeTime = timePoints ? timePoints([0, 1]).time : undefined
   const timeFormat = probeTime
     ? xOptions.format
       ? (d: Date) => (xOptions.format as (l: Label, i: number) => string)(d, -1)
@@ -397,8 +354,7 @@ export function cartesianLayout(
   const area = innerRect(width, height, margins)
 
   const xRange: [number, number] = [area.x, area.x + area.width]
-  const keys = labels.map(labelKey)
-  const timeScale = timed ? timePointScale(labels, xRange, xOptions.utc === true) : undefined
+  const timeScale = timePoints ? timePoints(xRange) : undefined
   const x = timeScale
     ? timeScale.scale
     : layout.scale === 'point'
@@ -444,7 +400,11 @@ export function cartesianLayout(
 }
 
 /** Clip path around the plot area, a little larger so strokes and dots are not cut. */
-function plotClip(ctx: RenderContext, area: Rect, overhang: number): CartesianLayout['clip'] {
+export function plotClip(
+  ctx: RenderContext,
+  area: Rect,
+  overhang: number,
+): CartesianLayout['clip'] {
   const clipId = `${ctx.id}-clip`
   const bleed = overhang + 1
   return {
@@ -459,95 +419,6 @@ function plotClip(ctx: RenderContext, area: Rect, overhang: number): CartesianLa
       }),
     ),
     url: `url(#${clipId})`,
-  }
-}
-
-/** Categories along y (labels on the left), values along x (labels at the bottom). */
-function horizontalLayout(
-  options: CartesianOptions,
-  ctx: RenderContext,
-  layout: CartesianLayoutOptions,
-  labels: Label[],
-  domain: [number, number],
-  count: number,
-  tickFormat: NumberFormat | undefined,
-): CartesianLayout {
-  const yOptions = options.y ?? {}
-  const xOptions = options.x ?? {}
-  const { fontSize, locale, width, height } = ctx
-  const overhang = layout.overhang ?? 0
-  const pad = insets(options.padding)
-  const format = labelFormatter(options, ctx)
-  const showValues = yOptions.show !== false
-  const showCategories = xOptions.show !== false && labels.length > 0
-
-  const probeValues = valueTicks(
-    valueScale(domain, [0, 1], yOptions),
-    yOptions,
-    count,
-    tickFormat,
-    locale,
-  )
-  const probeCategories: Tick[] = labels.map((label, i) => ({
-    value: labelKey(label),
-    position: 0,
-    label: format(label, i),
-  }))
-  const edgeLabel = (tick: Tick | undefined) =>
-    showValues && tick ? Math.ceil(estimateTextWidth(tick.label, fontSize) / 2) : 0
-
-  const margins = {
-    top: pad.top + Math.max(overhang, EDGE / 2),
-    right: pad.right + Math.max(edgeLabel(probeValues[probeValues.length - 1]), overhang, EDGE),
-    bottom:
-      pad.bottom +
-      Math.max(showValues ? axisSize('bottom', probeValues, fontSize) : 0, overhang, EDGE / 2),
-    left:
-      pad.left +
-      Math.max(
-        showCategories ? axisSize('left', probeCategories, fontSize) : 0,
-        edgeLabel(probeValues[0]),
-        overhang,
-        EDGE,
-      ),
-  }
-  const area = innerRect(width, height, margins)
-
-  const x = band(labels.map(labelKey), [area.y, area.y + area.height], {
-    paddingInner: layout.paddingInner ?? 0.3,
-    paddingOuter: layout.paddingOuter ?? 0.15,
-  })
-  const y = valueScale(domain, [area.x, area.x + area.width], yOptions)
-  const yTicks = valueTicks(y, yOptions, count, tickFormat, locale)
-  const xTicks = showCategories
-    ? thinTicks(
-        bandTicks(x, (_: BandKey, i) => format(labels[i] as Label, i)),
-        'left',
-        fontSize,
-      )
-    : []
-
-  const background: VNode[] = []
-  if (yOptions.grid !== false) background.push(grid({ direction: 'x', ticks: yTicks, area }))
-  if (xOptions.grid) background.push(grid({ direction: 'y', ticks: xTicks, area }))
-
-  const foreground: VNode[] = []
-  if (showCategories || xOptions.line) {
-    foreground.push(axis({ position: 'left', ticks: xTicks, area, line: xOptions.line === true }))
-  }
-  if (showValues) foreground.push(axis({ position: 'bottom', ticks: yTicks, area }))
-
-  return {
-    area,
-    labels,
-    x,
-    y,
-    horizontal: true,
-    xTicks,
-    yTicks,
-    background,
-    foreground,
-    clip: plotClip(ctx, area, overhang),
   }
 }
 

@@ -1,5 +1,5 @@
 import type { ChartType, RenderContext } from '../chart.ts'
-import { lttbIndices } from '../shapes/decimate.ts'
+import { feature } from '../features.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { type ChildInput, h } from '../vnode.ts'
 import {
@@ -128,7 +128,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   })
   /** Indices drawn per series: a downsampled subset when `decimate` is set. */
   const kept = all.map((pts) =>
-    decimate !== undefined && pts.length > decimate ? lttbIndices(pts, decimate) : null,
+    decimate !== undefined && pts.length > decimate ? feature('decimate')(pts, decimate) : null,
   )
   const drawn = (index: number): Point[] => {
     const pts = all[index] as Point[]

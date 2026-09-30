@@ -13,6 +13,8 @@ export default defineConfig({
     'src/scatter.ts',
     'src/sparkline.ts',
     'src/decimate.ts',
+    'src/time.ts',
+    'src/log.ts',
   ],
   copy: [{ from: 'src/style.css', to: 'dist' }],
 })

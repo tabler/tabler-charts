@@ -1,3 +1,4 @@
+import '../log.ts'
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'

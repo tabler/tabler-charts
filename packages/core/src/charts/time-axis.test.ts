@@ -1,3 +1,6 @@
+import '../decimate.ts'
+import '../log.ts'
+import '../time.ts'
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'

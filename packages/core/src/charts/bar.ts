@@ -2,6 +2,7 @@ import type { ChartType } from '../chart.ts'
 import { barPath, hbarPath } from '../shapes/bar.ts'
 import { h } from '../vnode.ts'
 import {
+  type CartesianLayoutOptions,
   type CartesianOptions,
   cartesianLayout,
   categoryInteraction,
@@ -13,6 +14,7 @@ import {
   seriesLegend,
   seriesTable,
 } from './cartesian.ts'
+import { horizontalLayout } from './horizontal.ts'
 import { type Segment, type StackMode, stackBounds, stackSeries } from './stack.ts'
 
 export interface BarOptions extends CartesianOptions {
@@ -67,15 +69,17 @@ export const bar: ChartType<BarOptions> = {
       ? stackSeries(series, count, { percent: stacked === 'percent', hidden: ctx.hidden })
       : null
 
-    const layout = cartesianLayout(options, ctx, {
+    const layoutOptions: CartesianLayoutOptions = {
       scale: 'band',
       zero: true,
       paddingInner: groupPadding,
       paddingOuter: groupPadding / 2,
       ...(stacks ? { values: stackBounds(stacks) } : {}),
       ...(stacked === 'percent' ? { tickFormat: { style: 'percent' } } : {}),
-      horizontal,
-    })
+    }
+    const layout = horizontal
+      ? horizontalLayout(options, ctx, layoutOptions)
+      : cartesianLayout(options, ctx, layoutOptions)
     const { x, y, labels } = layout
 
     // Hidden series keep their color slot but give up their place in the group.

@@ -20,7 +20,15 @@
   },
   "type": "module",
   "sideEffects": [
-    "**/*.css"
+    "**/*.css",
+    "./dist/index.js",
+    "./dist/index.cjs",
+    "./dist/time.js",
+    "./dist/time.cjs",
+    "./dist/log.js",
+    "./dist/log.cjs",
+    "./dist/decimate.js",
+    "./dist/decimate.cjs"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -114,6 +122,26 @@
       "require": {
         "types": "./dist/decimate.d.cts",
         "default": "./dist/decimate.cjs"
+      }
+    },
+    "./time": {
+      "import": {
+        "types": "./dist/time.d.ts",
+        "default": "./dist/time.js"
+      },
+      "require": {
+        "types": "./dist/time.d.cts",
+        "default": "./dist/time.cjs"
+      }
+    },
+    "./log": {
+      "import": {
+        "types": "./dist/log.d.ts",
+        "default": "./dist/log.js"
+      },
+      "require": {
+        "types": "./dist/log.d.cts",
+        "default": "./dist/log.cjs"
       }
     },
     "./style.css": "./dist/style.css",
