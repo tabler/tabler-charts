@@ -36,6 +36,7 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },
   "files": [
@@ -45,7 +46,7 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "typecheck": "tsc -p .",
-    "lint:pkg": "publint && attw --pack . --profile node16"
+    "lint:pkg": "publint && attw --pack . --profile node16 --exclude-entrypoints ./style.css"
   },
   "publishConfig": {
     "access": "public"

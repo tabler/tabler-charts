@@ -1,0 +1,213 @@
+/*!
+ * @tabler/charts — base stylesheet
+ *
+ * Every visual decision lives here, driven by custom properties. Override any
+ * --tc-* variable on a container (or :root) to theme charts:
+ *
+ *   .my-chart { --tc-color-1: #066fd1; --tc-stroke-width: 3px; }
+ *
+ * Dark mode follows prefers-color-scheme and can be forced per subtree with
+ * [data-theme="dark"] / [data-theme="light"].
+ */
+
+/* -- Tokens: light ---------------------------------------------------------- */
+
+:where(:root),
+:where([data-theme="light"]) {
+  /* Categorical series colors, used in this fixed order (validated for
+     color-vision deficiency between neighbours). Series 9+ use --tc-color-other. */
+  --tc-color-1: #2a78d6;
+  --tc-color-2: #eb6834;
+  --tc-color-3: #1baf7a;
+  --tc-color-4: #eda100;
+  --tc-color-5: #e87ba4;
+  --tc-color-6: #008300;
+  --tc-color-7: #4a3aa7;
+  --tc-color-8: #e34948;
+  --tc-color-other: #8a8983;
+
+  /* Surface behind the chart: used for gaps between marks and rings around dots. */
+  --tc-surface: #ffffff;
+  --tc-text-color: #0b0b0b;
+  --tc-text-muted: #6f6e69;
+  --tc-grid-color: #e1e0d9;
+  --tc-baseline-color: #c3c2b7;
+
+  --tc-font-family: inherit;
+  --tc-font-size: 12px;
+  --tc-stroke-width: 2px;
+  --tc-grid-width: 1px;
+  --tc-area-opacity: 0.1;
+  --tc-point-ring: 2px;
+
+  --tc-duration: 400ms;
+  --tc-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* -- Tokens: dark ----------------------------------------------------------- */
+
+@media (prefers-color-scheme: dark) {
+  :where(:root:not([data-theme="light"])) {
+    --tc-color-1: #3987e5;
+    --tc-color-2: #d95926;
+    --tc-color-3: #199e70;
+    --tc-color-4: #c98500;
+    --tc-color-5: #d55181;
+    --tc-color-6: #008300;
+    --tc-color-7: #9085e9;
+    --tc-color-8: #e66767;
+    --tc-color-other: #7c7b76;
+
+    --tc-surface: #1a1a19;
+    --tc-text-color: #ffffff;
+    --tc-text-muted: #a3a29c;
+    --tc-grid-color: #2c2c2a;
+    --tc-baseline-color: #4a4a46;
+  }
+}
+
+:where([data-theme="dark"]) {
+  --tc-color-1: #3987e5;
+  --tc-color-2: #d95926;
+  --tc-color-3: #199e70;
+  --tc-color-4: #c98500;
+  --tc-color-5: #d55181;
+  --tc-color-6: #008300;
+  --tc-color-7: #9085e9;
+  --tc-color-8: #e66767;
+  --tc-color-other: #7c7b76;
+
+  --tc-surface: #1a1a19;
+  --tc-text-color: #ffffff;
+  --tc-text-muted: #a3a29c;
+  --tc-grid-color: #2c2c2a;
+  --tc-baseline-color: #4a4a46;
+}
+
+/* -- Root ------------------------------------------------------------------- */
+
+.tc-chart {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: var(--tc-font-family);
+  font-size: var(--tc-font-size);
+  color: var(--tc-text-color);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* -- Series colors ---------------------------------------------------------- */
+
+.tc-series {
+  --tc-series-color: var(--tc-color-other);
+}
+.tc-series-1 {
+  --tc-series-color: var(--tc-color-1);
+}
+.tc-series-2 {
+  --tc-series-color: var(--tc-color-2);
+}
+.tc-series-3 {
+  --tc-series-color: var(--tc-color-3);
+}
+.tc-series-4 {
+  --tc-series-color: var(--tc-color-4);
+}
+.tc-series-5 {
+  --tc-series-color: var(--tc-color-5);
+}
+.tc-series-6 {
+  --tc-series-color: var(--tc-color-6);
+}
+.tc-series-7 {
+  --tc-series-color: var(--tc-color-7);
+}
+.tc-series-8 {
+  --tc-series-color: var(--tc-color-8);
+}
+
+/* -- Axes & grid ------------------------------------------------------------ */
+
+.tc-tick-label {
+  fill: var(--tc-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-grid-line {
+  stroke: var(--tc-grid-color);
+  stroke-width: var(--tc-grid-width);
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
+}
+
+.tc-grid-line-zero,
+.tc-axis-line,
+.tc-tick-line {
+  stroke: var(--tc-baseline-color);
+  stroke-width: var(--tc-grid-width);
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
+}
+
+/* -- Marks ------------------------------------------------------------------ */
+
+.tc-line {
+  fill: none;
+  stroke: var(--tc-series-color);
+  stroke-width: var(--tc-stroke-width);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.tc-area {
+  fill: var(--tc-series-color);
+  fill-opacity: var(--tc-area-opacity);
+  stroke: none;
+}
+
+.tc-bar {
+  fill: var(--tc-series-color);
+}
+
+.tc-point {
+  fill: var(--tc-series-color);
+  stroke: var(--tc-surface);
+  stroke-width: var(--tc-point-ring);
+  paint-order: stroke;
+}
+
+/* -- Accessibility ---------------------------------------------------------- */
+
+/* Every animation and transition in the library uses --tc-duration. */
+@media (prefers-reduced-motion: reduce) {
+  .tc-chart {
+    --tc-duration: 0ms;
+  }
+}
+
+@media (forced-colors: active) {
+  .tc-tick-label {
+    fill: CanvasText;
+  }
+  .tc-grid-line {
+    stroke: GrayText;
+  }
+  .tc-grid-line-zero,
+  .tc-axis-line,
+  .tc-tick-line {
+    stroke: CanvasText;
+  }
+  .tc-line {
+    stroke: CanvasText;
+  }
+  .tc-area {
+    fill: GrayText;
+  }
+  .tc-bar,
+  .tc-point {
+    fill: CanvasText;
+    stroke: Canvas;
+  }
+}
