@@ -28,7 +28,11 @@
     "./dist/log.js",
     "./dist/log.cjs",
     "./dist/decimate.js",
-    "./dist/decimate.cjs"
+    "./dist/decimate.cjs",
+    "./src/index.ts",
+    "./src/time.ts",
+    "./src/log.ts",
+    "./src/decimate.ts"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

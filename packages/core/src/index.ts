@@ -3,12 +3,16 @@
  * that installs the built-in plugins (tooltip, legend, keyboard, …) and
  * every optional feature registered (time and log axes, decimation).
  */
+import { register } from './features.ts'
+import { log } from './scales/log.ts'
+import { time, timePointScale } from './scales/time.ts'
+import { lttb, lttbIndices } from './shapes/decimate.ts'
+
+// Registered here, in the entry itself, so no bundler can shake it away.
+register({ time: { scale: time, points: timePointScale }, log, decimate: lttbIndices })
 
 export { Chart } from './chart-default.ts'
 export * from './core.ts'
-// Importing these entries registers the features; keep them as value imports.
-export { lttb, lttbIndices } from './decimate.ts'
-export type { LogScaleOptions } from './log.ts'
-export { log } from './log.ts'
-export type { TimeScale, TimeScaleOptions, TimeValue } from './time.ts'
-export { time, timePointScale } from './time.ts'
+export type { LogScaleOptions } from './scales/log.ts'
+export type { TimeScale, TimeScaleOptions, TimeValue } from './scales/time.ts'
+export { log, lttb, lttbIndices, time, timePointScale }
