@@ -1,3 +1,7 @@
 packages:
   - "packages/*"
   - "apps/*"
+
+# sass pulls in @parcel/watcher for its watch mode, which we never use: skip its native build.
+allowBuilds:
+  '@parcel/watcher': false

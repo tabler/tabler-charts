@@ -1,0 +1,84 @@
+// @tabler/charts-bootstrap: map the chart tokens to Bootstrap 5.3 CSS variables.
+//
+// Load it after `@tabler/charts/style.css` (the plain CSS build is
+// `@tabler/charts-bootstrap/bootstrap.css`). Charts then use the body font and
+// colors, borders, radius and shadow of your theme, the first series takes
+// `primary`, and `data-bs-theme="dark"` switches them with the rest of the page.
+//
+// Override any variable before importing, e.g. in your Bootstrap build:
+//
+//   $tc-series-1: var(--#{$prefix}success);
+//   @import "@tabler/charts-bootstrap/scss/charts";
+
+// Bootstrap's CSS variable prefix (`$prefix` in Bootstrap's own variables).
+$tc-prefix: "bs-" !default;
+
+// Tokens read from the theme. The fallbacks are the chart defaults, so charts
+// still render if a variable is missing (e.g. Bootstrap < 5.3).
+$tc-series-1: var(--#{$tc-prefix}primary, #2a78d6) !default;
+$tc-surface: var(--#{$tc-prefix}body-bg, #fff) !default;
+$tc-text-color: var(--#{$tc-prefix}body-color, #0b0b0b) !default;
+$tc-text-muted: var(--#{$tc-prefix}secondary-color, #6f6e69) !default;
+$tc-grid-color: var(--#{$tc-prefix}border-color-translucent, #e1e0d9) !default;
+$tc-baseline-color: var(--#{$tc-prefix}border-color, #c3c2b7) !default;
+$tc-hover-color: rgba(var(--#{$tc-prefix}emphasis-color-rgb, 11, 11, 11), 0.05) !default;
+$tc-tooltip-bg: var(--#{$tc-prefix}body-bg, #fff) !default;
+$tc-tooltip-border: var(--#{$tc-prefix}border-color-translucent, rgb(11 11 11 / 10%)) !default;
+$tc-tooltip-shadow: var(--#{$tc-prefix}box-shadow, 0 4px 16px rgb(11 11 11 / 12%)) !default;
+$tc-tooltip-radius: var(--#{$tc-prefix}border-radius, 6px) !default;
+$tc-font-family: var(--#{$tc-prefix}body-font-family, inherit) !default;
+
+// Series 2–8 keep the chart palette, validated for color-vision deficiency
+// next to any blue primary; Bootstrap's own orange / yellow / pink are not.
+$tc-palette-light: (
+  2: #eb6834,
+  3: #1baf7a,
+  4: #eda100,
+  5: #e87ba4,
+  6: #008300,
+  7: #4a3aa7,
+  8: #e34948,
+) !default;
+$tc-palette-dark: (
+  2: #d95926,
+  3: #199e70,
+  4: #c98500,
+  5: #d55181,
+  6: #008300,
+  7: #9085e9,
+  8: #e66767,
+) !default;
+
+// Custom properties are resolved where they are declared, so the mapping is
+// repeated on every element that sets a theme, not only on :root.
+:where(:root, [data-#{$tc-prefix}theme]) {
+  --tc-color-1: #{$tc-series-1};
+  --tc-focus-color: #{$tc-series-1};
+  --tc-surface: #{$tc-surface};
+  --tc-text-color: #{$tc-text-color};
+  --tc-tooltip-color: #{$tc-text-color};
+  --tc-text-muted: #{$tc-text-muted};
+  --tc-grid-color: #{$tc-grid-color};
+  --tc-baseline-color: #{$tc-baseline-color};
+  --tc-hover-color: #{$tc-hover-color};
+  --tc-tooltip-bg: #{$tc-tooltip-bg};
+  --tc-tooltip-border: #{$tc-tooltip-border};
+  --tc-tooltip-shadow: #{$tc-tooltip-shadow};
+  --tc-tooltip-radius: #{$tc-tooltip-radius};
+  --tc-font-family: #{$tc-font-family};
+}
+
+// Bootstrap picks the theme with data-bs-theme, not with the OS setting, so
+// the palette follows the attribute (this also overrides the chart
+// stylesheet's prefers-color-scheme defaults).
+:where(:root, [data-#{$tc-prefix}theme="light"]) {
+  @each $slot, $color in $tc-palette-light {
+    --tc-color-#{$slot}: #{$color};
+  }
+}
+
+:where([data-#{$tc-prefix}theme="dark"]) {
+  @each $slot, $color in $tc-palette-dark {
+    --tc-color-#{$slot}: #{$color};
+  }
+}

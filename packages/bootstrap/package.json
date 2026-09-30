@@ -1,0 +1,57 @@
+{
+  "name": "@tabler/charts-bootstrap",
+  "version": "0.0.0",
+  "description": "Bootstrap 5.3 theme mapping (CSS and SCSS) for @tabler/charts.",
+  "keywords": [
+    "charts",
+    "svg",
+    "bootstrap",
+    "scss",
+    "tabler"
+  ],
+  "license": "MIT",
+  "author": "Paweł Kuna",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codecalm/tabler-charts.git",
+    "directory": "packages/bootstrap"
+  },
+  "type": "module",
+  "sideEffects": [
+    "**/*.css",
+    "**/*.scss"
+  ],
+  "style": "./dist/bootstrap.css",
+  "exports": {
+    "./bootstrap.css": "./dist/bootstrap.css",
+    "./scss/charts": {
+      "sass": "./scss/_charts.scss",
+      "default": "./scss/_charts.scss"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "scss"
+  ],
+  "scripts": {
+    "build": "node scripts/build-css.mjs",
+    "lint:pkg": "publint"
+  },
+  "peerDependencies": {
+    "@tabler/charts": "workspace:^",
+    "bootstrap": ">=5.3"
+  },
+  "peerDependenciesMeta": {
+    "bootstrap": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@tabler/charts": "workspace:^",
+    "sass": "^1.105.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
