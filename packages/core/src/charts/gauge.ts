@@ -53,6 +53,7 @@ export interface GaugeOptions {
 /** Space kept around the gauge for the hover halo. */
 const HALO = 8
 const DEG = Math.PI / 180
+const HALF_PI = Math.PI / 2
 
 interface Ring {
   data: GaugeRing
@@ -84,18 +85,74 @@ function layoutRings(options: GaugeOptions, hidden: ReadonlySet<string>): Ring[]
     }))
 }
 
+/**
+ * Radius and center that fit the swept ring (plus the text in the middle)
+ * into `area`: a dial or half ring is centered by its own outline, not by
+ * the full circle it is cut from.
+ */
+function fitGauge(
+  area: { x: number; y: number; width: number; height: number },
+  start: number,
+  sweep: number,
+  textTop: number,
+  textBottom: number,
+): { outer: number; cx: number; cy: number } {
+  // Points of the outline, in units of the outer radius: both ends of the arc
+  // and every axis extreme it passes; the origin covers the inner edge.
+  const unit: [number, number][] = [[0, 0]]
+  const end = start + sweep
+  unit.push([Math.sin(start), -Math.cos(start)], [Math.sin(end), -Math.cos(end)])
+  for (let a = Math.ceil(start / HALF_PI) * HALF_PI; a <= end + 1e-9; a += HALF_PI) {
+    unit.push([Math.sin(a), -Math.cos(a)])
+  }
+  let outer = Math.min(area.width, area.height) / 2
+  let box = { x0: 0, y0: 0, x1: 0, y1: 0 }
+  // The text does not scale with the radius, so converge in a few rounds.
+  for (let i = 0; i < 4; i++) {
+    box = { x0: 0, y0: textTop, x1: 0, y1: textBottom }
+    for (const [x, y] of unit) {
+      box.x0 = Math.min(box.x0, x * outer)
+      box.x1 = Math.max(box.x1, x * outer)
+      box.y0 = Math.min(box.y0, y * outer)
+      box.y1 = Math.max(box.y1, y * outer)
+    }
+    const scale = Math.min(area.width / (box.x1 - box.x0), area.height / (box.y1 - box.y0))
+    if (Math.abs(scale - 1) < 1e-3) break
+    outer = Math.max(0, outer * scale)
+  }
+  return {
+    outer,
+    cx: area.x + (area.width - (box.x1 - box.x0)) / 2 - box.x0,
+    cy: area.y + (area.height - (box.y1 - box.y0)) / 2 - box.y0,
+  }
+}
+
 function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
   const { width, height, locale } = ctx
   const thickness = Math.max(1, options.thickness ?? 12)
   const gap = Math.max(0, options.gap ?? 4)
   const cornerRadius = options.cornerRadius ?? thickness / 2
-  const area = innerRect(width, height, insets(options.padding, 0))
-  const outer = Math.max(0, Math.min(area.width, area.height) / 2 - HALO)
-  const cx = area.x + area.width / 2
-  const cy = area.y + area.height / 2
+  const pad = insets(options.padding, 0)
+  const area = innerRect(width, height, {
+    top: pad.top + HALO,
+    right: pad.right + HALO,
+    bottom: pad.bottom + HALO,
+    left: pad.left + HALO,
+  })
   const start = (options.startAngle ?? 0) * DEG
   const sweep = Math.min(360, Math.max(0, options.angle ?? 360)) * DEG
   const rings = layoutRings(options, ctx.hidden)
+  const center = options.center
+  const first = rings[0]
+  const showCenter = center !== false && first !== undefined
+  const centerLabel = showCenter ? (center?.label ?? (first.data.name || undefined)) : undefined
+  const { outer, cx, cy } = fitGauge(
+    area,
+    start,
+    sweep,
+    showCenter ? -1.4 * ctx.fontSize : 0,
+    showCenter ? (centerLabel ? 2 : 0.7) * ctx.fontSize : 0,
+  )
   const value = formatNumber(options.format, locale)
   const share = getNumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 })
 
@@ -170,11 +227,7 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
     ),
   )
 
-  const center = options.center
-  const first = rings[0]
-  const showCenter = center !== false && first !== undefined
   const centerValue = showCenter ? (center?.value ?? share.format(fraction(first))) : ''
-  const centerLabel = showCenter ? (center?.label ?? (first.data.name || undefined)) : undefined
 
   return [
     // Rings sit in their own group: the entrance animation transforms it, not the translated parent.

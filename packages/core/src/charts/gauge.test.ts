@@ -131,6 +131,39 @@ describe('gauge', () => {
     expect(y).toBeGreaterThan(0)
   })
 
+  test('fits a dial or half ring by its outline, not the full circle', () => {
+    const translate = (config: Partial<ChartConfig<GaugeOptions>>) => {
+      const style = String(findByClass(render(config), 'tc-gauge')[0]?.attrs.style)
+      return (
+        style
+          .match(/translate\(([\d.-]+)px,([\d.-]+)px\)/)
+          ?.slice(1)
+          .map(Number) ?? []
+      )
+    }
+    // Largest arc radius in the track: the outer edge (corners are smaller).
+    const outerOf = (config: Partial<ChartConfig<GaugeOptions>>) =>
+      Math.max(
+        ...String(findByClass(render(config), 'tc-gauge-track')[0]?.attrs.d)
+          .split('A')
+          .slice(1)
+          .map((arc) => Number(arc.split(',')[0])),
+      )
+    // A full ring is centered with the halo margin all around.
+    expect(translate({ center: false })).toEqual([100, 100])
+    expect(outerOf({ center: false })).toBe(92)
+    // A half ring (top) grows to the full width; its own outline is centered.
+    const half = { center: false as const, startAngle: -90, angle: 180 }
+    expect(outerOf(half)).toBe(92)
+    expect(translate(half)).toEqual([100, 146])
+    // With text below the ring it moves up to make room.
+    expect(translate({ startAngle: -90, angle: 180 })[1]).toBeLessThan(146)
+    // A dial keeps the width and shifts down into the open bottom.
+    const dial = { center: false as const, startAngle: -135, angle: 270 }
+    expect(outerOf(dial)).toBe(92)
+    expect(translate(dial)[1]).toBeGreaterThan(100)
+  })
+
   test('hit testing finds the ring under the pointer', () => {
     const interaction = interactionOf({
       data: [

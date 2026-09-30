@@ -28,7 +28,7 @@ const CASES = [
   [
     'core + gauge',
     `export { Chart } from '${DIST}core.js'; export { gauge } from '${DIST}gauge.js'`,
-    7,
+    7.5,
   ],
   [
     'core + line + tooltip + legend',
