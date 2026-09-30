@@ -12,6 +12,7 @@ import { gaugeDemo } from './demos/gauge.ts'
 import { heatmapDemo } from './demos/heatmap.ts'
 import { lineDemo } from './demos/line.ts'
 import { pieDemo } from './demos/pie.ts'
+import { reactDemo } from './demos/react.tsx'
 import { scatterDemo } from './demos/scatter.ts'
 import { sparklineDemo } from './demos/sparkline.ts'
 import { timeDemo } from './demos/time.ts'
@@ -30,6 +31,7 @@ const demos: Demo[] = [
   scatterDemo,
   customType,
   elementDemo,
+  reactDemo,
   galleryDemo,
 ]
 

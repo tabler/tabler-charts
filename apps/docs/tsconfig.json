@@ -2,12 +2,14 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "isolatedDeclarations": false,
+    "jsx": "react-jsx",
     "declaration": false,
     "paths": {
       "@tabler/charts": ["../../packages/core/src/index.ts"],
       "@tabler/charts/core": ["../../packages/core/src/core.ts"],
       "@tabler/charts-elements": ["../../packages/elements/src/index.ts"],
-      "@tabler/charts-elements/shadow": ["../../packages/elements/src/shadow.ts"]
+      "@tabler/charts-elements/shadow": ["../../packages/elements/src/shadow.ts"],
+      "@tabler/charts-react": ["../../packages/react/src/index.ts"]
     }
   },
   "include": ["src", "../../packages/elements/src/globals.d.ts"]

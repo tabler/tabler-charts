@@ -8,8 +8,11 @@ import { build } from 'rolldown'
 
 const DIST = new URL('../packages/core/dist/', import.meta.url).pathname
 const ELEMENTS = new URL('../packages/elements/dist/', import.meta.url).pathname
+const REACT = new URL('../packages/react/dist/', import.meta.url).pathname
+/** React itself is the app's, not ours. */
+const react = [/^react($|\/)/, /^react-dom($|\/)/]
 
-/** [name, entry source, budget in kB gzipped] */
+/** [name, entry source, budget in kB gzipped, externals] */
 const CASES = [
   [
     'core + line',
@@ -58,14 +61,24 @@ const CASES = [
     12.25,
   ],
   ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 25.5],
+  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 16.75, react],
   ['everything', `export * from '${DIST}index.js'`, 25.25],
 ]
 
 let failed = false
 const entry = new URL('./.size-entry.mjs', import.meta.url).pathname
-for (const [name, source, budget] of CASES) {
+for (const [name, source, budget, external] of CASES) {
   writeFileSync(entry, source)
-  const result = await build({ input: entry, write: false, output: { minify: true } })
+  const result = await build({
+    input: entry,
+    write: false,
+    external,
+    output: { minify: true },
+    // "use client" is for the app's bundler; measuring does not need the notice.
+    onLog: (level, log, handler) => {
+      if (log.code !== 'MODULE_LEVEL_DIRECTIVE') handler(level, log)
+    },
+  })
   const code = result.output.map((o) => o.code ?? '').join('')
   const kb = gzipSync(code).length / 1000
   const ok = kb <= budget

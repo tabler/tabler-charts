@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    // Type against the core source, so typechecking needs no build first.
+    "paths": {
+      "@tabler/charts": ["../core/src/index.ts"],
+      "@tabler/charts/core": ["../core/src/core.ts"]
+    }
+  },
+  "include": ["src"]
+}

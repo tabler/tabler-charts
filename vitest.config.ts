@@ -19,7 +19,7 @@ export default defineConfig({
     ],
   },
   test: {
-    include: ['packages/*/{src,test}/**/*.test.ts'],
+    include: ['packages/*/{src,test}/**/*.test.{ts,tsx}'],
     passWithNoTests: true,
   },
 })
