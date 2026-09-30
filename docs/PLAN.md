@@ -169,7 +169,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 26. `feat(core): add scatter chart` (+ demo) – dwie osie liczbowe (`domainOf()`), bąbelki proporcjonalne polem (`size`), najbliższy punkt w 2D (wyszukiwanie binarne po x), aureola przy hover, klawiatura po punktach, tabela punktów, wejście `@tabler/charts/scatter`.
 - [x] 27. `feat(core): add sparkline` (+ demo z kafelkami) – warianty line/area/bar, bez osi/legendy/tabeli, dopasowany zakres dla linii, kropka na ostatniej wartości, znaczniki min/max, tooltip, wejście `@tabler/charts/sparkline`.
 - [x] 28. `feat(core): add time and log scales` (+ demo) – `time()` z tickami kalendarzowymi (sekundy…lata, lokalnie / UTC, większa jednostka na granicy), `log()`; `x: { type: 'time' }` dla line/area (prawdziwe odstępy, binarne szukanie najbliższego punktu), `y: { scale: 'log' }` dla wszystkich osi wartości; 2 commity.
-- [ ] 29. `perf(core): add LTTB decimation module`.
+- [x] 29. `perf(core): add LTTB decimation module` (+ demo 50k punktów) – `lttb()` / `lttbIndices()` z zachowaniem przerw i wyrównaniem do baz stosów, opcja `decimate: N` w line/area, wejście `@tabler/charts/decimate`; do tego limit 1000 wierszy tabeli danych, `extent()` zamiast spread, szybszy `thinTicks`. 50k punktów: 22 ms (z decymacją) / 58 ms.
 
 ### M4 – Adaptery
 - [ ] 30. `feat(elements): add <tabler-chart> web component` (light DOM, atrybuty, eventy).
