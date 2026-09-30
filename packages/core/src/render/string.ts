@@ -1,9 +1,7 @@
 import type { Child, VNode } from '../vnode.ts'
+import { isValidAttr, isValidTag } from './attrs.ts'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
-
-/** Valid XML-ish tag and attribute names; anything else is skipped. */
-const NAME_RE = /^[a-zA-Z_][\w:.-]*$/
 
 export interface RenderToStringOptions {
   /**
@@ -31,11 +29,11 @@ export function renderToString(node: Child, options: RenderToStringOptions = {})
 
 function renderNode(node: VNode): string {
   const { tag, attrs, children } = node
-  if (!NAME_RE.test(tag)) return ''
+  if (!isValidTag(tag)) return ''
 
   let out = `<${tag}`
   for (const name in attrs) {
-    if (!NAME_RE.test(name) || isEventHandler(name)) continue
+    if (!isValidAttr(name)) continue
     out += ` ${name}="${escapeAttr(String(attrs[name]))}"`
   }
 
@@ -46,12 +44,6 @@ function renderNode(node: VNode): string {
     out += typeof child === 'string' ? escapeText(child) : renderNode(child)
   }
   return `${out}</${tag}>`
-}
-
-const EVENT_RE = /^on/i
-
-function isEventHandler(name: string): boolean {
-  return EVENT_RE.test(name)
 }
 
 const TEXT_RE = /[&<>]/
