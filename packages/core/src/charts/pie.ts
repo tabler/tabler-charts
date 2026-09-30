@@ -93,7 +93,11 @@ function renderPie(
   const { slices, total } = layoutSlices(options, ctx.hidden)
   const drawn = slices.filter((slice) => slice.value > 0)
   // A single slice is a full ring: no gap to cut.
-  const padAngle = drawn.length > 1 ? padAngleForGap(gap, inner, outer) : 0
+  // Rings get a pad angle, which keeps a constant gap width along the whole
+  // edge. In a full pie every slice meets at the center, so a pad angle would
+  // widen into a wedge: the gap is a surface-colored stroke instead.
+  const strokeGap = inner === 0 && drawn.length > 1 ? gap : 0
+  const padAngle = inner > 0 && drawn.length > 1 ? padAngleForGap(gap, inner, outer) : 0
   const value = formatNumber(options.format, locale)
   const share = getNumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 })
 
@@ -188,7 +192,14 @@ function renderPie(
             endAngle: Math.PI * 2,
           }),
         }),
-      h('g', { class: 'tc-pie-slices' }, groups),
+      h(
+        'g',
+        {
+          class: 'tc-pie-slices',
+          style: strokeGap > 0 ? `--tc-pie-gap:${strokeGap}px` : undefined,
+        },
+        groups,
+      ),
     ),
     showCenter &&
       h(

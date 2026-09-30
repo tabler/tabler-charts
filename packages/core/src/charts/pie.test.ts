@@ -99,6 +99,17 @@ describe('pie', () => {
     expect(() => chartToString({ ...base, data: [] }, size)).not.toThrow()
   })
 
+  test('draws pie gaps as a parallel stroke and donut gaps as a pad angle', () => {
+    const pieNode = render()
+    expect(findByClass(pieNode, 'tc-pie-slices')[0]?.attrs.style).toBe('--tc-pie-gap:2px')
+    // No pad angle on the pie: the first slice starts exactly at 12 o'clock.
+    expect(findByClass(pieNode, 'tc-slice')[0]?.attrs.d).toMatch(/^M0,-/)
+    const donutNode = render({ type: donut })
+    expect(findByClass(donutNode, 'tc-pie-slices')[0]?.attrs.style).toBeUndefined()
+    expect(findByClass(donutNode, 'tc-slice')[0]?.attrs.d).not.toMatch(/^M0,-/)
+    expect(findByClass(render({ gap: 0 }), 'tc-pie-slices')[0]?.attrs.style).toBeUndefined()
+  })
+
   test('gives a single slice a full ring without a gap', () => {
     const d = findByClass(render({ data: [{ name: 'Only', value: 5 }] }), 'tc-slice')[0]?.attrs.d
     expect(String(d).match(/A/g)).toHaveLength(2)

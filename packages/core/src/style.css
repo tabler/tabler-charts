@@ -193,6 +193,17 @@
   transition: d var(--tc-duration) var(--tc-easing);
 }
 
+/* Full pies draw their gap as a surface-colored stroke, so its edges stay parallel. */
+.tc-pie-slices {
+  --tc-pie-gap: 0px;
+}
+
+.tc-slice {
+  stroke: var(--tc-surface);
+  stroke-width: var(--tc-pie-gap);
+  stroke-linejoin: round;
+}
+
 .tc-pie-track {
   fill: var(--tc-grid-color);
 }
