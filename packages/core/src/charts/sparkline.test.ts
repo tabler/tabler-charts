@@ -63,6 +63,27 @@ describe('sparkline', () => {
     )
   })
 
+  test('tristate draws wins up, losses down and draws as a tick, by sign only', () => {
+    const node = render({ variant: 'tristate', data: [3, -40, 0, 1, null] })
+    const bars = findByClass(node, 'tc-bar')
+    expect(bars.map((b) => b.attrs.class)).toEqual([
+      'tc-bar tc-tristate-win',
+      'tc-bar tc-bar-negative tc-tristate-loss',
+      'tc-bar tc-tristate-draw',
+      'tc-bar tc-tristate-win',
+    ])
+    // Magnitude does not matter: both wins span the same heights.
+    const heights = (d: unknown) => [...String(d).matchAll(/V([\d.]+)/g)].map((m) => m[1])
+    expect(heights(bars[0]?.attrs.d)).toEqual(heights(bars[3]?.attrs.d))
+    expect(findByClass(node, 'tc-sparkline-zero')).toHaveLength(1)
+    // The middle line sits at half the height.
+    expect(Number(findByClass(node, 'tc-sparkline-zero')[0]?.attrs.y1)).toBeCloseTo(
+      size.height / 2,
+      0,
+    )
+    expect(findByClass(node, 'tc-point-last')).toHaveLength(0)
+  })
+
   test('marks the minimum and maximum', () => {
     const node = render({ markers: 'minmax' })
     expect(findByClass(node, 'tc-point-min')).toHaveLength(1)

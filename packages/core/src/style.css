@@ -347,6 +347,21 @@
   transform-origin: 50% 0;
 }
 
+/* Tristate sparklines: losses in the last palette slot (red), draws as a muted tick. */
+.tc-tristate-loss {
+  fill: var(--tc-negative-color, var(--tc-color-8));
+}
+
+.tc-tristate-draw {
+  fill: var(--tc-baseline-color);
+}
+
+.tc-sparkline-zero {
+  stroke: var(--tc-grid-color);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
 /* Horizontal bars grow right from the baseline (left for negative values). */
 .tc-bar-horizontal {
   transform-origin: 0 50%;

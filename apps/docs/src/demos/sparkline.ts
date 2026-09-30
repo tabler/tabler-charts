@@ -19,6 +19,8 @@ const TILES: {
   options: Partial<SparklineOptions>
   start: number
   drift: number
+  /** Custom data instead of a random walk. */
+  data?: () => number[]
 }[] = [
   {
     label: 'Revenue',
@@ -28,6 +30,16 @@ const TILES: {
     drift: 900,
   },
   { label: 'Orders', format: {}, options: { variant: 'bar' }, start: 120, drift: 40 },
+  {
+    label: 'Net change',
+    format: { signDisplay: 'exceptZero' },
+    options: { variant: 'tristate' },
+    start: 0,
+    drift: 0,
+    // Daily change in active users: mostly up, some down, a few flat days.
+    data: () =>
+      DAYS.map(() => Math.round((Math.random() - 0.35) * 40) * (Math.random() < 0.15 ? 0 : 1)),
+  },
   {
     label: 'Visitors',
     format: { notation: 'compact' },
@@ -48,7 +60,7 @@ export const sparklineDemo: Demo = {
   id: 'sparkline',
   title: 'Sparklines',
   description:
-    'Tiny line, area and bar charts without axes for stat tiles: fitted range for lines, zero baseline for areas and bars, last-value dot, min/max markers and a tooltip.',
+    'Tiny line, area and bar charts without axes for stat tiles: fitted range for lines, zero baseline for areas and bars, last-value dot, min/max markers and a tooltip. Tristate shows only the sign: up, down or flat.',
   mount(el, controls) {
     el.classList.add('tiles')
     const charts = TILES.map((tile) => {
@@ -65,7 +77,7 @@ export const sparklineDemo: Demo = {
       el.append(card)
 
       const fmt = formatNumber(tile.format, 'en-US')
-      const data = walk(tile.start, tile.drift)
+      const data = tile.data?.() ?? walk(tile.start, tile.drift)
       value.textContent = fmt(data.at(-1) ?? 0)
       const chart = new Chart(spark, {
         type: sparkline,
@@ -83,7 +95,7 @@ export const sparklineDemo: Demo = {
 
     controls.button('Shuffle data', () => {
       for (const { chart, tile, value, fmt } of charts) {
-        const data = walk(tile.start, tile.drift)
+        const data = tile.data?.() ?? walk(tile.start, tile.drift)
         value.textContent = fmt(data.at(-1) ?? 0)
         chart.setData(data)
       }

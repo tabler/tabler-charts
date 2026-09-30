@@ -647,6 +647,11 @@ const SPARKS: { name: string; value: string; config: Record<string, unknown> }[]
   },
   { name: 'Errors', value: '12', config: { data: walk(20, 8, 6), variant: 'bar' } },
   {
+    name: 'Deploys',
+    value: '9 / 12',
+    config: { data: [1, 1, -1, 1, 0, 1, -1, 1, 1, 1, 0, -1, 1, 1, 1, 1], variant: 'tristate' },
+  },
+  {
     name: 'Latency',
     value: '184 ms',
     config: { data: walk(20, 180, 40), variant: 'line', curve: 'step' },

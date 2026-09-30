@@ -15,8 +15,11 @@ export interface SparklineOptions {
   labels?: readonly Label[]
   /** Name shown in the tooltip. Defaults to `'Value'`. */
   name?: string
-  /** `'line'` (default), `'area'` or `'bar'`. */
-  variant?: 'line' | 'area' | 'bar'
+  /**
+   * `'line'` (default), `'area'`, `'bar'`, or `'tristate'`: only the sign
+   * counts, as a full bar up (win), down (loss) or a tick on the middle (draw).
+   */
+  variant?: 'line' | 'area' | 'bar' | 'tristate'
   /** Interpolation for lines and areas. Defaults to `'monotone'`. */
   curve?: Curve
   /** Dot on the last value. Defaults to `'last'`. */
@@ -58,10 +61,12 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
     bottom: pad.bottom + overhang,
     left: pad.left + overhang,
   })
+  const tristate = variant === 'tristate'
   const zero = options.zero ?? variant !== 'line'
-  const domain = domainOf(values, { nice: false }, zero, 2)
+  // Tristate bars span half the height each way, whatever the magnitude.
+  const domain: [number, number] = tristate ? [-1, 1] : domainOf(values, { nice: false }, zero, 2)
 
-  const bars = variant === 'bar'
+  const bars = variant === 'bar' || tristate
   const gap = 1
   const slot = count > 0 ? area.width / count : 0
   const xAt = (i: number) =>
@@ -114,7 +119,37 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
   ctx.onHitTest(interaction)
 
   const marks = []
-  if (bars) {
+  if (tristate) {
+    const width = Math.max(1, slot - gap)
+    marks.push(
+      h('line', {
+        class: 'tc-sparkline-zero',
+        x1: area.x,
+        x2: area.x + area.width,
+        y1: round(baseline),
+        y2: round(baseline),
+      }),
+    )
+    values.forEach((v, i) => {
+      if (v === null) return
+      const sign = Math.sign(v)
+      // A draw is a short tick centered on the middle line.
+      const tick = Math.min(2, area.height / 2)
+      const [from, to] =
+        sign === 0 ? [baseline + tick / 2, baseline - tick / 2] : [baseline, y(sign)]
+      marks.push(
+        h('path', {
+          key: i,
+          class: [
+            'tc-bar',
+            sign < 0 && 'tc-bar-negative',
+            sign < 0 ? 'tc-tristate-loss' : sign > 0 ? 'tc-tristate-win' : 'tc-tristate-draw',
+          ],
+          d: barPath(xAt(i) - width / 2, width, from, to, sign === 0 ? 0 : Math.min(2, width / 2)),
+        }),
+      )
+    })
+  } else if (bars) {
     const width = Math.max(1, slot - gap)
     values.forEach((v, i) => {
       if (v === null) return

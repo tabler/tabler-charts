@@ -37,7 +37,7 @@ const CASES = [
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     8.5,
   ],
-  ['everything', `export * from '${DIST}index.js'`, 23.5],
+  ['everything', `export * from '${DIST}index.js'`, 24],
 ]
 
 let failed = false
