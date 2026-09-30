@@ -3,6 +3,15 @@ import { version } from '../package.json'
 /** Version of the `@tabler/charts` package. */
 export const VERSION: string = version
 
+export type {
+  BaseOptions,
+  ChartConfig,
+  ChartEvents,
+  ChartType,
+  RenderContext,
+  Size,
+} from './chart.ts'
+export { buildChart, Chart, chartToString, resolveSize } from './chart.ts'
 export type { AxisOptions, AxisPosition, LinearTicksOptions, Tick } from './components/axis.ts'
 export { axis, axisSize, bandTicks, linearTicks, thinTicks } from './components/axis.ts'
 export type { GridOptions } from './components/grid.ts'
@@ -27,6 +36,7 @@ export { extent } from './scales/extent.ts'
 export type { LinearScale, LinearScaleOptions } from './scales/linear.ts'
 export { linear } from './scales/linear.ts'
 export { niceDomain, tickIncrement, tickStep, ticks } from './scales/ticks.ts'
+export { cancel, flush, schedule } from './scheduler.ts'
 export type { Curve, PathOptions, Point } from './shapes/path.ts'
 export { areaPath, linePath } from './shapes/path.ts'
 export type {
