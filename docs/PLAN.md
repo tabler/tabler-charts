@@ -140,7 +140,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 5. `ci: add github actions workflow` – install, lint, typecheck, test, build, lint:pkg.
 
 ### M1 – Fundament renderowania
-- [ ] 6. `feat(core): add vnode and h() helper` + testy.
+- [x] 6. `feat(core): add vnode and h() helper` + testy.
 - [ ] 7. `feat(core): add string renderer` – `renderToString`, escaping, testy snapshot.
 - [ ] 8. `feat(core): add dom renderer with keyed patching` – mount/patch/unmount, testy w happy-dom.
 - [ ] 9. `feat(core): add linear and band scales` – `nice()`, ticki, testy.
