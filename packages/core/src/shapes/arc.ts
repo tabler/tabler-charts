@@ -171,6 +171,85 @@ function cornerTangents(
   }
 }
 
+/**
+ * Padded angles, clamped corner radii and edge points of a partial sector,
+ * shared by both path generators so they agree exactly.
+ */
+function sector(
+  options: ArcOptions,
+  r0: number,
+  r1: number,
+  a0: number,
+  a1: number,
+  da: number,
+  cw: boolean,
+) {
+  let a01 = a0
+  let a11 = a1
+  let a00 = a0
+  let a10 = a1
+  let da0 = da
+  let da1 = da
+  const ap = (options.padAngle ?? 0) / 2
+  const rp = ap > EPSILON ? (options.padRadius ?? Math.sqrt(r0 * r0 + r1 * r1)) : 0
+  const rc = Math.min(Math.abs(r1 - r0) / 2, options.cornerRadius ?? 0)
+  let rc0 = rc
+  let rc1 = rc
+
+  // Apply padding: equal linear offsets at both radii keep the gap parallel.
+  if (rp > EPSILON) {
+    let p0 = asin((rp / r0) * Math.sin(ap))
+    let p1 = asin((rp / r1) * Math.sin(ap))
+    da0 -= p0 * 2
+    if (da0 > EPSILON) {
+      p0 *= cw ? 1 : -1
+      a00 += p0
+      a10 -= p0
+    } else {
+      da0 = 0
+      a00 = a10 = (a0 + a1) / 2
+    }
+    da1 -= p1 * 2
+    if (da1 > EPSILON) {
+      p1 *= cw ? 1 : -1
+      a01 += p1
+      a11 -= p1
+    } else {
+      da1 = 0
+      a01 = a11 = (a0 + a1) / 2
+    }
+  }
+
+  const x01 = r1 * Math.cos(a01)
+  const y01 = r1 * Math.sin(a01)
+  const x10 = r0 * Math.cos(a10)
+  const y10 = r0 * Math.sin(a10)
+  const x11 = r1 * Math.cos(a11)
+  const y11 = r1 * Math.sin(a11)
+  const x00 = r0 * Math.cos(a00)
+  const y00 = r0 * Math.sin(a00)
+
+  // Restrict the corner radius for narrow sectors, where corners would overlap.
+  if (rc > EPSILON && da < PI) {
+    const oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10)
+    if (oc) {
+      const ax = x01 - oc[0]
+      const ay = y01 - oc[1]
+      const bx = x11 - oc[0]
+      const by = y11 - oc[1]
+      const cos =
+        (ax * bx + ay * by) / (Math.sqrt(ax * ax + ay * ay) * Math.sqrt(bx * bx + by * by))
+      const kc = 1 / Math.sin(acos(cos) / 2)
+      const lc = Math.sqrt(oc[0] * oc[0] + oc[1] * oc[1])
+      rc0 = Math.min(rc, (r0 - lc) / (kc - 1))
+      rc1 = Math.min(rc, (r1 - lc) / (kc + 1))
+    } else {
+      rc0 = rc1 = 0
+    }
+  }
+  return { a00, a01, a10, a11, da0, da1, rc, rc0, rc1, x01, y01, x10, y10, x11, y11, x00, y00 }
+}
+
 /** SVG path data of an annular sector (a pie slice when `innerRadius` is 0). */
 export function arcPath(options: ArcOptions): string {
   const path = new ArcPath(options.precision ?? 2)
@@ -193,80 +272,14 @@ export function arcPath(options: ArcOptions): string {
       path.arc(0, 0, r0, a1, a0, cw)
     }
   } else {
-    let a01 = a0
-    let a11 = a1
-    let a00 = a0
-    let a10 = a1
-    let da0 = da
-    let da1 = da
-    const ap = (options.padAngle ?? 0) / 2
-    const rp = ap > EPSILON ? (options.padRadius ?? Math.sqrt(r0 * r0 + r1 * r1)) : 0
-    const rc = Math.min(Math.abs(r1 - r0) / 2, options.cornerRadius ?? 0)
-    let rc0 = rc
-    let rc1 = rc
-
-    // Apply padding: equal linear offsets at both radii keep the gap parallel.
-    if (rp > EPSILON) {
-      let p0 = asin((rp / r0) * Math.sin(ap))
-      let p1 = asin((rp / r1) * Math.sin(ap))
-      da0 -= p0 * 2
-      if (da0 > EPSILON) {
-        p0 *= cw ? 1 : -1
-        a00 += p0
-        a10 -= p0
-      } else {
-        da0 = 0
-        a00 = a10 = (a0 + a1) / 2
-      }
-      da1 -= p1 * 2
-      if (da1 > EPSILON) {
-        p1 *= cw ? 1 : -1
-        a01 += p1
-        a11 -= p1
-      } else {
-        da1 = 0
-        a01 = a11 = (a0 + a1) / 2
-      }
-    }
-
-    const x01 = r1 * Math.cos(a01)
-    const y01 = r1 * Math.sin(a01)
-    const x10 = r0 * Math.cos(a10)
-    const y10 = r0 * Math.sin(a10)
-
-    // Restrict the corner radius for narrow sectors, where corners would overlap.
-    if (rc > EPSILON) {
-      const x11 = r1 * Math.cos(a11)
-      const y11 = r1 * Math.sin(a11)
-      const x00 = r0 * Math.cos(a00)
-      const y00 = r0 * Math.sin(a00)
-      if (da < PI) {
-        const oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10)
-        if (oc) {
-          const ax = x01 - oc[0]
-          const ay = y01 - oc[1]
-          const bx = x11 - oc[0]
-          const by = y11 - oc[1]
-          const cos =
-            (ax * bx + ay * by) / (Math.sqrt(ax * ax + ay * ay) * Math.sqrt(bx * bx + by * by))
-          const kc = 1 / Math.sin(acos(cos) / 2)
-          const lc = Math.sqrt(oc[0] * oc[0] + oc[1] * oc[1])
-          rc0 = Math.min(rc, (r0 - lc) / (kc - 1))
-          rc1 = Math.min(rc, (r1 - lc) / (kc + 1))
-        } else {
-          rc0 = rc1 = 0
-        }
-      }
-    }
+    const g = sector(options, r0, r1, a0, a1, da, cw)
+    const { a00, a01, a10, a11, da0, da1, rc, rc0, rc1, x01, y01, x10, y10 } = g
 
     // Outer ring.
     if (!(da1 > EPSILON)) {
       path.moveTo(x01, y01)
     } else if (rc1 > EPSILON) {
-      const x00 = r0 * Math.cos(a00)
-      const y00 = r0 * Math.sin(a00)
-      const x11 = r1 * Math.cos(a11)
-      const y11 = r1 * Math.sin(a11)
+      const { x00, y00, x11, y11 } = g
       const t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw)
       const t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw)
       path.moveTo(t0.cx + t0.x01, t0.cy + t0.y01)
@@ -293,10 +306,7 @@ export function arcPath(options: ArcOptions): string {
     if (!(r0 > EPSILON) || !(da0 > EPSILON)) {
       path.lineTo(x10, y10)
     } else if (rc0 > EPSILON) {
-      const x00 = r0 * Math.cos(a00)
-      const y00 = r0 * Math.sin(a00)
-      const x11 = r1 * Math.cos(a11)
-      const y11 = r1 * Math.sin(a11)
+      const { x00, y00, x11, y11 } = g
       const t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw)
       const t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw)
       path.lineTo(t0.cx + t0.x01, t0.cy + t0.y01)
@@ -409,65 +419,8 @@ export function arcPathStable(options: ArcOptions): string {
     return `${d}Z`
   }
 
-  // Padding and corner radii exactly as in arcPath().
-  let a01 = a0
-  let a11 = a1
-  let a00 = a0
-  let a10 = a1
-  let da0 = da
-  let da1 = da
-  const ap = (options.padAngle ?? 0) / 2
-  const rp = ap > EPSILON ? (options.padRadius ?? Math.sqrt(r0 * r0 + r1 * r1)) : 0
-  const rc = Math.min(Math.abs(r1 - r0) / 2, options.cornerRadius ?? 0)
-  let rc0 = rc
-  let rc1 = rc
-  if (rp > EPSILON) {
-    let p0 = asin((rp / r0) * Math.sin(ap))
-    let p1 = asin((rp / r1) * Math.sin(ap))
-    da0 -= p0 * 2
-    if (da0 > EPSILON) {
-      p0 *= cw ? 1 : -1
-      a00 += p0
-      a10 -= p0
-    } else {
-      da0 = 0
-      a00 = a10 = (a0 + a1) / 2
-    }
-    da1 -= p1 * 2
-    if (da1 > EPSILON) {
-      p1 *= cw ? 1 : -1
-      a01 += p1
-      a11 -= p1
-    } else {
-      da1 = 0
-      a01 = a11 = (a0 + a1) / 2
-    }
-  }
-  const x01 = r1 * Math.cos(a01)
-  const y01 = r1 * Math.sin(a01)
-  const x10 = r0 * Math.cos(a10)
-  const y10 = r0 * Math.sin(a10)
-  const x11 = r1 * Math.cos(a11)
-  const y11 = r1 * Math.sin(a11)
-  const x00 = r0 * Math.cos(a00)
-  const y00 = r0 * Math.sin(a00)
-  if (rc > EPSILON && da < PI) {
-    const oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10)
-    if (oc) {
-      const ax = x01 - oc[0]
-      const ay = y01 - oc[1]
-      const bx = x11 - oc[0]
-      const by = y11 - oc[1]
-      const cos =
-        (ax * bx + ay * by) / (Math.sqrt(ax * ax + ay * ay) * Math.sqrt(bx * bx + by * by))
-      const kc = 1 / Math.sin(acos(cos) / 2)
-      const lc = Math.sqrt(oc[0] * oc[0] + oc[1] * oc[1])
-      rc0 = Math.min(rc, (r0 - lc) / (kc - 1))
-      rc1 = Math.min(rc, (r1 - lc) / (kc + 1))
-    } else {
-      rc0 = rc1 = 0
-    }
-  }
+  const { a00, a01, a10, a11, da0, da1, rc, rc0, rc1, x01, y01, x10, y10, x11, y11, x00, y00 } =
+    sector(options, r0, r1, a0, a1, da, cw)
 
   // Outer edge: corner, two ring halves, corner.
   if (da1 > EPSILON && rc1 > EPSILON) {

@@ -4,7 +4,7 @@ import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
 import type { LegendItem } from '../legend.ts'
-import { arcCentroid, arcPath, arcPathStable, padAngleForGap } from '../shapes/arc.ts'
+import { arcCentroid, arcPathStable, padAngleForGap } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 
 /** One slice of a pie or donut. */
@@ -131,7 +131,7 @@ function renderPie(
       seriesIndex: slice.index,
       // A thin halo just outside the slice.
       mark: {
-        d: arcPath({ ...geometry(slice, outer + 2, outer + 6), cornerRadius: 2 }),
+        d: arcPathStable({ ...geometry(slice, outer + 2, outer + 6), cornerRadius: 2 }),
         x: cx,
         y: cy,
       },
@@ -186,7 +186,7 @@ function renderPie(
       total === 0 &&
         h('path', {
           class: 'tc-pie-track',
-          d: arcPath({
+          d: arcPathStable({
             innerRadius: inner,
             outerRadius: outer,
             startAngle: 0,
