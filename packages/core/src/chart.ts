@@ -1,6 +1,7 @@
+import { type DataTable, describeHit, tableContent } from './a11y.ts'
 import { hoverOverlay, hoverUnderlay } from './components/hover.ts'
 import type { Locale } from './format.ts'
-import { type Hit, type HitTester, hitKey, toChartPoint } from './interaction.ts'
+import { type Hit, hitKey, type Interaction, toChartPoint } from './interaction.ts'
 import { defaultHidden, type LegendItem, type LegendOptions, legendContent } from './legend.ts'
 import { render } from './render/dom.ts'
 import { renderToString } from './render/string.ts'
@@ -18,8 +19,8 @@ export interface RenderContext {
   locale: Locale
   /** Unique, stable prefix for ids inside this chart. */
   id: string
-  /** Register how points map to data, for pointer interaction (ignored in SSR). */
-  onHitTest(tester: HitTester): void
+  /** Register how pointer and keyboard map to data (ignored in SSR). */
+  onHitTest(interaction: Interaction): void
   /** Keys of legend entries (series) currently hidden. */
   hidden: ReadonlySet<string>
 }
@@ -33,9 +34,11 @@ export interface ChartType<O extends object = object> {
   render(options: O, context: RenderContext): ChildInput
   /** Entries for the legend (series, slices); charts without it get no legend. */
   legend?(options: O): LegendItem[]
+  /** The data as a text table, for screen readers and the visible table option. */
+  table?(options: O, context: RenderContext): DataTable
 }
 
-export type { LegendItem }
+export type { DataTable, LegendItem }
 
 /** Options shared by every chart type. */
 export interface BaseOptions {
@@ -68,6 +71,13 @@ export interface BaseOptions {
   legend?: boolean | LegendOptions
   /** Animate entrances and data updates. Defaults to `true` (reduced motion always wins). */
   animate?: boolean
+  /**
+   * Render the data as an HTML table: visually hidden for screen readers
+   * (`true`, the default), shown below the chart (`'visible'`), or not at all.
+   */
+  table?: boolean | 'visible'
+  /** Make the chart focusable and navigable with arrow keys. Defaults to `true`. */
+  keyboard?: boolean
 }
 
 /** Full chart configuration: base options, the chart type and its options. */
@@ -108,10 +118,20 @@ function renderContent<O extends object>(
   config: ChartConfig<O>,
   size: Size,
   id: string,
-  onHitTest: (tester: HitTester) => void,
+  onHitTest: (interaction: Interaction) => void,
   hidden: ReadonlySet<string>,
 ): ChildInput {
-  return config.type.render(config, {
+  return config.type.render(config, renderContext(config, size, id, onHitTest, hidden))
+}
+
+function renderContext<O extends object>(
+  config: ChartConfig<O>,
+  size: Size,
+  id: string,
+  onHitTest: (interaction: Interaction) => void,
+  hidden: ReadonlySet<string>,
+): RenderContext {
+  return {
     width: size.width,
     height: size.height,
     fontSize: config.fontSize ?? DEFAULT_FONT_SIZE,
@@ -119,7 +139,7 @@ function renderContent<O extends object>(
     id,
     onHitTest,
     hidden,
-  })
+  }
 }
 
 function assertType(config: ChartConfig<object>): void {
@@ -147,6 +167,7 @@ function composeChart(
   content: ChildInput,
   underlay?: ChildInput,
   overlay?: ChildInput,
+  focusable = false,
 ): VNode {
   const { width, height } = size
   const titleId = config.title ? `${id}-title` : undefined
@@ -164,6 +185,7 @@ function composeChart(
       width,
       height,
       role: 'img',
+      tabindex: focusable ? 0 : undefined,
       'aria-labelledby': titleId,
       'aria-describedby': descId,
     },
@@ -183,7 +205,7 @@ export function buildChart<O extends object>(
   config: ChartConfig<O>,
   size: Size,
   id: string = config.id ?? 'tc',
-  onHitTest: (tester: HitTester) => void = () => {},
+  onHitTest: (interaction: Interaction) => void = () => {},
 ): VNode {
   assertType(config as ChartConfig<object>)
   const hidden = defaultHidden(resolveLegend(config).items)
@@ -238,7 +260,7 @@ export class Chart<O extends object = object> {
   private readonly unobserve: () => void
   private readonly unlisten: () => void
   private destroyed = false
-  private tester: HitTester | undefined
+  private interaction: Interaction | undefined
   /** Last pointer position in chart pixels while hovering. */
   private pointer: { x: number; y: number } | undefined
   private hovered = ''
@@ -250,6 +272,10 @@ export class Chart<O extends object = object> {
   private tooltipEl: HTMLElement | undefined
   private legendEl: HTMLElement | undefined
   private resizeTimer: ReturnType<typeof setTimeout> | undefined
+  private tableEl: HTMLElement | undefined
+  private liveEl: HTMLElement | undefined
+  /** Whether the current hover comes from the keyboard. */
+  private keyboardHover = false
   /** Visibility set by the user, overriding each entry's default. */
   private readonly toggled = new Map<string, boolean>()
   private readonly addedContainerClass: boolean
@@ -358,13 +384,13 @@ export class Chart<O extends object = object> {
       cache.height !== size.height ||
       cache.hidden !== hiddenKey
     if (!cache || stale) {
-      this.tester = undefined
+      this.interaction = undefined
       const content = renderContent(
         cfg,
         size,
         this.id,
-        (tester) => {
-          this.tester = tester
+        (interaction) => {
+          this.interaction = interaction
         },
         hidden,
       )
@@ -373,7 +399,10 @@ export class Chart<O extends object = object> {
     }
 
     // Keep hover consumers (tooltips) in sync with new data or layout.
-    if (this.pointer && stale)
+    if (this.pointer && stale && this.keyboardHover && this.active) {
+      // Keep the keyboard selection on the same category with fresh values.
+      this.focusIndex(this.active.index, this.active.seriesIndex, false)
+    } else if (this.pointer && stale)
       this.setHover(this.hitTest(this.pointer.x, this.pointer.y), undefined, true, false)
 
     const hit = this.active
@@ -386,8 +415,10 @@ export class Chart<O extends object = object> {
         cache.content,
         hit && hoverUnderlay(hit, cfg.crosshair !== false),
         hit && hoverOverlay(hit),
+        cfg.keyboard !== false,
       ),
     )
+    if (stale) this.renderTable(cfg, size, hidden)
     this.placeLegend()
     if (stale) this.emit('render', { size })
     this.updateTooltip()
@@ -396,7 +427,7 @@ export class Chart<O extends object = object> {
 
   /** What lies at a point in chart pixels, or `null`. */
   hitTest(x: number, y: number): Hit | null {
-    return this.tester?.(x, y) ?? null
+    return this.interaction?.hitTest(x, y) ?? null
   }
 
   /** Subscribe to an event; returns a function that unsubscribes. */
@@ -430,6 +461,11 @@ export class Chart<O extends object = object> {
       render(this.legendEl, null)
       this.legendEl.remove()
     }
+    for (const el of [this.tableEl, this.liveEl]) {
+      if (!el) continue
+      render(el, null)
+      el.remove()
+    }
     if (this.addedContainerClass) this.element.classList.remove('tc-container')
   }
 
@@ -454,6 +490,17 @@ export class Chart<O extends object = object> {
       this.pointer = undefined
       this.setHover(null, event)
     }
+    const onKey = (event: KeyboardEvent) => {
+      if (this.cfg.keyboard === false) return
+      if (!(event.target as Element).matches?.('svg.tc-chart')) return
+      if (this.handleKey(event.key)) event.preventDefault()
+    }
+    const onBlur = (event: FocusEvent) => {
+      if (!(event.target as Element).matches?.('svg.tc-chart') || !this.keyboardHover) return
+      this.keyboardHover = false
+      this.pointer = undefined
+      this.setHover(null)
+    }
     const onClick = (event: MouseEvent) => {
       const point = local(event)
       const hit = point ? this.hitTest(point.x, point.y) : null
@@ -464,7 +511,11 @@ export class Chart<O extends object = object> {
     el.addEventListener('pointerdown', onMove as EventListener)
     el.addEventListener('pointerleave', onLeave as EventListener)
     el.addEventListener('click', onClick as EventListener)
+    el.addEventListener('keydown', onKey as EventListener)
+    el.addEventListener('focusout', onBlur as EventListener)
     return () => {
+      el.removeEventListener('keydown', onKey as EventListener)
+      el.removeEventListener('focusout', onBlur as EventListener)
       el.removeEventListener('pointermove', onMove as EventListener)
       el.removeEventListener('pointerdown', onMove as EventListener)
       el.removeEventListener('pointerleave', onLeave as EventListener)
@@ -473,6 +524,7 @@ export class Chart<O extends object = object> {
   }
 
   private hover(point: { x: number; y: number }, event?: PointerEvent): void {
+    this.keyboardHover = false
     this.pointer = point
     this.setHover(this.hitTest(point.x, point.y), event)
   }
@@ -588,6 +640,107 @@ export class Chart<O extends object = object> {
     } else if (!el.isConnected || el.nextElementSibling !== svg) {
       this.element.insertBefore(el, svg ?? this.element.firstChild)
     }
+  }
+
+  /** Arrow keys walk categories, Up/Down walk series, Home/End jump, Escape clears. */
+  private handleKey(key: string): boolean {
+    const interaction = this.interaction
+    if (!interaction || interaction.count === 0) return false
+    const current = this.keyboardHover ? this.active : null
+    const last = interaction.count - 1
+    const index = current?.index
+    const series = current?.items.map((item) => item.seriesIndex) ?? []
+    const at = current?.seriesIndex === undefined ? -1 : series.indexOf(current.seriesIndex)
+
+    switch (key) {
+      case 'ArrowRight':
+        this.focusIndex(index === undefined ? 0 : Math.min(last, index + 1), current?.seriesIndex)
+        return true
+      case 'ArrowLeft':
+        this.focusIndex(index === undefined ? last : Math.max(0, index - 1), current?.seriesIndex)
+        return true
+      case 'Home':
+        this.focusIndex(0, current?.seriesIndex)
+        return true
+      case 'End':
+        this.focusIndex(last, current?.seriesIndex)
+        return true
+      case 'ArrowDown':
+      case 'ArrowUp': {
+        if (index === undefined || series.length === 0) {
+          this.focusIndex(0)
+          return true
+        }
+        const step = key === 'ArrowDown' ? 1 : -1
+        const next = at === -1 ? (step > 0 ? 0 : series.length - 1) : at + step
+        this.focusIndex(index, next < 0 || next >= series.length ? undefined : series[next])
+        return true
+      }
+      case 'Escape':
+        if (!current) return false
+        this.keyboardHover = false
+        this.pointer = undefined
+        this.setHover(null)
+        return true
+      default:
+        return false
+    }
+  }
+
+  /** Hover a category from the keyboard and announce it. */
+  private focusIndex(index: number, seriesIndex?: number, rerender = true): void {
+    const hit = this.interaction?.hitIndex(index, seriesIndex) ?? null
+    if (!hit) return
+    this.keyboardHover = true
+    const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
+    this.pointer = { x: hit.x, y: item?.y ?? hit.area.y + hit.area.height / 2 }
+    this.setHover(hit, undefined, !rerender, rerender)
+    this.announce(describeHit(hit))
+  }
+
+  private announce(text: string): void {
+    if (typeof document === 'undefined') return
+    let live = this.liveEl
+    if (!live) {
+      live = this.element.ownerDocument.createElement('div')
+      live.className = 'tc-sr-only'
+      live.setAttribute('aria-live', 'polite')
+      live.setAttribute('aria-atomic', 'true')
+      this.element.appendChild(live)
+      this.liveEl = live
+    }
+    live.textContent = text
+  }
+
+  /** Render (or remove) the data table next to the chart. */
+  private renderTable(cfg: ChartConfig<O>, size: Size, hidden: ReadonlySet<string>): void {
+    const option = cfg.table ?? true
+    const table =
+      option !== false && typeof document !== 'undefined'
+        ? cfg.type.table?.(
+            cfg,
+            renderContext(cfg, size, this.id, () => {}, hidden),
+          )
+        : undefined
+    if (!table) {
+      if (this.tableEl) {
+        render(this.tableEl, null)
+        this.tableEl.remove()
+        this.tableEl = undefined
+      }
+      return
+    }
+    let el = this.tableEl
+    if (!el) {
+      el = this.element.ownerDocument.createElement('div')
+      this.tableEl = el
+    }
+    el.className = option === 'visible' ? 'tc-table-wrap' : 'tc-table-wrap tc-sr-only'
+    render(el, tableContent(table, cfg.title))
+    const svg = this.element.querySelector(':scope > svg.tc-chart')
+    const after = this.legendEl?.dataset.position === 'bottom' ? this.legendEl : svg
+    if (after && after.nextElementSibling !== el) after.after(el)
+    else if (!el.isConnected) this.element.appendChild(el)
   }
 
   /** Suspend transitions while the container keeps resizing (see `[data-resizing]` in CSS). */

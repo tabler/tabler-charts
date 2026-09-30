@@ -457,6 +457,69 @@
 
 /* -- Accessibility ---------------------------------------------------------- */
 
+/* Visually hidden but read by screen readers (data table, live announcements). */
+.tc-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Keyboard focus on the chart itself (arrow keys walk the data). */
+.tc-chart:focus {
+  outline: none;
+}
+
+.tc-chart:focus-visible {
+  outline: 2px solid var(--tc-focus-color);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* The data table, when shown with table: 'visible'. */
+.tc-table-wrap:not(.tc-sr-only) {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.tc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--tc-font-family);
+  font-size: var(--tc-font-size);
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-text-color);
+}
+
+.tc-table caption {
+  margin-bottom: 4px;
+  font-weight: 600;
+  text-align: start;
+}
+
+.tc-table th,
+.tc-table td {
+  padding: 4px 8px;
+  text-align: end;
+  border-bottom: 1px solid var(--tc-grid-color);
+}
+
+.tc-table th[scope="row"],
+.tc-table thead th:first-child {
+  text-align: start;
+}
+
+.tc-table thead th {
+  font-weight: 600;
+  color: var(--tc-text-muted);
+  border-bottom-color: var(--tc-baseline-color);
+}
+
 /* Every animation and transition in the library uses --tc-duration. */
 @media (prefers-reduced-motion: reduce) {
   .tc-chart,

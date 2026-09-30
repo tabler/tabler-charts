@@ -53,6 +53,12 @@ export const barDemo: Demo = {
       negatives = value === 'on'
       refresh()
     })
+    controls.select(
+      'Data table',
+      ['screen readers', 'visible'] as const,
+      'screen readers',
+      (value) => chart.update({ table: value === 'visible' ? 'visible' : true }),
+    )
     controls.range('Radius', { min: 0, max: 12, step: 1, value: 4 }, (radius) =>
       chart.update({ radius }),
     )

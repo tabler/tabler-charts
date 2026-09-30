@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { buildChart, Chart, type ChartConfig } from './chart.ts'
 import { bar } from './charts/bar.ts'
 import { line } from './charts/line.ts'
-import { type Hit, type HitTester, hitKey, toChartPoint } from './interaction.ts'
+import { type Hit, type HitTester, hitKey, type Interaction, toChartPoint } from './interaction.ts'
 
 const data = {
   labels: ['Jan', 'Feb', 'Mar', 'Apr'],
@@ -14,15 +14,18 @@ const data = {
 }
 const size = { width: 400, height: 200 }
 
-/** The hit tester a chart type registers while rendering. */
-function testerFor(config: ChartConfig<object>): HitTester {
-  let tester: HitTester | undefined
-  buildChart(config, size, 't', (fn) => {
-    tester = fn
+/** The interaction a chart type registers while rendering. */
+function interactionFor(config: ChartConfig<object>): Interaction {
+  let found: Interaction | undefined
+  buildChart(config, size, 't', (interaction) => {
+    found = interaction
   })
-  if (!tester) throw new Error('no hit tester registered')
-  return tester
+  if (!found) throw new Error('no interaction registered')
+  return found
 }
+
+/** The pointer hit tester of a chart type. */
+const testerFor = (config: ChartConfig<object>): HitTester => interactionFor(config).hitTest
 
 describe('line hit testing', () => {
   const hit = testerFor({ type: line, data, locale: 'en-US' } as ChartConfig<object>)
@@ -82,6 +85,19 @@ describe('bar hit testing', () => {
     const missingBarX = (mar.items[1]?.x ?? 0) - 26
     expect(hit(missingBarX, 100)?.seriesIndex).toBeUndefined()
     expect(hit(missingBarX + 26, 100)?.seriesIndex).toBe(1)
+  })
+})
+
+describe('hitIndex()', () => {
+  const interaction = interactionFor({ type: line, data, locale: 'en-US' } as ChartConfig<object>)
+
+  test('returns a category by index and can focus a series', () => {
+    expect(interaction.count).toBe(4)
+    expect(interaction.hitIndex(1)?.label).toBe('Feb')
+    expect(interaction.hitIndex(1, 1)?.seriesIndex).toBe(1)
+    expect(interaction.hitIndex(1, 9)?.seriesIndex).toBeUndefined()
+    expect(interaction.hitIndex(-1)).toBeNull()
+    expect(interaction.hitIndex(4)).toBeNull()
   })
 })
 

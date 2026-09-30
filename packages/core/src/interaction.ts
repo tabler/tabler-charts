@@ -39,6 +39,16 @@ export interface Hit {
 /** Maps a point in chart pixels to what lies there. */
 export type HitTester = (x: number, y: number) => Hit | null
 
+/** How a rendered chart answers pointer and keyboard interaction. */
+export interface Interaction {
+  /** What lies at a point in chart pixels. */
+  hitTest: HitTester
+  /** The hit for a category by index (keyboard navigation), optionally focused on a series. */
+  hitIndex(index: number, seriesIndex?: number): Hit | null
+  /** Number of categories. */
+  count: number
+}
+
 /** Identity of a hit, used to emit hover changes only when it changes. */
 export function hitKey(hit: Hit | null): string {
   return hit ? `${hit.index}:${hit.seriesIndex ?? ''}` : ''

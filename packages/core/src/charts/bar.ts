@@ -4,10 +4,11 @@ import { h } from '../vnode.ts'
 import {
   type CartesianOptions,
   cartesianLayout,
-  categoryHitTester,
+  categoryInteraction,
   seriesAttrs,
   seriesKey,
   seriesLegend,
+  seriesTable,
 } from './cartesian.ts'
 
 export interface BarOptions extends CartesianOptions {
@@ -61,7 +62,7 @@ export const bar: ChartType<BarOptions> = {
       x.at(i) + offset + (slots.get(seriesIndex) ?? 0) * (barWidth + gap)
 
     ctx.onHitTest(
-      categoryHitTester(
+      categoryInteraction(
         layout,
         options,
         ctx,
@@ -104,4 +105,5 @@ export const bar: ChartType<BarOptions> = {
     ]
   },
   legend: (options) => seriesLegend(options.data),
+  table: (options, ctx) => seriesTable(options, ctx),
 }

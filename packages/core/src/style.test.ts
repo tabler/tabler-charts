@@ -71,9 +71,12 @@ describe('style.css', () => {
       'tc-legend-item',
       'tc-legend-swatch',
       'tc-legend-item-hidden',
+      'tc-sr-only',
+      'tc-table',
+      'tc-table-wrap',
     ]
     for (const name of classes) {
-      expect(css, name).toMatch(new RegExp(`\\.${name}[\\s,{]`))
+      expect(css, name).toMatch(new RegExp(`\\.${name}[\\s,{:]`))
     }
   })
 

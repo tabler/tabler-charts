@@ -3,6 +3,8 @@ import { version } from '../package.json'
 /** Version of the `@tabler/charts` package. */
 export const VERSION: string = version
 
+export type { DataTable } from './a11y.ts'
+export { describeHit, tableContent } from './a11y.ts'
 export type {
   BaseOptions,
   ChartConfig,
@@ -24,7 +26,7 @@ export type {
   Series,
   ValueAxisOptions,
 } from './charts/cartesian.ts'
-export { categoryHitTester, seriesKey, seriesLegend } from './charts/cartesian.ts'
+export { categoryInteraction, seriesKey, seriesLegend, seriesTable } from './charts/cartesian.ts'
 export type { LineOptions } from './charts/line.ts'
 export { line } from './charts/line.ts'
 export type { AxisOptions, AxisPosition, LinearTicksOptions, Tick } from './components/axis.ts'
@@ -41,7 +43,7 @@ export {
   getNumberFormat,
   stepPrecision,
 } from './format.ts'
-export type { Hit, HitItem, HitTester } from './interaction.ts'
+export type { Hit, HitItem, HitTester, Interaction } from './interaction.ts'
 export type { Insets, InsetsInput, Rect } from './layout.ts'
 export { estimateTextWidth, innerRect, insets, LINE_HEIGHT } from './layout.ts'
 export type { LegendItem, LegendOptions } from './legend.ts'

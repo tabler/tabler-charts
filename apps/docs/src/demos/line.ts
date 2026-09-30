@@ -25,7 +25,7 @@ export const lineDemo: Demo = {
   id: 'line',
   title: 'Line chart',
   description:
-    'Built-in line type: nice y domain, auto margins from label sizes, gaps for missing values (April), crosshair and tooltip on hover. Shuffle to see CSS transitions on the same DOM nodes.',
+    'Built-in line type: nice y domain, auto margins from label sizes, gaps for missing values (April), crosshair and tooltip on hover. Shuffle to see CSS transitions on the same DOM nodes. Tab into the chart and use the arrow keys.',
   mount(el, controls) {
     const chart = new Chart(el, {
       type: line,

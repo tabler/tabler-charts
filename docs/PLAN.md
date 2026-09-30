@@ -159,7 +159,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 20. `feat(core): add tooltip and crosshair` (+ dema) – warstwy hover (crosshair / pas kategorii / aktywne punkty) w drzewie SVG z cache treści typu wykresu, tooltip HTML (`.tc-tooltip`, `format`, `footer`), pozycjonowanie z odbiciem przy krawędzi, opcje `tooltip` / `crosshair`.
 - [x] 21. `feat(core): add legend with series toggle` – legenda HTML (przyciski z `aria-pressed`), auto od 2 serii, `ChartType.legend()` (gotowe pod wycinki pie), ukryte serie zachowują slot koloru, `toggleSeries()`, zdarzenie `legend-toggle`, `Series.hidden`.
 - [x] 22. `feat(core): animate data updates via css transitions` – przejścia `d`/`cx`/`cy`/`transform` na tych samych węzłach, wejścia (odsłanianie linii, wzrost słupków od bazy, fade), bez animacji przy zmianie rozmiaru, `animate: false`, wszystko przez `--tc-duration`. Safari: `d` nie animuje się (przeskok).
-- [ ] 23. `feat(core): add accessibility (title/desc, keyboard nav, data table)`.
+- [x] 23. `feat(core): add accessibility (title/desc, keyboard nav, data table)` – ukryta (lub widoczna) tabela danych, nawigacja strzałkami / Home / End / Esc z tooltipem, komunikaty `aria-live`, fokus na SVG; poprawka SSR: puste elementy HTML zamykane jawnie.
 
 ### M3 – Kolejne typy
 - [ ] 24. `feat(core): add stacked and horizontal bars`.

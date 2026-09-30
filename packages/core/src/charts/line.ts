@@ -4,11 +4,12 @@ import { type ChildInput, h } from '../vnode.ts'
 import {
   type CartesianOptions,
   cartesianLayout,
-  categoryHitTester,
+  categoryInteraction,
   type Series,
   seriesAttrs,
   seriesKey,
   seriesLegend,
+  seriesTable,
 } from './cartesian.ts'
 
 export interface LineOptions extends CartesianOptions {
@@ -66,7 +67,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   const layout = cartesianLayout(options, ctx, { scale: 'point', zero: filled, overhang })
   const { x, y, labels } = layout
   const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
-  ctx.onHitTest(categoryHitTester(layout, options, ctx, (_, i, v) => ({ x: x.at(i), y: y(v) })))
+  ctx.onHitTest(categoryInteraction(layout, options, ctx, (_, i, v) => ({ x: x.at(i), y: y(v) })))
   const gradient = filled && fillStyle === 'gradient'
   const fadeId = `${ctx.id}-fade`
 
@@ -164,4 +165,5 @@ export const line: ChartType<LineOptions> = {
   name: 'line',
   render: (options, ctx) => renderLines(options, ctx, false),
   legend: (options) => seriesLegend(options.data),
+  table: (options, ctx) => seriesTable(options, ctx),
 }

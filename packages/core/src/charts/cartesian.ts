@@ -1,8 +1,8 @@
-import type { LegendItem, RenderContext } from '../chart.ts'
+import type { DataTable, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { formatNumber, type NumberFormat } from '../format.ts'
-import type { Hit, HitItem, HitTester } from '../interaction.ts'
+import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import {
   estimateTextWidth,
   type InsetsInput,
@@ -273,34 +273,25 @@ export function seriesAttrs(series: Series, index: number): Record<string, strin
 const HOVER_SLOP = 8
 
 /**
- * Hit testing by category: the nearest category to the pointer while it is
- * over the plot area, with every series' value there. `anchor` places each
- * value (line point, bar end); `markAt` names the series of the mark directly
- * under the pointer, if the chart has distinct marks (bars). Labels and
- * values are formatted with the chart's `x.format` / `y.format` and locale.
+ * Interaction by category: the nearest category to the pointer while it is
+ * over the plot area, with every visible series' value there. `anchor`
+ * places each value (line point, bar end); `markAt` names the series of the
+ * mark directly under the pointer, if the chart has distinct marks (bars).
+ * Labels and values are formatted with `x.format` / `y.format` and the locale.
  */
-export function categoryHitTester(
+export function categoryInteraction(
   layout: CartesianLayout,
   options: CartesianOptions,
   ctx: RenderContext,
   anchor: (seriesIndex: number, index: number, value: number) => { x: number; y: number },
   markAt?: (x: number, y: number, index: number) => number | undefined,
-): HitTester {
+): Interaction {
   const { area, x, labels } = layout
   const { data } = options
   const formatLabel = options.x?.format ?? ((label: Label) => String(label))
   const formatValue = formatNumber(options.y?.format, ctx.locale)
-  return (px, py) => {
-    if (labels.length === 0) return null
-    if (
-      px < area.x - HOVER_SLOP ||
-      px > area.x + area.width + HOVER_SLOP ||
-      py < area.y - HOVER_SLOP ||
-      py > area.y + area.height + HOVER_SLOP
-    ) {
-      return null
-    }
-    const index = x.indexAt(px)
+
+  const hitAt = (index: number): Hit => {
     const start = x.at(index)
     const center = start + x.bandwidth / 2
     const label = labels[index] as Label
@@ -323,8 +314,52 @@ export function categoryHitTester(
     })
     const hit: Hit = { index, label, title: formatLabel(label, index), x: center, area, items }
     if (x.bandwidth > 0) hit.band = { x: start, width: x.bandwidth }
-    const mark = markAt?.(px, py, index)
-    if (mark !== undefined) hit.seriesIndex = mark
     return hit
+  }
+
+  return {
+    count: labels.length,
+    hitTest(px, py) {
+      if (labels.length === 0) return null
+      if (
+        px < area.x - HOVER_SLOP ||
+        px > area.x + area.width + HOVER_SLOP ||
+        py < area.y - HOVER_SLOP ||
+        py > area.y + area.height + HOVER_SLOP
+      ) {
+        return null
+      }
+      const index = x.indexAt(px)
+      const hit = hitAt(index)
+      const mark = markAt?.(px, py, index)
+      if (mark !== undefined) hit.seriesIndex = mark
+      return hit
+    },
+    hitIndex(index, seriesIndex) {
+      if (index < 0 || index >= labels.length) return null
+      const hit = hitAt(index)
+      if (seriesIndex !== undefined && hit.items.some((item) => item.seriesIndex === seriesIndex)) {
+        hit.seriesIndex = seriesIndex
+      }
+      return hit
+    },
+  }
+}
+
+/** Accessible table of series values: one row per category, one column per visible series. */
+export function seriesTable(options: CartesianOptions, ctx: RenderContext): DataTable {
+  const labels = resolveLabels(options.data)
+  const formatLabel = options.x?.format ?? ((label: Label) => String(label))
+  const formatValue = formatNumber(options.y?.format, ctx.locale)
+  const series = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
+  return {
+    columns: ['', ...series.map((s) => s.name)],
+    rows: labels.map((label, i) => [
+      formatLabel(label, i),
+      ...series.map((s) => {
+        const v = s.values[i]
+        return v == null || !Number.isFinite(v) ? '–' : formatValue(v)
+      }),
+    ]),
   }
 }
