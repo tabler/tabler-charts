@@ -16,6 +16,12 @@ describe('h()', () => {
     expect(node.attrs).toEqual({ focusable: '' })
   })
 
+  test('omits non-finite numbers', () => {
+    expect(h('rect', { x: Number.NaN, y: Number.POSITIVE_INFINITY, width: 0 }).attrs).toEqual({
+      width: 0,
+    })
+  })
+
   test('extracts key from props', () => {
     expect(h('g', { key: 'series-1' }).key).toBe('series-1')
     expect(h('g', { key: 0 }).key).toBe(0)

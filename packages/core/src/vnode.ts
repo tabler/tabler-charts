@@ -6,7 +6,7 @@
  * so the same tree can be rendered on the server, in a worker or in tests.
  */
 
-/** Value accepted for a single attribute. `false`, `null` and `undefined` omit it. */
+/** Value accepted for a single attribute. `false`, `null`, `undefined` and non-finite numbers omit it. */
 export type AttrValue = string | number | boolean | null | undefined
 
 /** Normalized attributes stored on a {@link VNode}. */
@@ -72,7 +72,9 @@ export function h(tag: string, props?: Props | null, ...children: ChildInput[]):
         if (style) attrs.style = style
       } else if (value === true) {
         attrs[name] = ''
-      } else if (typeof value === 'string' || typeof value === 'number') {
+      } else if (typeof value === 'string') {
+        attrs[name] = value
+      } else if (typeof value === 'number' && Number.isFinite(value)) {
         attrs[name] = value
       }
     }
