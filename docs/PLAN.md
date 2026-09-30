@@ -183,7 +183,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 ### M6 – Typy z Tablera
 Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexCharts), wg liczby użyć.
 - [x] 41. `feat(core): add gauge chart` (+ demo, 3 kafelki w galerii) – `gauge` (radial bar): wartość jako łuk na torze, udział i nazwa w środku (`center`), `max`, `startAngle` / `angle` (pełny pierścień, tarcza 270°, półkole), grubość / odstęp / zaokrąglenie, kilka współśrodkowych pierścieni z legendą i tabelą, tooltip z udziałem, płynne przejścia `d` (`arcPathStable`), wejście `@tabler/charts/gauge`.
-- [ ] 42. `feat(core): dash per series and y.max` – `series[].dash`, `y: { max }` (karty line Tablera).
+- [x] 42. `feat(core): dash and width per series` – `series[].dash` (px lub pełne `stroke-dasharray`) i `series[].width` jako `--tc-series-dash` / `--tc-series-width` na grupie serii (`y.max` już było); kafelek „This week vs. last” w galerii.
 - [ ] 43. `feat(core): mixed series types` – `series[].type: 'bar' | 'line'` (karta „mentions”).
 - [ ] 44. `feat(core): tristate sparkline` – słupki kolorowane wg znaku.
 - [ ] 45. `feat(core): add heatmap chart` (karta „Weekly activity”).

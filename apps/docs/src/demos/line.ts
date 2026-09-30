@@ -17,9 +17,16 @@ function randomSeries(): Series[] {
   const signups = walk(900, 500).map((v, i) => (i === 3 ? null : v))
   return [
     { name: 'Visitors', values: visitors },
-    { name: 'Sign-ups', values: signups },
+    {
+      name: 'Sign-ups',
+      values: signups,
+      dash: dashed ? 4 : undefined,
+      width: dashed ? 1.5 : undefined,
+    },
   ]
 }
+
+let dashed = false
 
 export const lineDemo: Demo = {
   id: 'line',
@@ -53,5 +60,9 @@ export const lineDemo: Demo = {
     controls.select('Fill', ['off', 'on'] as const, 'off', (fill) =>
       chart.update({ area: fill === 'on' }),
     )
+    controls.select('Sign-ups', ['solid', 'dashed'] as const, 'solid', (style) => {
+      dashed = style === 'dashed'
+      chart.setData({ labels: LABELS, series: randomSeries() })
+    })
   },
 }

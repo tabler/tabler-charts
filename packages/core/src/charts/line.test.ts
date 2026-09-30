@@ -108,6 +108,27 @@ describe('line', () => {
     expect(groups[0]?.key).toBe('a1')
   })
 
+  test('dashes and widens lines per series through css variables', () => {
+    const styles = findByClass(
+      render({
+        data: {
+          labels: ['a'],
+          series: [
+            { name: 'A', values: [1], dash: 4, width: 1 },
+            { name: 'B', values: [1], dash: '6 3', color: '#f00' },
+            { name: 'C', values: [1] },
+          ],
+        },
+      }),
+      'tc-series',
+    ).map((g) => g.attrs.style)
+    expect(styles).toEqual([
+      '--tc-series-dash:4px;--tc-series-width:1px',
+      '--tc-series-color:#f00;--tc-series-dash:6 3',
+      undefined,
+    ])
+  })
+
   test('fills the area when asked', () => {
     expect(findByClass(render(), 'tc-area')).toHaveLength(0)
     expect(findByClass(render({ area: true }), 'tc-area')).toHaveLength(2)

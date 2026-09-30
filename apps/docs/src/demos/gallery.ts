@@ -75,6 +75,24 @@ const ITEMS: Item[] = [
     },
   },
   {
+    title: 'This week vs. last',
+    note: 'The comparison series is dashed and thinner (series.dash / series.width), y.max fixed.',
+    config: {
+      type: line,
+      ...common,
+      data: {
+        labels: WEEKDAYS,
+        series: [
+          { name: 'This week', values: walk(7, 2100, 700, 800), width: 2.5 },
+          { name: 'Last week', values: walk(7, 1700, 700, 800), dash: 4, width: 1.5 },
+        ],
+      },
+      curve: 'monotone',
+      points: 'none',
+      y: { max: 3000, format: { notation: 'compact' } },
+    },
+  },
+  {
     title: 'Temperature',
     note: 'Negative values, linear curve, every point marked, °C format.',
     config: {

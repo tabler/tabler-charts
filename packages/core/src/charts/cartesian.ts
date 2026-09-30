@@ -35,6 +35,13 @@ export interface Series {
   id?: string
   /** Custom color; overrides the palette slot via `--tc-series-color`. */
   color?: string
+  /**
+   * Dashed line: dash and gap length in pixels, or a full `stroke-dasharray`
+   * such as `'6 3'`. Sets `--tc-series-dash` on the series group.
+   */
+  dash?: number | string
+  /** Line width in pixels; overrides `--tc-stroke-width` via `--tc-series-width`. */
+  width?: number
   /** Extra classes on the series group. */
   class?: ClassValue
   /** Start hidden (toggle it back from the legend). */
@@ -428,11 +435,19 @@ export function plotClip(
 
 /** Attributes shared by every series group. */
 export function seriesAttrs(series: Series, index: number): Record<string, string | ClassValue> {
+  const vars: string[] = []
+  if (series.color) vars.push(`--tc-series-color:${series.color}`)
+  if (series.dash !== undefined) {
+    vars.push(
+      `--tc-series-dash:${typeof series.dash === 'number' ? `${series.dash}px` : series.dash}`,
+    )
+  }
+  if (series.width !== undefined) vars.push(`--tc-series-width:${series.width}px`)
   return {
     key: seriesKey(series),
     class: ['tc-series', `tc-series-${index + 1}`, series.class],
     'data-series': series.name,
-    ...(series.color ? { style: `--tc-series-color:${series.color}` } : {}),
+    ...(vars.length ? { style: vars.join(';') } : {}),
   }
 }
 

@@ -182,7 +182,8 @@
 .tc-line {
   fill: none;
   stroke: var(--tc-series-color);
-  stroke-width: var(--tc-stroke-width);
+  stroke-width: var(--tc-series-width, var(--tc-stroke-width));
+  stroke-dasharray: var(--tc-series-dash, none);
   stroke-linejoin: round;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
