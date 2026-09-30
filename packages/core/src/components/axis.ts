@@ -47,7 +47,8 @@ const isHorizontal = (position: AxisPosition): boolean =>
 
 /**
  * Keep every n-th tick (smallest n) so labels do not overlap along the axis.
- * The first tick is always kept.
+ * The first and the last tick are always kept: when the last one does not
+ * land on the step, it replaces the last kept tick if they would collide.
  */
 export function thinTicks(
   ticks: readonly Tick[],
@@ -59,15 +60,25 @@ export function thinTicks(
   const size = (tick: Tick) =>
     isHorizontal(position) ? estimateTextWidth(tick.label, fontSize) : fontSize * LINE_HEIGHT
   const sizes = ticks.map(size)
-  for (let step = 1; step < ticks.length; step++) {
+  const fitsBetween = (i: number, j: number) =>
+    Math.abs((ticks[j] as Tick).position - (ticks[i] as Tick).position) >=
+    ((sizes[i] as number) + (sizes[j] as number)) / 2 + gap
+
+  const last = ticks.length - 1
+  for (let step = 1; step <= last; step++) {
     let fits = true
-    for (let i = step; i < ticks.length && fits; i += step) {
-      const a = ticks[i - step] as Tick
-      const b = ticks[i] as Tick
-      const needed = ((sizes[i - step] as number) + (sizes[i] as number)) / 2 + gap
-      fits = Math.abs(b.position - a.position) >= needed
+    for (let i = step; i <= last && fits; i += step) fits = fitsBetween(i - step, i)
+    if (!fits) continue
+
+    const kept: number[] = []
+    for (let i = 0; i <= last; i += step) kept.push(i)
+    const tail = kept[kept.length - 1] as number
+    if (tail !== last) {
+      if (fitsBetween(tail, last)) kept.push(last)
+      else if (kept.length > 1 && fitsBetween(kept[kept.length - 2] as number, last))
+        kept[kept.length - 1] = last
     }
-    if (fits) return ticks.filter((_, i) => i % step === 0)
+    return kept.map((i) => ticks[i] as Tick)
   }
   return ticks.slice(0, 1)
 }

@@ -149,7 +149,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 12. `feat(core): add layout and axis/grid components` – szacowanie szerokości tekstu bez DOM (średni błąd ~2% vs pomiar w przeglądarce), przerzedzanie etykiet, klasy `.tc-axis*`, `.tc-tick*`, `.tc-grid*`.
 - [x] 13. `feat(core): add Chart class` – config, shared ResizeObserver + rAF scheduler, `update`/`destroy`, czyste `buildChart()` + `chartToString()` do SSR, typy opcji wnioskowane z typu wykresu.
 - [x] 14. `feat(core): add base stylesheet with css variables` – paleta, dark mode, reduced motion; 8 kolorów zwalidowanych pod CVD (jasny i ciemny), tekst osi WCAG AA, eksport `@tabler/charts/style.css`. Uwaga: 3 jasne kolory mają < 3:1 na białym tle → tooltip (20) i tabela danych (23) są wymagane.
-- [ ] 15. `feat(core): add line chart` (+ demo; przerzedzanie etykiet ma zachować ostatnią etykietę).
+- [x] 15. `feat(core): add line chart` (+ demo; przerzedzanie etykiet zachowuje ostatnią etykietę) – wspólny layout kartezjański w `charts/cartesian.ts` (domena Y, marginesy, clip), wejście `@tabler/charts/line`; `Chart` + `line` ≈ 7 kB gzip.
 - [ ] 16. `feat(core): add area chart`.
 - [ ] 17. `feat(core): add bar chart (grouped)`.
 - [x] 18. `docs: add playground app` – Vite, strona z line/area/bar, przełącznik light/dark. **Zrobione wcześniej (po kroku 14)**: playground na https://tabler-charts.vercel.app, importuje bibliotekę ze źródeł; od teraz każdy krok z nowym typem wykresu / funkcją dodaje swoje demo.

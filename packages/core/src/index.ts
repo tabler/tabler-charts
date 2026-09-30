@@ -12,6 +12,16 @@ export type {
   Size,
 } from './chart.ts'
 export { buildChart, Chart, chartToString, resolveSize } from './chart.ts'
+export type {
+  CartesianData,
+  CartesianOptions,
+  CategoryAxisOptions,
+  Label,
+  Series,
+  ValueAxisOptions,
+} from './charts/cartesian.ts'
+export type { LineOptions } from './charts/line.ts'
+export { line } from './charts/line.ts'
 export type { AxisOptions, AxisPosition, LinearTicksOptions, Tick } from './components/axis.ts'
 export { axis, axisSize, bandTicks, linearTicks, thinTicks } from './components/axis.ts'
 export type { GridOptions } from './components/grid.ts'

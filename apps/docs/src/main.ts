@@ -2,8 +2,9 @@ import '@tabler/charts/style.css'
 import './site.css'
 import { createControls, type Demo } from './demo.ts'
 import { customType } from './demos/custom-type.ts'
+import { lineDemo } from './demos/line.ts'
 
-const demos: Demo[] = [customType]
+const demos: Demo[] = [lineDemo, customType]
 
 // -- Theme switch -------------------------------------------------------------
 

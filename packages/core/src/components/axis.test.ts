@@ -58,7 +58,13 @@ describe('thinTicks()', () => {
 
   test('keeps every n-th tick when labels would overlap', () => {
     const kept = thinTicks(make(12, 30), 'bottom', 12)
-    expect(kept.map((t) => t.value)).toEqual([0, 2, 4, 6, 8, 10])
+    expect(kept.map((t) => t.value)).toEqual([0, 2, 4, 6, 8, 11])
+  })
+
+  test('appends the last tick when it fits after the last kept one', () => {
+    // "Label" needs ~40px: step 2 keeps 0 and 60; the last tick (100) still fits after 60.
+    const ticks = [0, 30, 60, 100].map((position, i) => ({ value: i, position, label: 'Label' }))
+    expect(thinTicks(ticks, 'bottom', 12).map((t) => t.value)).toEqual([0, 2, 3])
   })
 
   test('uses line height for vertical axes', () => {
