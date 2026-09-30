@@ -77,6 +77,13 @@ for (const [name, source, budget] of CASES) {
 const css = gzipSync(readFileSync(`${DIST}style.css`)).length / 1000
 const cssOk = css <= 2.75
 failed ||= !cssOk
+// The CDN script as shipped: library, styles and element, already minified.
+const cdn = gzipSync(readFileSync(`${ELEMENTS}tabler-charts.min.js`)).length / 1000
+const cdnOk = cdn <= 29.5
+failed ||= !cdnOk
+console.log(
+  `${cdnOk ? 'ok  ' : 'FAIL'} ${'CDN tabler-charts.min.js'.padEnd(32)} ${cdn.toFixed(2).padStart(6)} kB gzip  (budget 29.5)`,
+)
 console.log(
   `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 2.75)`,
 )

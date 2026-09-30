@@ -12,6 +12,14 @@ export interface ChartElementSetup {
   types: Readonly<Record<string, ChartType<never>>>
   /** Plugins installed in every chart (the core `Chart` has none of its own). */
   plugins?: () => ChartPlugin[]
+  /** Render somewhere else than the element itself: `shadow` from `/shadow`. */
+  shadow?: ShadowMode
+}
+
+/** Where a chart element renders; `shadow` from `@tabler/charts-elements/shadow` is one. */
+export interface ShadowMode {
+  /** Return the container to render into for `host`, creating it on first use. */
+  mount(host: HTMLElement): Element
 }
 
 /** Public surface of a `<tabler-chart>` element. */
@@ -145,7 +153,8 @@ export function createChartElement(setup: ChartElementSetup): new () => ChartEle
         return
       }
       this.#chart?.destroy()
-      const chart = new setup.Chart(this, config, setup.plugins?.() ?? [])
+      const target = setup.shadow?.mount(this) ?? this
+      const chart = new setup.Chart(target, config, setup.plugins?.() ?? [])
       const emit = (name: string, detail: unknown) =>
         this.dispatchEvent(new CustomEvent(`tc-${name}`, { detail, bubbles: true, composed: true }))
       for (const name of EVENTS) chart.on(name, (detail) => emit(name, detail))
@@ -249,11 +258,18 @@ function addBaseStyle(doc: Document, tag: string): void {
 export interface DefineOptions {
   /** Tag name to register. Defaults to `tabler-chart`. */
   tag?: string
+  /**
+   * Render into a shadow root: pass `shadow` from `@tabler/charts-elements/shadow`.
+   * Page CSS no longer reaches inside; style through `::part()` and tokens
+   * on the element.
+   */
+  shadow?: ShadowMode
 }
 
 /** Register the element class under `tag` once; later calls are no-ops. */
 export function define(setup: ChartElementSetup, tag = 'tabler-chart'): void {
   if (typeof customElements === 'undefined' || customElements.get(tag)) return
   customElements.define(tag, createChartElement(setup))
-  if (typeof document !== 'undefined') addBaseStyle(document, tag)
+  // A shadow element styles its own host.
+  if (!setup.shadow && typeof document !== 'undefined') addBaseStyle(document, tag)
 }

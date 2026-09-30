@@ -4,8 +4,10 @@ import { afterEach, describe, expect, test } from 'vitest'
 import { defineChartElement as defineCore } from './core.ts'
 import type { ChartElement } from './element.ts'
 import { defineChartElement } from './index.ts'
+import { shadow, shadowStyles } from './shadow.ts'
 
 defineChartElement()
+defineChartElement({ tag: 'shadow-chart', shadow })
 
 const data = { labels: ['Mon', 'Tue', 'Wed'], series: [{ name: 'Visitors', values: [3, 5, 4] }] }
 
@@ -175,5 +177,58 @@ describe('<tabler-chart>', () => {
     bar.setAttribute('type', 'bar')
     bar.data = data
     expect(() => document.body.append(bar)).toThrow(/Known types: line\./)
+  })
+
+  describe('shadow mode', () => {
+    test('renders into a shadow root that adopts the chart styles', async () => {
+      const el = await mount(
+        `<shadow-chart type="line" width="300" height="150" legend="bottom"><script type="application/json">${JSON.stringify(
+          {
+            labels: ['a', 'b'],
+            series: [
+              { name: 'A', values: [1, 2] },
+              { name: 'B', values: [2, 1] },
+            ],
+          },
+        )}</script></shadow-chart>`,
+      )
+      const root = el.shadowRoot as ShadowRoot
+      expect(root).not.toBeNull()
+      // Light DOM keeps only the data; the chart lives in the shadow root.
+      expect(el.querySelector('svg')).toBeNull()
+      const container = [...root.children].find((c) => c.classList.contains('tc-root')) as Element
+      expect(container.getAttribute('part')).toBe('root')
+      expect(container.querySelector(':scope > svg.tc-chart')).not.toBeNull()
+      const sheets = root.adoptedStyleSheets?.length ?? 0
+      expect(sheets + root.querySelectorAll('style').length).toBe(1)
+      // No page-level display rule: the shadow styles set :host.
+      expect(document.getElementById('tc-element-shadow-chart')).toBeNull()
+      await settle()
+      expect(container.querySelector('svg')?.getAttribute('part')).toBe('chart')
+      expect(container.querySelector('.tc-legend')?.getAttribute('part')).toBe('legend')
+    })
+
+    test('reuses its shadow root and container when the type changes', async () => {
+      const el = await mount('<shadow-chart type="line" width="300" height="150"></shadow-chart>')
+      el.data = data
+      const root = el.shadowRoot
+      el.setAttribute('type', 'bar')
+      flush()
+      expect(el.shadowRoot).toBe(root)
+      expect(root?.querySelectorAll('.tc-root')).toHaveLength(1)
+      expect(root?.querySelectorAll('svg.tc-chart-bar')).toHaveLength(1)
+    })
+
+    test('the shadow stylesheet puts the tokens on :host', () => {
+      expect(shadowStyles.startsWith(':host{display:block}')).toBe(true)
+      for (const selector of [
+        ':host,:host([data-theme=light]){--tc-color-1:',
+        ':host(:not([data-theme=light])){--tc-color-1:',
+        ':host([data-theme=dark]){--tc-color-1:',
+      ]) {
+        expect(shadowStyles).toContain(selector)
+      }
+      expect(shadowStyles).not.toContain(':root')
+    })
   })
 })

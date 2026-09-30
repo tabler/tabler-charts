@@ -1,7 +1,17 @@
 import { type ChartElement, defineChartElement } from '@tabler/charts-elements'
+import { shadow } from '@tabler/charts-elements/shadow'
 import type { Demo } from '../demo.ts'
 
 defineChartElement()
+defineChartElement({ tag: 'tabler-chart-shadow', shadow })
+
+// Shadow charts are styled from outside through ::part() and tokens on the element.
+const PART_STYLES = `tabler-chart-shadow::part(root) {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--code-bg);
+}
+tabler-chart-shadow { --tc-color-1: #2fb344; --tc-color-2: #f59f00; }`
 
 const LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -23,7 +33,7 @@ export const elementDemo: Demo = {
   id: 'element',
   title: 'Web Component',
   description:
-    '<tabler-chart> from @tabler/charts-elements: the type and common options as attributes, type-specific ones in options, data inline as JSON or through the data property. Light DOM, so the page CSS and --tc-* tokens apply as usual; chart events arrive as tc-hover, tc-click, tc-legend-toggle and tc-render.',
+    '<tabler-chart> from @tabler/charts-elements: the type and common options as attributes, type-specific ones in options, data inline as JSON or through the data property. Light DOM by default, so the page CSS and --tc-* tokens apply as usual; with shadow from /shadow it renders into a shadow root styled through ::part() and tokens on the element. Chart events arrive as tc-hover, tc-click, tc-legend-toggle and tc-render; the CDN script (dist/tabler-charts.min.js) registers the element and injects the styles on its own.',
   mount(el, controls) {
     const code = document.createElement('pre')
     const inner = document.createElement('code')
@@ -33,8 +43,21 @@ export const elementDemo: Demo = {
 
     const host = document.createElement('div')
     host.innerHTML = `<tabler-chart type="bar" label="Visitors this week" aspect-ratio="2.5" locale="en-US" options='{"stacked": true}'><script type="application/json">${JSON.stringify(randomData())}</script></tabler-chart>`
-    el.append(code, host)
+    const shadowCode = document.createElement('pre')
+    const shadowInner = document.createElement('code')
+    shadowInner.textContent = `import { shadow } from '@tabler/charts-elements/shadow'
+defineChartElement({ tag: 'tabler-chart-shadow', shadow })
+
+${PART_STYLES}`
+    shadowCode.append(shadowInner)
+    shadowCode.style.overflowX = 'auto'
+    const style = document.createElement('style')
+    style.textContent = PART_STYLES
+    const shadowHost = document.createElement('div')
+    shadowHost.innerHTML = `<tabler-chart-shadow type="line" label="Visitors, shadow DOM" aspect-ratio="3" locale="en-US" options='{"points":"last"}'><script type="application/json">${JSON.stringify(randomData())}</script></tabler-chart-shadow>`
+    el.append(code, host, shadowCode, style, shadowHost)
     const chart = host.firstElementChild as ChartElement
+    const shadowChart = shadowHost.firstElementChild as ChartElement
 
     const clicked = controls.output('tc-click')
     chart.addEventListener('tc-click', (event) => {
@@ -44,6 +67,11 @@ export const elementDemo: Demo = {
 
     controls.button('Shuffle data', () => {
       chart.data = randomData()
+      shadowChart.data = randomData()
+    })
+    controls.select('shadow data-theme', ['auto', 'light', 'dark'] as const, 'auto', (theme) => {
+      if (theme === 'auto') shadowChart.removeAttribute('data-theme')
+      else shadowChart.setAttribute('data-theme', theme)
     })
     controls.select('type', ['bar', 'line', 'area'] as const, 'bar', (type) =>
       chart.setAttribute('type', type),

@@ -173,7 +173,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 
 ### M4 – Adaptery
 - [x] 30. `feat(elements): add <tabler-chart> web component` (light DOM, atrybuty, eventy) – pakiet `@tabler/charts-elements`: `defineChartElement()` (rejestracja na żądanie, bez efektów ubocznych importu; wszystkie typy i wbudowane pluginy) oraz `@tabler/charts-elements/core` z wybranymi typami i pluginami; dane z `<script type="application/json">` lub property `data`, typ i wspólne opcje w atrybutach, reszta w `options` (atrybut JSON / property), zdarzenia `tc-hover` / `tc-click` / `tc-legend-toggle` / `tc-render`, obserwacja zmian skryptu (frameworki), `display: block` z zerową specyficznością, demo w playgroundzie.
-- [ ] 31. `feat(elements): add shadow dom mode and cdn iife build`.
+- [x] 31. `feat(elements): add shadow dom mode and cdn iife build` – `@tabler/charts-elements/shadow` (osobne wejście, więc tryb light za nie nie płaci): shadow root ze wspólnym arkuszem przez `adoptedStyleSheets` (fallback `<style>`), tokeny przepisane z `:root` na `:host` przy buildzie, `data-theme` na elemencie, części `::part(root | chart | legend | tooltip | table)`, ponowne użycie deklaratywnego shadow root; `dist/tabler-charts.min.js` (IIFE, globalny `TablerCharts`, pola `unpkg` / `jsdelivr`) rejestruje element i wstrzykuje style (`data-no-styles` wyłącza), 29 kB gzip razem z CSS.
 - [ ] 32. `feat(react): add react components and useChart hook` + SSR.
 - [ ] 33. `feat(vue): add vue components` + SSR.
 - [ ] 34. `feat(bootstrap): add bootstrap css/scss mapping and data-api`.

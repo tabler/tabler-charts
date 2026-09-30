@@ -33,7 +33,7 @@ import {
 } from '@tabler/charts'
 import { type DefineOptions, define } from './element.ts'
 
-export type { ChartElement, ChartElementSetup, DefineOptions } from './element.ts'
+export type { ChartElement, ChartElementSetup, DefineOptions, ShadowMode } from './element.ts'
 export { createChartElement } from './element.ts'
 
 /** Every built-in chart type, by its `type` attribute name. */
@@ -58,5 +58,6 @@ export interface FullDefineOptions extends DefineOptions {
 /** Register `<tabler-chart>` (or `options.tag`) with every chart type and built-in plugin. */
 export function defineChartElement(options: FullDefineOptions = {}): void {
   // The default Chart installs the built-in plugins itself.
-  define({ Chart, types: { ...types, ...options.types } }, options.tag)
+  const setup = { Chart, types: { ...types, ...options.types } }
+  define(options.shadow ? { ...setup, shadow: options.shadow } : setup, options.tag)
 }

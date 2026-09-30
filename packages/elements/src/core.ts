@@ -13,7 +13,7 @@
 import { Chart, type ChartPlugin, type ChartType } from '@tabler/charts/core'
 import { type DefineOptions, define } from './element.ts'
 
-export type { ChartElement, ChartElementSetup, DefineOptions } from './element.ts'
+export type { ChartElement, ChartElementSetup, DefineOptions, ShadowMode } from './element.ts'
 export { createChartElement } from './element.ts'
 
 export interface CoreDefineOptions extends DefineOptions {
@@ -25,8 +25,13 @@ export interface CoreDefineOptions extends DefineOptions {
 
 /** Register `<tabler-chart>` (or `options.tag`) with the given types and plugins. */
 export function defineChartElement(options: CoreDefineOptions): void {
-  const setup = options.plugins
-    ? { Chart, types: options.types, plugins: options.plugins }
-    : { Chart, types: options.types }
-  define(setup, options.tag)
+  define(
+    {
+      Chart,
+      types: options.types,
+      ...(options.plugins ? { plugins: options.plugins } : {}),
+      ...(options.shadow ? { shadow: options.shadow } : {}),
+    },
+    options.tag,
+  )
 }
