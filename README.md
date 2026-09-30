@@ -29,8 +29,7 @@ Requires Node.js ≥ 20 and pnpm.
 ```bash
 pnpm install
 pnpm build
-pnpm typecheck
-pnpm test
+pnpm check   # lint + typecheck + tests
 ```
 
 ## License

@@ -111,6 +111,7 @@ new Chart('#el', {
 
 ## Tooling
 - TypeScript 7 (strict, `isolatedDeclarations`), build: tsdown (ESM/CJS/IIFE + `.d.ts`), wspólne ustawienia w `tsdown.config.base.ts`.
+- Lint + formatowanie: Biome (`pnpm lint`, `pnpm format`), `pnpm check` = lint + typecheck + testy.
 - Testy: Vitest (skale, generatory ścieżek, snapshoty `renderToString`),
   Playwright do testów wizualnych i interakcji w `apps/docs`.
 - Changesets do wersjonowania pakietów, GitHub Actions: lint, test, size, build.
@@ -134,7 +135,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 1. `chore: init monorepo` – pnpm workspace, `.gitignore`, `.editorconfig`, LICENSE (MIT), README.
 - [x] 1a. `chore: set up vercel deployment` – projekt `tabler-charts` (codecalm) na Vercelu, Root Directory `apps/docs`, placeholder strony; auto-deploy z GitHuba.
 - [x] 2. `chore: add typescript and build tooling` – `tsconfig.base.json`, tsdown, skrypty `build`/`dev`.
-- [ ] 3. `chore: add vitest, lint and formatting` – Vitest, ESLint/Prettier (albo Biome), skrypt `check`.
+- [x] 3. `chore: add vitest, lint and formatting` – Vitest, Biome, skrypt `check`.
 - [ ] 4. `chore(core): scaffold @tabler/charts package` – `package.json` z `exports`, `sideEffects:false`, pusty `index.ts`, test „smoke”.
 - [ ] 5. `ci: add github actions workflow` – install, check, test, build.
 
