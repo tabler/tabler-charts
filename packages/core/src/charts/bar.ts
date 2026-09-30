@@ -1,5 +1,7 @@
 import type { ChartType } from '../chart.ts'
+import { feature } from '../features.ts'
 import { barPath, hbarPath } from '../shapes/bar.ts'
+import type { Curve, Point } from '../shapes/path.ts'
 import { h } from '../vnode.ts'
 import {
   type CartesianLayoutOptions,
@@ -37,6 +39,8 @@ export interface BarOptions extends CartesianOptions {
    * category / value axis. Defaults to `'vertical'`.
    */
   orientation?: 'vertical' | 'horizontal'
+  /** Interpolation of series drawn as lines (`series.type`). Defaults to `'monotone'`. */
+  curve?: Curve
 }
 
 /**
@@ -61,12 +65,17 @@ export const bar: ChartType<BarOptions> = {
       groupPadding = 0.3,
       stacked = false,
       orientation = 'vertical',
+      curve = 'monotone',
     } = options
     const horizontal = orientation === 'horizontal'
     const { series } = options.data
     const count = resolveLabels(options.data).length
+    // Series drawn as lines sit on top of the bars and stay out of the stacks.
+    const isLine = (index: number) => (series[index]?.type ?? 'bar') !== 'bar'
+    const lineKeys = series.filter((_, index) => isLine(index)).map(seriesKey)
+    const stackHidden = lineKeys.length ? new Set([...ctx.hidden, ...lineKeys]) : ctx.hidden
     const stacks = stacked
-      ? stackSeries(series, count, { percent: stacked === 'percent', hidden: ctx.hidden })
+      ? stackSeries(series, count, { percent: stacked === 'percent', hidden: stackHidden })
       : null
 
     const layoutOptions: CartesianLayoutOptions = {
@@ -74,7 +83,14 @@ export const bar: ChartType<BarOptions> = {
       zero: true,
       paddingInner: groupPadding,
       paddingOuter: groupPadding / 2,
-      ...(stacks ? { values: stackBounds(stacks) } : {}),
+      ...(stacks
+        ? {
+            values: [
+              ...stackBounds(stacks),
+              ...series.flatMap((s, index) => (isLine(index) ? s.values : [])),
+            ],
+          }
+        : {}),
       ...(stacked === 'percent' ? { tickFormat: { style: 'percent' } } : {}),
     }
     const layout = horizontal
@@ -85,7 +101,7 @@ export const bar: ChartType<BarOptions> = {
     // Hidden series keep their color slot but give up their place in the group.
     const slots = new Map<number, number>()
     series.forEach((s, index) => {
-      if (!ctx.hidden.has(seriesKey(s))) slots.set(index, slots.size)
+      if (!ctx.hidden.has(seriesKey(s)) && !isLine(index)) slots.set(index, slots.size)
     })
     const order = [...slots.keys()]
     const columns = stacks ? 1 : Math.max(1, slots.size)
@@ -124,9 +140,11 @@ export const bar: ChartType<BarOptions> = {
         layout,
         options,
         ctx,
-        (seriesIndex, i) => {
-          const across = barLeft(seriesIndex, i) + barWidth / 2
-          const end = y(segment(seriesIndex, i)?.y1 ?? 0)
+        (seriesIndex, i, v) => {
+          const across = isLine(seriesIndex)
+            ? x.at(i) + x.bandwidth / 2
+            : barLeft(seriesIndex, i) + barWidth / 2
+          const end = y(isLine(seriesIndex) ? v : (segment(seriesIndex, i)?.y1 ?? 0))
           return horizontal ? { x: end, y: across } : { x: across, y: end }
         },
         (px, py, i) => {
@@ -184,10 +202,33 @@ export const bar: ChartType<BarOptions> = {
         ),
     )
 
+    // Lines through the band centers, drawn after (over) every bar. The path
+    // generators come with the line module, so plain bar charts do not ship them.
+    const paths = lineKeys.length ? feature('line') : null
+    const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
+    const lines = series.map((s, index) => {
+      if (!paths) return null
+      if (!isLine(index) || ctx.hidden.has(seriesKey(s))) return null
+      const points = labels.map((_, i): Point => {
+        const v = s.values[i]
+        if (!plottable(v, options.y)) return null
+        const center = x.at(i) + x.bandwidth / 2
+        return horizontal ? [y(v), center] : [center, y(v)]
+      })
+      // Areas need a vertical baseline; sideways they fall back to a line.
+      const filled = s.type === 'area' && !horizontal
+      return h(
+        'g',
+        seriesAttrs(s, index),
+        filled && h('path', { class: 'tc-area', d: paths.areaPath(points, baseline, { curve }) }),
+        h('path', { class: 'tc-line', d: paths.linePath(points, { curve }) }),
+      )
+    })
+
     return [
       h('defs', null, layout.clip.def),
       layout.background,
-      h('g', { class: 'tc-series-list', 'clip-path': layout.clip.url }, groups),
+      h('g', { class: 'tc-series-list', 'clip-path': layout.clip.url }, groups, lines),
       layout.foreground,
     ]
   },

@@ -7,9 +7,15 @@ import { register } from './features.ts'
 import { log } from './scales/log.ts'
 import { time, timePointScale } from './scales/time.ts'
 import { lttb, lttbIndices } from './shapes/decimate.ts'
+import { areaPath, linePath } from './shapes/path.ts'
 
 // Registered here, in the entry itself, so no bundler can shake it away.
-register({ time: { scale: time, points: timePointScale }, log, decimate: lttbIndices })
+register({
+  time: { scale: time, points: timePointScale },
+  log,
+  decimate: lttbIndices,
+  line: { linePath, areaPath },
+})
 
 export { Chart } from './chart-default.ts'
 export * from './core.ts'

@@ -6,10 +6,12 @@ const NAMES = ['North', 'South', 'West']
 
 let seriesCount = 2
 let negatives = false
+let lastType: 'bar' | 'line' | 'area' = 'bar'
 
 function randomSeries(): Series[] {
   return NAMES.slice(0, seriesCount).map((name, i) => ({
     name,
+    type: i === seriesCount - 1 && seriesCount > 1 ? lastType : 'bar',
     values: LABELS.map(() => {
       const value = Math.round(20 + Math.random() * 60 - i * 8)
       return negatives && Math.random() < 0.35 ? -Math.round(value / 2) : value
@@ -21,7 +23,7 @@ export const barDemo: Demo = {
   id: 'bar',
   title: 'Bar chart',
   description:
-    'Grouped or stacked (also 100%) bars capped at 24px with a 2px gap, rounded only at the outer data end, growing from zero — negative values grow and stack down.',
+    'Grouped or stacked (also 100%) bars capped at 24px with a 2px gap, rounded only at the outer data end, growing from zero — negative values grow and stack down. Any series can be drawn as a line or area over the bars (series.type).',
   mount(el, controls) {
     const chart = new Chart(el, {
       type: bar,
@@ -54,6 +56,10 @@ export const barDemo: Demo = {
         stacked: value === 'grouped' ? false : value === 'percent' ? 'percent' : true,
       }),
     )
+    controls.select('Last series', ['bar', 'line', 'area'] as const, 'bar', (type) => {
+      lastType = type
+      refresh()
+    })
     controls.select('Orientation', ['vertical', 'horizontal'] as const, 'vertical', (orientation) =>
       chart.update({ orientation }),
     )

@@ -10,6 +10,7 @@ import { donut, pie } from './charts/pie.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
 import './decimate.ts'
+import './line.ts'
 import './log.ts'
 import { flush } from './scheduler.ts'
 import './time.ts'
@@ -44,6 +45,8 @@ const series = (n: number, len: number) =>
     values: Array.from({ length: len }, value),
     hidden: maybe(0.15, true),
     color: maybe(0.2, '#f00'),
+    type: maybe(0.15, pick(['line', 'area'] as const)),
+    dash: maybe(0.1, 4),
   }))
 
 const cartesianTypes: ChartType<object>[] = [line, area, bar] as ChartType<object>[]

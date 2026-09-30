@@ -184,7 +184,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexCharts), wg liczby użyć.
 - [x] 41. `feat(core): add gauge chart` (+ demo, 3 kafelki w galerii) – `gauge` (radial bar): wartość jako łuk na torze, udział i nazwa w środku (`center`), `max`, `startAngle` / `angle` (pełny pierścień, tarcza 270°, półkole), grubość / odstęp / zaokrąglenie, kilka współśrodkowych pierścieni z legendą i tabelą, tooltip z udziałem, płynne przejścia `d` (`arcPathStable`), wejście `@tabler/charts/gauge`.
 - [x] 42. `feat(core): dash and width per series` – `series[].dash` (px lub pełne `stroke-dasharray`) i `series[].width` jako `--tc-series-dash` / `--tc-series-width` na grupie serii (`y.max` już było); kafelek „This week vs. last” w galerii.
-- [ ] 43. `feat(core): mixed series types` – `series[].type: 'bar' | 'line'` (karta „mentions”).
+- [x] 43. `feat(core): mixed series in bar charts` – `series[].type: 'bar' | 'line' | 'area'` w wykresie `bar`: linie przez środki pasm nad słupkami, poza stosem (ale w domenie osi), w tooltipie / legendzie / tabeli jak każda seria, `curve`; kafelki „Spend and leads” i „Mentions” w galerii.
 - [ ] 44. `feat(core): tristate sparkline` – słupki kolorowane wg znaku.
 - [ ] 45. `feat(core): add heatmap chart` (karta „Weekly activity”).
 - [ ] 46. `feat(core): add candlestick chart` (karta crypto).

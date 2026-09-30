@@ -255,6 +255,41 @@ const ITEMS: Item[] = [
     },
   },
   {
+    title: 'Spend and leads',
+    note: 'Two bar series with two line series on the same axis (series.type).',
+    config: {
+      type: bar,
+      ...common,
+      data: {
+        labels: MONTHS.slice(0, 6),
+        series: [
+          { name: 'Paid spend', values: walk(6, 40, 20, 10) },
+          { name: 'Content spend', values: walk(6, 25, 15, 5) },
+          { name: 'Leads', values: walk(6, 60, 30, 20), type: 'line' },
+          { name: 'Trials', values: walk(6, 30, 20, 5), type: 'line', dash: 4 },
+        ],
+      },
+    },
+  },
+  {
+    title: 'Mentions',
+    note: 'Stacked bars with a total line over them; the line is not part of the stack.',
+    config: {
+      type: bar,
+      ...common,
+      data: {
+        labels: WEEKDAYS,
+        series: [
+          { name: 'Web', values: walk(7, 30, 20, 5) },
+          { name: 'Social', values: walk(7, 20, 15, 5) },
+          { name: 'Other', values: walk(7, 10, 8, 2) },
+          { name: 'Target', values: walk(7, 70, 10, 50), type: 'line', dash: 4, width: 1.5 },
+        ],
+      },
+      stacked: true,
+    },
+  },
+  {
     title: 'Profit and loss',
     note: 'Negative bars grow down, square corners, thin bars.',
     config: {

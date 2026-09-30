@@ -1,10 +1,10 @@
 import type { LinearScale, LinearScaleOptions } from './scales/linear.ts'
 import type { time, timePointScale } from './scales/time.ts'
-import type { Point } from './shapes/path.ts'
+import type { areaPath, linePath, Point } from './shapes/path.ts'
 
 /**
  * Optional features that chart types look up at render time. Each lives in
- * its own module (`@tabler/charts/time`, `/log`, `/decimate`) and registers
+ * its own module (`@tabler/charts/time`, `/log`, `/decimate`, `/line`) and registers
  * itself when imported; `@tabler/charts` registers all of them, while
  * `@tabler/charts/core` starts empty so unused code never ships.
  */
@@ -19,6 +19,8 @@ export interface Features {
   ) => LinearScale
   /** Downsampling behind `decimate: N`: indices of the points to keep. */
   decimate?: (points: readonly Point[], threshold: number) => number[]
+  /** Line and area paths behind `series.type: 'line' | 'area'` in bar charts. */
+  line?: { linePath: typeof linePath; areaPath: typeof areaPath }
 }
 
 export const features: Features = {}

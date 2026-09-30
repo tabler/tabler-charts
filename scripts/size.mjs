@@ -15,11 +15,7 @@ const CASES = [
     `export { Chart } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     11,
   ],
-  [
-    'core + bar',
-    `export { Chart } from '${DIST}core.js'; export { bar } from '${DIST}bar.js'`,
-    10.5,
-  ],
+  ['core + bar', `export { Chart } from '${DIST}core.js'; export { bar } from '${DIST}bar.js'`, 11],
   [
     'core + pie',
     `export { Chart } from '${DIST}core.js'; export { pie } from '${DIST}pie.js'`,

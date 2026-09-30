@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { findByClass, gridLineOffset } from '../test-utils.ts'
+import '../line.ts'
 import { type BarOptions, bar } from './bar.ts'
 
 const size = { width: 400, height: 200 }
@@ -272,6 +273,60 @@ describe('bar', () => {
       expect(hit?.band?.height).toBeGreaterThan(0)
       expect(hit?.band?.width).toBe(hit?.area.width)
     })
+  })
+
+  test('draws series typed line or area over the bars, through the band centers', () => {
+    const node = render({
+      data: {
+        labels: ['Q1', 'Q2'],
+        series: [
+          { name: 'Spend', values: [30, 45] },
+          { name: 'Leads', values: [10, 20], type: 'line' },
+          { name: 'Trials', values: [5, null], type: 'area', color: '#f00' },
+        ],
+      },
+    })
+    const list = findByClass(node, 'tc-series-list')[0]
+    const groups = findByClass(list ?? node, 'tc-series')
+    expect(groups.map((g) => g.key)).toEqual(['Spend', 'Leads', 'Trials'])
+    // Bars only in the first group, one line in the second, area + line in the third.
+    expect(findByClass(groups[0] ?? node, 'tc-bar')).toHaveLength(2)
+    expect(findByClass(groups[1] ?? node, 'tc-bar')).toHaveLength(0)
+    expect(findByClass(groups[1] ?? node, 'tc-line')).toHaveLength(1)
+    expect(findByClass(groups[2] ?? node, 'tc-area')).toHaveLength(1)
+    expect(findByClass(groups[2] ?? node, 'tc-line')).toHaveLength(1)
+    // The line starts at the center of the first band, which the lone bar also fills.
+    const barBox = bounds(findByClass(groups[0] ?? node, 'tc-bar')[0]?.attrs.d)
+    const lineStart = String(findByClass(groups[1] ?? node, 'tc-line')[0]?.attrs.d).match(
+      /^M([\d.]+),([\d.]+)/,
+    )
+    expect(Number(lineStart?.[1])).toBeCloseTo((barBox.left + barBox.right) / 2, 0)
+    // Lines are in the tooltip and legend like any series.
+    expect(bar.legend?.({ data: { series: [{ name: 'L', values: [1], type: 'line' }] } })).toEqual([
+      { key: 'L', name: 'L', index: 0 },
+    ])
+  })
+
+  test('keeps line series out of stacks but inside the value domain', () => {
+    const node = render({
+      stacked: true,
+      data: {
+        labels: ['Q1'],
+        series: [
+          { name: 'A', values: [30] },
+          { name: 'B', values: [40] },
+          { name: 'Target', values: [120], type: 'line' },
+        ],
+      },
+    })
+    // The stack tops out at 70, the axis still reaches the line's 120.
+    const ticks = findByClass(node, 'tc-axis-y').flatMap((axis) =>
+      findByClass(axis, 'tc-tick-label').map((t) => t.children.join('')),
+    )
+    expect(ticks.map(Number).some((t) => t >= 120)).toBe(true)
+    const bars = findByClass(node, 'tc-bar').map((b) => bounds(b.attrs.d))
+    expect(bars).toHaveLength(2)
+    expect(bars[1]?.top).toBeLessThan(bars[0]?.top ?? 0)
   })
 
   test('renders empty data without errors', () => {

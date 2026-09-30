@@ -29,7 +29,10 @@
     "./dist/log.cjs",
     "./dist/decimate.js",
     "./dist/decimate.cjs",
+    "./dist/line.js",
+    "./dist/line.cjs",
     "./src/index.ts",
+    "./src/line.ts",
     "./src/time.ts",
     "./src/log.ts",
     "./src/decimate.ts"

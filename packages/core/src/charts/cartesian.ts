@@ -42,6 +42,12 @@ export interface Series {
   dash?: number | string
   /** Line width in pixels; overrides `--tc-stroke-width` via `--tc-series-width`. */
   width?: number
+  /**
+   * In a `bar` chart, draw this series as a line or a filled area over the
+   * bars instead (it is left out of stacks). Needs the line module
+   * (`@tabler/charts/line`, or `@tabler/charts`). Defaults to `'bar'`.
+   */
+  type?: 'bar' | 'line' | 'area'
   /** Extra classes on the series group. */
   class?: ClassValue
   /** Start hidden (toggle it back from the legend). */
