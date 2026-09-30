@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { arcCentroid, arcPath, padAngleForGap } from './arc.ts'
+import { arcCentroid, arcPath, arcPathStable, padAngleForGap } from './arc.ts'
 
 const TAU = Math.PI * 2
 
@@ -74,5 +74,71 @@ describe('padAngleForGap()', () => {
     const rp = Math.sqrt(60 ** 2 + 100 ** 2)
     expect(2 * rp * Math.sin(angle / 2)).toBeCloseTo(2)
     expect(padAngleForGap(2, 0, 0)).toBe(0)
+  })
+})
+
+describe('arcPathStable()', () => {
+  const signature = (d: string) => d.replace(/[^MLAZ]/g, '')
+  const numbers = (d: string) => (d.match(/-?[\d.]+(?:e-?\d+)?/g) ?? []).map(Number)
+
+  test('keeps the same command structure for any sector', () => {
+    const cases = [
+      { innerRadius: 0, outerRadius: 100, startAngle: 0, endAngle: 0.3 },
+      { innerRadius: 0, outerRadius: 100, startAngle: 0, endAngle: 5 },
+      {
+        innerRadius: 60,
+        outerRadius: 100,
+        startAngle: 1,
+        endAngle: 2,
+        padAngle: 0.05,
+        cornerRadius: 4,
+      },
+      {
+        innerRadius: 60,
+        outerRadius: 100,
+        startAngle: 1,
+        endAngle: 1.02,
+        padAngle: 0.05,
+        cornerRadius: 4,
+      },
+      { innerRadius: 60, outerRadius: 100, startAngle: 0, endAngle: TAU },
+      { innerRadius: 0, outerRadius: 100, startAngle: 0, endAngle: TAU },
+      { innerRadius: 60, outerRadius: 100, startAngle: 2, endAngle: 0.5 },
+      { innerRadius: 0, outerRadius: 0, startAngle: 0, endAngle: 1 },
+    ]
+    const signatures = new Set(cases.map((c) => signature(arcPathStable(c))))
+    expect(signatures.size).toBe(1)
+    expect([...signatures][0]).toBe('MAAAALAAAAZ')
+  })
+
+  test('matches arcPath at the edges of plain and rounded sectors', () => {
+    for (const c of [
+      { innerRadius: 0, outerRadius: 100, startAngle: 0.2, endAngle: 2.5 },
+      { innerRadius: 50, outerRadius: 100, startAngle: 0.2, endAngle: 4.5, padAngle: 0.04 },
+      {
+        innerRadius: 50,
+        outerRadius: 100,
+        startAngle: 0.2,
+        endAngle: 2.2,
+        padAngle: 0.04,
+        cornerRadius: 6,
+      },
+    ]) {
+      const exact = numbers(arcPath({ ...c, precision: 4 }))
+      const stable = numbers(arcPathStable({ ...c, precision: 4 }))
+      // Same start point (first M) and same end of the outer edge / start of the inner edge.
+      expect(stable.slice(0, 2)).toEqual(exact.slice(0, 2))
+      const lineStableIndex = arcPathStable({ ...c, precision: 4 }).indexOf('L')
+      const lineExactIndex = arcPath({ ...c, precision: 4 }).indexOf('L')
+      const after = (d: string, i: number) => numbers(d.slice(i, i + 40)).slice(0, 2)
+      expect(after(arcPathStable({ ...c, precision: 4 }), lineStableIndex)).toEqual(
+        after(arcPath({ ...c, precision: 4 }), lineExactIndex),
+      )
+    }
+  })
+
+  test('splits rings so no arc needs the large-arc flag', () => {
+    const d = arcPathStable({ innerRadius: 40, outerRadius: 100, startAngle: 0, endAngle: 5.5 })
+    for (const m of d.matchAll(/A[\d.]+,[\d.]+,0,(\d),/g)) expect(m[1]).toBe('0')
   })
 })

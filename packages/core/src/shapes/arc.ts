@@ -335,3 +335,196 @@ export function padAngleForGap(gap: number, innerRadius: number, outerRadius: nu
   const rp = Math.sqrt(innerRadius * innerRadius + outerRadius * outerRadius)
   return rp > 0 ? 2 * Math.asin(Math.min(1, gap / 2 / rp)) : 0
 }
+
+/** Angle of a point around the origin. */
+const angleOf = (x: number, y: number): number => Math.atan2(y, x)
+
+/**
+ * The same sector as {@link arcPath}, drawn with a fixed command structure:
+ * every corner is always present (zero length when there is none) and each
+ * ring is split into two half arcs, so the large-arc flag never flips.
+ * Paths of different angles therefore interpolate with CSS `transition: d`,
+ * which is what pie and donut slices need when data changes.
+ */
+export function arcPathStable(options: ArcOptions): string {
+  const k = 10 ** Math.max(0, Math.min(12, Math.floor(options.precision ?? 2)))
+  const n = (v: number): string => {
+    const r = Math.round(v * k) / k
+    return String(r === 0 ? 0 : r)
+  }
+  let d = ''
+  const move = (x: number, y: number) => {
+    d += `M${n(x)},${n(y)}`
+  }
+  const line = (x: number, y: number) => {
+    d += `L${n(x)},${n(y)}`
+  }
+  const arc = (r: number, sweep: 0 | 1, x: number, y: number) => {
+    d += `A${n(r)},${n(r)},0,0,${sweep},${n(x)},${n(y)}`
+  }
+  /** Two half arcs of radius `r` around the origin from angle `a0` to `a1`. */
+  const ring = (r: number, a0: number, a1: number, ccw: boolean) => {
+    let delta = ccw ? a0 - a1 : a1 - a0
+    delta = ((delta % TAU) + TAU) % TAU
+    if (delta < EPSILON && Math.abs(a1 - a0) > EPSILON) delta = TAU
+    const mid = ccw ? a0 - delta / 2 : a0 + delta / 2
+    const sweep: 0 | 1 = ccw ? 0 : 1
+    arc(r, sweep, r * Math.cos(mid), r * Math.sin(mid))
+    arc(r, sweep, r * Math.cos(a1), r * Math.sin(a1))
+  }
+
+  let r0 = Math.max(0, options.innerRadius)
+  let r1 = Math.max(0, options.outerRadius)
+  if (r1 < r0) [r0, r1] = [r1, r0]
+  const a0 = options.startAngle - HALF_PI
+  const a1 = options.endAngle - HALF_PI
+  const da = Math.abs(a1 - a0)
+  const cw = a1 > a0
+  const outerSweep: 0 | 1 = cw ? 1 : 0
+
+  if (!(r1 > EPSILON)) {
+    // A point: eleven no-op commands at the origin.
+    move(0, 0)
+    for (let i = 0; i < 4; i++) arc(0, outerSweep, 0, 0)
+    line(0, 0)
+    for (let i = 0; i < 4; i++) arc(0, outerSweep, 0, 0)
+    return `${d}Z`
+  }
+
+  if (da > TAU - EPSILON) {
+    // A full ring (or disc): the seam between the two rings closes the path.
+    const ox = r1 * Math.cos(a0)
+    const oy = r1 * Math.sin(a0)
+    move(ox, oy)
+    arc(r1, outerSweep, ox, oy)
+    ring(r1, a0, a0 + (cw ? TAU : -TAU) * (1 - 1e-9), !cw)
+    arc(r1, outerSweep, ox, oy)
+    const ix = r0 * Math.cos(a0)
+    const iy = r0 * Math.sin(a0)
+    line(ix, iy)
+    arc(r0, outerSweep, ix, iy)
+    if (r0 > EPSILON) ring(r0, a0, a0 + (cw ? -TAU : TAU) * (1 - 1e-9), cw)
+    else for (let i = 0; i < 2; i++) arc(0, outerSweep, 0, 0)
+    arc(r0, outerSweep, ix, iy)
+    return `${d}Z`
+  }
+
+  // Padding and corner radii exactly as in arcPath().
+  let a01 = a0
+  let a11 = a1
+  let a00 = a0
+  let a10 = a1
+  let da0 = da
+  let da1 = da
+  const ap = (options.padAngle ?? 0) / 2
+  const rp = ap > EPSILON ? (options.padRadius ?? Math.sqrt(r0 * r0 + r1 * r1)) : 0
+  const rc = Math.min(Math.abs(r1 - r0) / 2, options.cornerRadius ?? 0)
+  let rc0 = rc
+  let rc1 = rc
+  if (rp > EPSILON) {
+    let p0 = asin((rp / r0) * Math.sin(ap))
+    let p1 = asin((rp / r1) * Math.sin(ap))
+    da0 -= p0 * 2
+    if (da0 > EPSILON) {
+      p0 *= cw ? 1 : -1
+      a00 += p0
+      a10 -= p0
+    } else {
+      da0 = 0
+      a00 = a10 = (a0 + a1) / 2
+    }
+    da1 -= p1 * 2
+    if (da1 > EPSILON) {
+      p1 *= cw ? 1 : -1
+      a01 += p1
+      a11 -= p1
+    } else {
+      da1 = 0
+      a01 = a11 = (a0 + a1) / 2
+    }
+  }
+  const x01 = r1 * Math.cos(a01)
+  const y01 = r1 * Math.sin(a01)
+  const x10 = r0 * Math.cos(a10)
+  const y10 = r0 * Math.sin(a10)
+  const x11 = r1 * Math.cos(a11)
+  const y11 = r1 * Math.sin(a11)
+  const x00 = r0 * Math.cos(a00)
+  const y00 = r0 * Math.sin(a00)
+  if (rc > EPSILON && da < PI) {
+    const oc = intersect(x01, y01, x00, y00, x11, y11, x10, y10)
+    if (oc) {
+      const ax = x01 - oc[0]
+      const ay = y01 - oc[1]
+      const bx = x11 - oc[0]
+      const by = y11 - oc[1]
+      const cos =
+        (ax * bx + ay * by) / (Math.sqrt(ax * ax + ay * ay) * Math.sqrt(bx * bx + by * by))
+      const kc = 1 / Math.sin(acos(cos) / 2)
+      const lc = Math.sqrt(oc[0] * oc[0] + oc[1] * oc[1])
+      rc0 = Math.min(rc, (r0 - lc) / (kc - 1))
+      rc1 = Math.min(rc, (r1 - lc) / (kc + 1))
+    } else {
+      rc0 = rc1 = 0
+    }
+  }
+
+  // Outer edge: corner, two ring halves, corner.
+  if (da1 > EPSILON && rc1 > EPSILON) {
+    const t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw)
+    const t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw)
+    move(t0.cx + t0.x01, t0.cy + t0.y01)
+    if (rc1 < rc) {
+      // Corners merged: one corner arc covers the edge, the rest is empty.
+      const ex = t1.cx + t1.x01
+      const ey = t1.cy + t1.y01
+      arc(rc1, outerSweep, ex, ey)
+      arc(r1, outerSweep, ex, ey)
+      arc(r1, outerSweep, ex, ey)
+      arc(rc1, outerSweep, ex, ey)
+    } else {
+      arc(rc1, outerSweep, t0.cx + t0.x11, t0.cy + t0.y11)
+      ring(
+        r1,
+        angleOf(t0.cx + t0.x11, t0.cy + t0.y11),
+        angleOf(t1.cx + t1.x11, t1.cy + t1.y11),
+        !cw,
+      )
+      arc(rc1, outerSweep, t1.cx + t1.x01, t1.cy + t1.y01)
+    }
+  } else {
+    move(x01, y01)
+    arc(r1, outerSweep, x01, y01)
+    if (da1 > EPSILON) ring(r1, a01, a11, !cw)
+    else for (let i = 0; i < 2; i++) arc(r1, outerSweep, x01, y01)
+    arc(r1, outerSweep, x11, y11)
+  }
+
+  // Inner edge (or the center of a pie slice): corner, two ring halves, corner.
+  if (!(r0 > EPSILON) || !(da0 > EPSILON)) {
+    line(x10, y10)
+    for (let i = 0; i < 4; i++) arc(r0, outerSweep, x10, y10)
+  } else if (rc0 > EPSILON) {
+    const t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw)
+    const t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw)
+    line(t0.cx + t0.x01, t0.cy + t0.y01)
+    if (rc0 < rc) {
+      const ex = t1.cx + t1.x01
+      const ey = t1.cy + t1.y01
+      arc(rc0, outerSweep, ex, ey)
+      arc(r0, outerSweep, ex, ey)
+      arc(r0, outerSweep, ex, ey)
+      arc(rc0, outerSweep, ex, ey)
+    } else {
+      arc(rc0, outerSweep, t0.cx + t0.x11, t0.cy + t0.y11)
+      ring(r0, angleOf(t0.cx + t0.x11, t0.cy + t0.y11), angleOf(t1.cx + t1.x11, t1.cy + t1.y11), cw)
+      arc(rc0, outerSweep, t1.cx + t1.x01, t1.cy + t1.y01)
+    }
+  } else {
+    line(x10, y10)
+    arc(r0, outerSweep, x10, y10)
+    ring(r0, a10, a00, cw)
+    arc(r0, outerSweep, x00, y00)
+  }
+  return `${d}Z`
+}

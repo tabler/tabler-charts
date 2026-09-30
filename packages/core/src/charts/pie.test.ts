@@ -111,8 +111,12 @@ describe('pie', () => {
   })
 
   test('gives a single slice a full ring without a gap', () => {
-    const d = findByClass(render({ data: [{ name: 'Only', value: 5 }] }), 'tc-slice')[0]?.attrs.d
-    expect(String(d).match(/A/g)).toHaveLength(2)
+    const d = String(
+      findByClass(render({ data: [{ name: 'Only', value: 5 }] }), 'tc-slice')[0]?.attrs.d,
+    )
+    // Starts at 12 o'clock with the fixed slice structure (no pad angle applied).
+    expect(d).toMatch(/^M0,-/)
+    expect(d.replace(/[^MLAZ]/g, '')).toBe('MAAAALAAAAZ')
   })
 
   test('describes the data as a table with shares', () => {

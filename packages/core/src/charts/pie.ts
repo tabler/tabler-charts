@@ -4,7 +4,7 @@ import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
 import type { LegendItem } from '../legend.ts'
-import { arcCentroid, arcPath, padAngleForGap } from '../shapes/arc.ts'
+import { arcCentroid, arcPath, arcPathStable, padAngleForGap } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 
 /** One slice of a pie or donut. */
@@ -169,7 +169,8 @@ function renderPie(
         'data-series': slice.data.name,
         style: slice.data.color ? `--tc-series-color:${slice.data.color}` : undefined,
       },
-      slice.value > 0 && h('path', { class: 'tc-slice', d: arcPath(geometry(slice)) }),
+      // Fixed path structure, so CSS can transition slices between data sets.
+      slice.value > 0 && h('path', { class: 'tc-slice', d: arcPathStable(geometry(slice)) }),
     ),
   )
 
