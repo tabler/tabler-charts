@@ -4,6 +4,7 @@ import type { ChartConfig, ChartType } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
+import { candlestick } from './charts/candlestick.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
@@ -88,7 +89,35 @@ function randomConfig(): ChartConfig<object> {
     keyboard: maybe(0.2, false),
     animate: maybe(0.3, false),
   }
-  const kind = pick(['cartesian', 'cartesian', 'pie', 'scatter', 'sparkline', 'gauge', 'heatmap'])
+  const kind = pick([
+    'cartesian',
+    'cartesian',
+    'pie',
+    'scatter',
+    'sparkline',
+    'gauge',
+    'heatmap',
+    'candlestick',
+  ])
+  if (kind === 'candlestick') {
+    return {
+      type: candlestick,
+      ...base,
+      data: labels.map((x) => {
+        const open = value() ?? Number.NaN
+        const close = value() ?? 0
+        return {
+          x,
+          open,
+          close,
+          high: Math.max(open, close) + rnd() * 10,
+          low: Math.min(open, close) - rnd() * 10,
+        }
+      }),
+      x: { type: timeLabels && rnd() < 0.7 ? 'time' : 'category', utc: true },
+      y: { scale: maybe(0.2, 'log' as const) },
+    } as ChartConfig<object>
+  }
   if (kind === 'heatmap') {
     return {
       type: heatmap,

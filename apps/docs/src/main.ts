@@ -3,6 +3,7 @@ import './site.css'
 import { createControls, type Demo } from './demo.ts'
 import { areaDemo } from './demos/area.ts'
 import { barDemo } from './demos/bar.ts'
+import { candlestickDemo } from './demos/candlestick.ts'
 import { customType } from './demos/custom-type.ts'
 import { decimateDemo } from './demos/decimate.ts'
 import { galleryDemo } from './demos/gallery.ts'
@@ -24,6 +25,7 @@ const demos: Demo[] = [
   pieDemo,
   gaugeDemo,
   heatmapDemo,
+  candlestickDemo,
   scatterDemo,
   customType,
   galleryDemo,

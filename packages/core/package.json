@@ -111,6 +111,16 @@
         "default": "./dist/gauge.cjs"
       }
     },
+    "./candlestick": {
+      "import": {
+        "types": "./dist/candlestick.d.ts",
+        "default": "./dist/candlestick.js"
+      },
+      "require": {
+        "types": "./dist/candlestick.d.cts",
+        "default": "./dist/candlestick.cjs"
+      }
+    },
     "./heatmap": {
       "import": {
         "types": "./dist/heatmap.d.ts",

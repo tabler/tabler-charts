@@ -4,6 +4,7 @@ import {
   Chart,
   type ChartConfig,
   type ChartType,
+  candlestick,
   donut,
   gauge,
   type Hit,
@@ -367,6 +368,32 @@ const ITEMS: Item[] = [
       center: { value: '11.0K', label: 'orders' },
       format: { notation: 'compact' },
     },
+  },
+  {
+    title: 'Crypto price',
+    note: 'Candlestick with a time axis and compact currency, like the crypto dashboard card.',
+    config: {
+      type: candlestick,
+      ...common,
+      data: (() => {
+        let price = 95_000
+        return Array.from({ length: 23 }, (_, i) => {
+          const open = price
+          const close = open + (rnd() - 0.47) * 6000
+          price = close
+          return {
+            x: Date.UTC(2025, i, 1),
+            open,
+            high: Math.max(open, close) + rnd() * 3000,
+            low: Math.min(open, close) - rnd() * 3000,
+            close,
+          }
+        })
+      })(),
+      x: { type: 'time', utc: true },
+      y: { format: { style: 'currency', currency: 'USD', notation: 'compact' } },
+    },
+    span: 2,
   },
   {
     title: 'Weekly activity',

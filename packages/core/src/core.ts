@@ -26,6 +26,8 @@ export type { AreaOptions } from './charts/area.ts'
 export { area } from './charts/area.ts'
 export type { BarOptions } from './charts/bar.ts'
 export { bar } from './charts/bar.ts'
+export type { Candle, CandlestickOptions } from './charts/candlestick.ts'
+export { candlestick } from './charts/candlestick.ts'
 export type {
   CartesianData,
   CartesianOptions,

@@ -187,7 +187,7 @@ Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexC
 - [x] 43. `feat(core): mixed series in bar charts` – `series[].type: 'bar' | 'line' | 'area'` w wykresie `bar`: linie przez środki pasm nad słupkami, poza stosem (ale w domenie osi), w tooltipie / legendzie / tabeli jak każda seria, `curve`; kafelki „Spend and leads” i „Mentions” w galerii.
 - [x] 44. `feat(core): tristate sparkline` – `variant: 'tristate'`: liczy się tylko znak (wygrana w górę, strata w dół w `--tc-negative-color`, remis jako kreska na linii środka); kafelki w demie sparkline i galerii.
 - [x] 45. `feat(core): add heatmap chart` (+ demo, kafelki w galerii) – wiersze = serie, kolumny = etykiety (te same dane co line/bar), jedna barwa od pustego odcienia do pełnego koloru (`color-mix`, `--tc-heat-color` / `--tc-heat-empty`), `min` / `max`, odstęp i zaokrąglenie komórek, puste komórki dla `null`, pierścień przy hover, tooltip z całą kolumną i aktywnym wierszem, klawiatura w 2D, tabela, wejście `@tabler/charts/heatmap`.
-- [ ] 46. `feat(core): add candlestick chart` (karta crypto).
+- [x] 46. `feat(core): add candlestick chart` (+ demo, kafelek w galerii) – `candlestick` (OHLC): knot low–high i korpus open–close, zielony przy wzroście (`--tc-up-color`), czerwony przy spadku (`--tc-negative-color`), wspólne osie / siatka / format dat (`x.type: 'time'`), tooltip Open/High/Low/Close w kolorze świecy, tabela, wejście `@tabler/charts/candlestick`.
 
 ### M5 – Wydanie
 - [ ] 37. `test: add playwright visual regression tests`.

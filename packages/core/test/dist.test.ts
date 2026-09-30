@@ -54,6 +54,7 @@ describe('built package', () => {
     const { scatter } = await import('../dist/scatter.js')
     const { gauge } = await import('../dist/gauge.js')
     const { heatmap } = await import('../dist/heatmap.js')
+    const { candlestick } = await import('../dist/candlestick.js')
     const { sparkline } = await import('../dist/sparkline.js')
     for (const type of [line, area, bar])
       expect(chartToString({ type, data }, size)).toContain('tc-series-1')
@@ -69,6 +70,12 @@ describe('built package', () => {
     expect(chartToString({ type: sparkline, data: [1, 2] }, size)).toContain('tc-sparkline')
     expect(chartToString({ type: gauge, data: 42 }, size)).toContain('tc-gauge-arc')
     expect(chartToString({ type: heatmap, data }, size)).toContain('tc-cell')
+    expect(
+      chartToString(
+        { type: candlestick, data: [{ x: 'a', open: 1, high: 3, low: 0, close: 2 }] },
+        size,
+      ),
+    ).toContain('tc-candle-up')
   })
 
   test('the stylesheet ships', async () => {

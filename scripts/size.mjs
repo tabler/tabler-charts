@@ -32,6 +32,11 @@ const CASES = [
     8,
   ],
   [
+    'core + candlestick',
+    `export { Chart } from '${DIST}core.js'; export { candlestick } from '${DIST}candlestick.js'`,
+    11,
+  ],
+  [
     'core + line + tooltip + legend',
     `export { Chart, tooltip, highlight, legend } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     12.5,
