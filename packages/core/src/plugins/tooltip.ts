@@ -25,7 +25,7 @@ export function tooltip(): ChartPlugin {
             tip?.removeAttribute('data-visible')
             return
           }
-          if (!hit || !anchor) {
+          if (!hit || !anchor || !Number.isFinite(anchor.x) || !Number.isFinite(anchor.y)) {
             tip?.removeAttribute('data-visible')
             return
           }

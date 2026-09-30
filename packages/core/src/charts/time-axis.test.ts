@@ -102,6 +102,22 @@ describe('time axis', () => {
     expect(custom).toContain('>#1</text>')
   })
 
+  test('parses ISO strings and falls back to categories for other strings', () => {
+    const iso = {
+      ...base,
+      data: { ...base.data, labels: ['2026-09-01', '2026-09-02', '2026-09-10', '2026-09-11'] },
+    }
+    let interaction: Interaction | undefined
+    buildChart(iso, size, 't', (i) => {
+      interaction = i
+    })
+    expect(interaction?.hitIndex(2)?.title).toBe('Sep 10, 2026')
+    const words = { ...base, data: { ...base.data, labels: ['Jan', 'Feb', 'Mar', 'Apr'] } }
+    const node = buildChart(words, size, 'w')
+    expect(axisLabels(node, 'tc-axis-x')).toEqual(['Jan', 'Feb', 'Mar', 'Apr'])
+    expect(chartToString(words, size)).not.toMatch(/NaN/)
+  })
+
   test('is ignored by bar charts, which keep one band per label', () => {
     const node = buildChart({ ...base, type: bar } as ChartConfig<object>, size, 'b')
     expect(findByClass(node, 'tc-bar')).toHaveLength(4)

@@ -169,8 +169,13 @@ export function plottable(
   return axis?.scale !== 'log' || value > 0
 }
 
-/** Whether the category axis carries time (dates or timestamps in order). */
-export const isTimeAxis = (options: CartesianOptions): boolean => options.x?.type === 'time'
+/**
+ * Whether the category axis carries time: `x.type === 'time'` and every label
+ * is a date, a timestamp or a parseable string. Otherwise the axis falls back
+ * to categories instead of producing NaN positions.
+ */
+export const isTimeAxis = (options: CartesianOptions): boolean =>
+  options.x?.type === 'time' && resolveLabels(options.data).every((l) => Number.isFinite(toMs(l)))
 
 /** Formatter for category labels in tooltips and tables. */
 export function labelFormatter(
@@ -195,13 +200,12 @@ export function labelFormatter(
     },
     ctx.locale,
   )
-  return (label) =>
-    label instanceof Date || typeof label === 'number' ? fmt(label) : String(label)
+  return (label) => (Number.isFinite(toMs(label)) ? fmt(toMs(label)) : String(label))
 }
 
-/** A label as a timestamp (`NaN` for strings). */
+/** A label as a timestamp: dates, numbers, or parseable strings (ISO); `NaN` otherwise. */
 export const toMs = (label: Label): number =>
-  label instanceof Date ? label.getTime() : typeof label === 'number' ? label : Number.NaN
+  label instanceof Date ? label.getTime() : typeof label === 'number' ? label : Date.parse(label)
 
 /** Value scale for a domain: linear, or logarithmic with positive-only ticks. */
 export function valueScale(
