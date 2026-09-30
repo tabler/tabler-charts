@@ -46,3 +46,10 @@ jobs:
 
       - name: Size budget
         run: pnpm size
+
+      # Real SSR builds (Next, Nuxt, Astro) against the packages built above.
+      - name: Build SSR examples
+        run: pnpm examples:build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          ASTRO_TELEMETRY_DISABLED: 1

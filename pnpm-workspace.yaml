@@ -1,7 +1,10 @@
 packages:
   - "packages/*"
   - "apps/*"
+  - "examples/*"
 
-# sass pulls in @parcel/watcher for its watch mode, which we never use: skip its native build.
 allowBuilds:
+  # sass pulls in @parcel/watcher for its watch mode, which we never use.
   '@parcel/watcher': false
+  # esbuild (used by the example frameworks) checks its platform binary on install.
+  esbuild: true

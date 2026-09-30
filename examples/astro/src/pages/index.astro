@@ -1,0 +1,81 @@
+---
+// Rendered at build time. The first chart ships no JavaScript at all; the
+// second is a <tabler-chart> whose SVG is rendered here and taken over in
+// the browser, where it becomes interactive.
+import { bar, chartToString, line } from '@tabler/charts'
+import '@tabler/charts/style.css'
+
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const revenue = {
+  labels: months,
+  series: [
+    { name: 'Revenue', values: [42, 48, 45, 53, 58, 61, 59, 66, 70, 68, 75, 82] },
+    {
+      name: 'Costs',
+      values: [30, 31, 33, 34, 36, 35, 38, 40, 41, 43, 44, 47],
+      dash: 4,
+      width: 1.5,
+    },
+  ],
+}
+const channels = {
+  labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+  series: [
+    { name: 'Direct', values: [120, 132, 101, 134] },
+    { name: 'Search', values: [220, 182, 191, 234] },
+    { name: 'Social', values: [150, 232, 201, 154] },
+  ],
+}
+
+// Static: a plain SVG, sized by its viewBox, with an accessible name.
+const staticSvg = chartToString(
+  {
+    type: bar,
+    data: channels,
+    stacked: true,
+    id: 'channels',
+    locale: 'en-US',
+    title: 'Visits by channel',
+  },
+  { width: 900, height: 300 },
+)
+// Island: the same markup the element would render, so there is no layout shift.
+const liveSvg = chartToString(
+  { type: line, data: revenue, id: 'revenue', locale: 'en-US', title: 'Revenue and costs, 2026' },
+  { width: 900, height: 300 },
+)
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabler Charts — Astro</title>
+    <style is:global>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #f6f6f4; color: #0b0b0b; }
+      main { max-width: 960px; margin: 0 auto; padding: 32px 16px; }
+      section { padding: 16px; margin-bottom: 16px; background: #fff; border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Astro</h1>
+      <section>
+        <h2>Static SVG (no JavaScript)</h2>
+        <div class="tc-container" set:html={staticSvg} />
+      </section>
+      <section>
+        <h2>&lt;tabler-chart&gt; island</h2>
+        <tabler-chart type="line" label="Revenue and costs, 2026" aspect-ratio="3" locale="en-US">
+          <Fragment set:html={liveSvg} />
+          <script type="application/json" is:inline set:html={JSON.stringify(revenue)} />
+        </tabler-chart>
+      </section>
+    </main>
+    <script>
+      import { defineChartElement } from '@tabler/charts-elements'
+
+      defineChartElement()
+    </script>
+  </body>
+</html>

@@ -12,3 +12,9 @@ coverage/
 .idea/
 .vercel
 scripts/.size-entry.mjs
+# Example app builds
+.next/
+next-env.d.ts
+.nuxt/
+.output/
+.astro/

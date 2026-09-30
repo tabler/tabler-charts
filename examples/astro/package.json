@@ -1,0 +1,16 @@
+{
+  "name": "@tabler/charts-example-astro",
+  "private": true,
+  "type": "module",
+  "description": "Charts in Astro: static SVG with no JavaScript, and <tabler-chart> islands that take the server SVG over.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "start": "astro preview"
+  },
+  "dependencies": {
+    "@tabler/charts": "workspace:*",
+    "@tabler/charts-elements": "workspace:*",
+    "astro": "^7.3.5"
+  }
+}
