@@ -6,15 +6,19 @@ import {
   type ChartType,
   type Curve,
   extent,
+  formatNumber,
   grid,
+  type Hit,
   h,
+  highlight,
   innerRect,
   linear,
   linearTicks,
   linePath,
   point,
   thinTicks,
-} from '@tabler/charts'
+  tooltip,
+} from '@tabler/charts/core'
 import type { Demo } from '../demo.ts'
 
 interface Options {
@@ -29,7 +33,7 @@ interface Options {
  */
 const multiLine: ChartType<Options> = {
   name: 'multi-line',
-  render({ labels, series, curve }, { width, height, fontSize, locale }) {
+  render({ labels, series, curve }, { width, height, fontSize, locale, onHitTest }) {
     const all = series.flatMap((s) => s.values)
     const [, max] = extent(all) ?? [0, 1]
     const domain = linear([0, max], [0, 1]).nice().domain
@@ -47,6 +51,26 @@ const multiLine: ChartType<Options> = {
     const x = point(labels, [area.x, area.x + area.width])
     const y = linear(domain, [area.y + area.height, area.y])
     const yTicks = linearTicks(y, { locale, format })
+    const fmt = formatNumber(format, locale)
+
+    // Pointer (and keyboard) interaction: the nearest month with every series' value.
+    const hitIndex = (index: number): Hit => ({
+      index,
+      label: labels[index] ?? '',
+      title: labels[index] ?? '',
+      x: x.at(index),
+      area,
+      items: series.map((s, seriesIndex) => {
+        const value = s.values[index] ?? 0
+        return { name: s.name, seriesIndex, value, text: fmt(value), x: x.at(index), y: y(value) }
+      }),
+    })
+    onHitTest({
+      count: labels.length,
+      hitIndex,
+      hitTest: (px, py) =>
+        py >= area.y && py <= area.y + area.height ? hitIndex(x.indexAt(px)) : null,
+    })
 
     return [
       grid({ direction: 'y', ticks: yTicks, area }),
@@ -85,7 +109,7 @@ export const customType: Demo = {
   id: 'custom-type',
   title: 'Custom chart type',
   description:
-    'A multi-series line chart built from scales, ticks, axis/grid components and path generators through the chart type plugin API.',
+    'A multi-series line chart built from scales, ticks, axis/grid components and path generators through the chart type API, on the bare core Chart with only the highlight and tooltip plugins (no legend, table or keyboard).',
   mount(el, controls) {
     const chart = new Chart(el, {
       type: multiLine,
@@ -95,6 +119,8 @@ export const customType: Demo = {
       locale: 'en-US',
       aspectRatio: 2.5,
       title: 'Revenue by channel',
+      // The bare Chart from @tabler/charts/core runs only the plugins listed here.
+      plugins: [highlight(), tooltip()],
     })
 
     controls.button('Shuffle data', () => chart.update({ series: randomSeries() }))

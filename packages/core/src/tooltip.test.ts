@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { Chart, type ChartConfig } from './chart.ts'
+import type { ChartConfig } from './chart.ts'
+import { Chart } from './chart-default.ts'
 import { bar } from './charts/bar.ts'
 import { line } from './charts/line.ts'
 import { hoverOverlay, hoverUnderlay } from './components/hover.ts'

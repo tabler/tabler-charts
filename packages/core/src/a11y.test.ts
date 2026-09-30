@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { describeHit, tableContent } from './a11y.ts'
-import { Chart, type ChartConfig } from './chart.ts'
+import type { ChartConfig } from './chart.ts'
+import { Chart } from './chart-default.ts'
 import { bar } from './charts/bar.ts'
 import { line } from './charts/line.ts'
 import { renderToString } from './render/string.ts'

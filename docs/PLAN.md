@@ -161,6 +161,8 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 22. `feat(core): animate data updates via css transitions` – przejścia `d`/`cx`/`cy`/`transform` na tych samych węzłach, wejścia (odsłanianie linii, wzrost słupków od bazy, fade), bez animacji przy zmianie rozmiaru, `animate: false`, wszystko przez `--tc-duration`. Safari: `d` nie animuje się (przeskok).
 - [x] 23. `feat(core): add accessibility (title/desc, keyboard nav, data table)` – ukryta (lub widoczna) tabela danych, nawigacja strzałkami / Home / End / Esc z tooltipem, komunikaty `aria-live`, fokus na SVG; poprawka SSR: puste elementy HTML zamykane jawnie.
 
+- [x] 24a. `refactor(core): move tooltip, legend, table and keyboard into plugins` – `ChartPlugin` (hooks: beforeRender / layers / svgAttrs / afterRender / reservedHeight / destroy), wtyczki `highlight`, `tooltip`, `legend`, `dataTable`, `keyboard`; `@tabler/charts` = `Chart` z domyślnymi wtyczkami, `@tabler/charts/core` = goły `Chart`. Rozmiar: core + line 9,2 kB gzip, domyślny Chart + line 11,3 kB (zysk ~2 kB; dalsza optymalizacja w M5).
+
 ### M3 – Kolejne typy
 - [ ] 24. `feat(core): add stacked and horizontal bars`.
 - [ ] 25. `feat(core): add arc generator and pie/donut chart`.

@@ -4,7 +4,8 @@
     "isolatedDeclarations": false,
     "declaration": false,
     "paths": {
-      "@tabler/charts": ["../../packages/core/src/index.ts"]
+      "@tabler/charts": ["../../packages/core/src/index.ts"],
+      "@tabler/charts/core": ["../../packages/core/src/core.ts"]
     }
   },
   "include": ["src"]

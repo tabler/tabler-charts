@@ -9,6 +9,7 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: '@tabler/charts/style.css', replacement: core('style.css') },
+      { find: /^@tabler\/charts\/core$/, replacement: core('core.ts') },
       { find: /^@tabler\/charts$/, replacement: core('index.ts') },
     ],
   },

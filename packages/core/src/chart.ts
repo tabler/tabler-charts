@@ -1,14 +1,14 @@
-import { type DataTable, describeHit, tableContent } from './a11y.ts'
-import { hoverOverlay, hoverUnderlay } from './components/hover.ts'
+import type { DataTable } from './a11y.ts'
 import type { Locale } from './format.ts'
 import { type Hit, hitKey, type Interaction, toChartPoint } from './interaction.ts'
-import { defaultHidden, type LegendItem, type LegendOptions, legendContent } from './legend.ts'
+import { defaultHidden, type LegendItem, type LegendOptions } from './legend.ts'
+import type { ChartPlugin, PluginInstance } from './plugin.ts'
 import { render } from './render/dom.ts'
 import { renderToString } from './render/string.ts'
 import { observeResize } from './resize.ts'
 import { cancel, schedule } from './scheduler.ts'
-import { placeTooltip, type TooltipOptions, tooltipContent } from './tooltip.ts'
-import { type ChildInput, type ClassValue, h, type VNode } from './vnode.ts'
+import type { TooltipOptions } from './tooltip.ts'
+import { type ChildInput, type ClassValue, h, type Props, type VNode } from './vnode.ts'
 
 /** Size and environment a chart type renders into. */
 export interface RenderContext {
@@ -78,6 +78,12 @@ export interface BaseOptions {
   table?: boolean | 'visible'
   /** Make the chart focusable and navigable with arrow keys. Defaults to `true`. */
   keyboard?: boolean
+  /**
+   * Extra plugins, installed when the chart is created. The default `Chart`
+   * from `@tabler/charts` already includes the built-in ones; the bare `Chart`
+   * from `@tabler/charts/core` only runs these.
+   */
+  plugins?: readonly ChartPlugin[]
 }
 
 /** Full chart configuration: base options, the chart type and its options. */
@@ -124,7 +130,8 @@ function renderContent<O extends object>(
   return config.type.render(config, renderContext(config, size, id, onHitTest, hidden))
 }
 
-function renderContext<O extends object>(
+/** Render context for a config and size (also used by plugins such as the data table). */
+export function renderContext<O extends object>(
   config: ChartConfig<O>,
   size: Size,
   id: string,
@@ -148,10 +155,15 @@ function assertType(config: ChartConfig<object>): void {
   }
 }
 
+/** Legend entries of a config, whether a legend is shown and where. */
+export interface ResolvedLegend {
+  items: LegendItem[]
+  show: boolean
+  position: 'top' | 'bottom'
+}
+
 /** Legend entries of a config, and whether the legend is shown. */
-export function resolveLegend<O extends object>(
-  config: ChartConfig<O>,
-): { items: LegendItem[]; show: boolean; position: 'top' | 'bottom' } {
+export function resolveLegend<O extends object>(config: ChartConfig<O>): ResolvedLegend {
   const items = config.type.legend?.(config) ?? []
   const option = config.legend
   const show = option === undefined ? items.length >= 2 : option !== false && items.length > 0
@@ -167,7 +179,7 @@ function composeChart(
   content: ChildInput,
   underlay?: ChildInput,
   overlay?: ChildInput,
-  focusable = false,
+  extraAttrs?: Props,
 ): VNode {
   const { width, height } = size
   const titleId = config.title ? `${id}-title` : undefined
@@ -185,9 +197,9 @@ function composeChart(
       width,
       height,
       role: 'img',
-      tabindex: focusable ? 0 : undefined,
       'aria-labelledby': titleId,
       'aria-describedby': descId,
+      ...extraAttrs,
     },
     titleId && h('title', { id: titleId }, config.title),
     descId && h('desc', { id: descId }, config.description),
@@ -230,8 +242,8 @@ export interface ChartEvents {
   /** After the chart content rendered into the DOM (not on hover-only updates). */
   render: { size: Size }
   /**
-   * The hovered category (or mark) changed, or its data changed while hovered.
-   * `hit` is `null` when the pointer left the plot.
+   * The highlighted category (or mark) changed, or its data changed while
+   * highlighted. `hit` is `null` when the pointer left the plot.
    */
   hover: { hit: Hit | null; event?: PointerEvent }
   /** A click on the plot. */
@@ -240,9 +252,17 @@ export interface ChartEvents {
 
 type Handler<T> = (event: T) => void
 
+/** Where the current highlight came from. */
+type Source =
+  | { kind: 'pointer'; x: number; y: number }
+  | { kind: 'index'; index: number; seriesIndex?: number }
+
 /**
  * A chart bound to a DOM element: measures its container, renders SVG into
- * it and re-renders on `update()` and resize, batched per animation frame.
+ * it, re-renders on `update()` and resize (batched per animation frame) and
+ * turns pointer input into `hover` / `click` events. Features such as the
+ * tooltip or legend are plugins; the `Chart` exported by `@tabler/charts`
+ * installs the built-in ones.
  *
  * ```ts
  * const chart = new Chart('#sales', { type: line, data })
@@ -259,36 +279,30 @@ export class Chart<O extends object = object> {
   private readonly handlers = new Map<keyof ChartEvents, Set<Handler<never>>>()
   private readonly unobserve: () => void
   private readonly unlisten: () => void
+  private readonly plugins: PluginInstance[]
   private destroyed = false
-  private interaction: Interaction | undefined
-  /** Last pointer position in chart pixels while hovering. */
-  private pointer: { x: number; y: number } | undefined
+  private current: Interaction | undefined
+  private source: Source | undefined
   private hovered = ''
-  private active: Hit | null = null
-  /** Chart type output of the last render, reused while only hover state changes. */
+  private hit: Hit | null = null
+  /** Chart type output of the last render, reused while only the highlight changes. */
   private cache:
     | { cfg: ChartConfig<O>; width: number; height: number; hidden: string; content: ChildInput }
     | undefined
-  private tooltipEl: HTMLElement | undefined
-  private legendEl: HTMLElement | undefined
   private resizeTimer: ReturnType<typeof setTimeout> | undefined
-  private tableEl: HTMLElement | undefined
-  private liveEl: HTMLElement | undefined
-  /** Whether the current hover comes from the keyboard. */
-  private keyboardHover = false
   /** Visibility set by the user, overriding each entry's default. */
   private readonly toggled = new Map<string, boolean>()
-  private readonly addedContainerClass: boolean
 
-  constructor(target: Element | string, config: ChartConfig<O>) {
+  constructor(
+    target: Element | string,
+    config: ChartConfig<O>,
+    defaultPlugins: readonly ChartPlugin[] = [],
+  ) {
     const element = typeof target === 'string' ? document.querySelector(target) : target
     if (!element) throw new Error(`@tabler/charts: element "${String(target)}" not found.`)
     this.element = element
     this.cfg = config
     this.id = config.id ?? nextId()
-    // Positioning context for the tooltip (zero specificity in CSS, so page styles win).
-    this.addedContainerClass = !element.classList.contains('tc-container')
-    element.classList.add('tc-container')
     this.measure()
     this.unobserve = observeResize(element, (width, height) => {
       // Our own SVG sets the container height unless it follows the container.
@@ -302,6 +316,10 @@ export class Chart<O extends object = object> {
       }
     })
     this.unlisten = this.listen()
+    const self = this as unknown as Chart<object>
+    this.plugins = [...defaultPlugins, ...(config.plugins ?? [])].map((plugin) =>
+      plugin.install(self),
+    )
     this.render()
   }
 
@@ -312,13 +330,58 @@ export class Chart<O extends object = object> {
 
   /** Size of the last render. */
   get size(): Size {
-    // In 'container' height mode the legend takes part of the container.
-    const legend = this.legendEl?.isConnected ? this.legendEl.offsetHeight : 0
+    // In 'container' height mode, plugins such as the legend take part of the container.
+    let reserved = 0
+    for (const plugin of this.plugins) reserved += plugin.reservedHeight?.() ?? 0
     const measured =
-      legend && this.measured.height
-        ? { ...this.measured, height: this.measured.height - legend }
+      reserved && this.measured.height
+        ? { ...this.measured, height: this.measured.height - reserved }
         : this.measured
     return resolveSize(this.cfg, measured)
+  }
+
+  /** How pointer and keyboard map to data for the current render. */
+  get interaction(): Interaction | undefined {
+    return this.current
+  }
+
+  /** The highlighted category (hover or keyboard), or `null`. */
+  get active(): Hit | null {
+    return this.hit
+  }
+
+  /** Where the highlight is anchored in chart pixels (pointer, or the focused value). */
+  get anchor(): { x: number; y: number } | undefined {
+    const source = this.source
+    const hit = this.hit
+    if (!source || !hit) return undefined
+    if (source.kind === 'pointer') return { x: source.x, y: source.y }
+    const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
+    return { x: hit.x, y: item?.y ?? hit.area.y + hit.area.height / 2 }
+  }
+
+  /** Whether the highlight comes from the pointer or from `highlightIndex()` (keyboard). */
+  get highlightSource(): 'pointer' | 'index' | undefined {
+    return this.hit ? this.source?.kind : undefined
+  }
+
+  /**
+   * Highlight a category by index (and optionally one series in it), as
+   * keyboard navigation does. Returns the hit, or `null` for an invalid index.
+   */
+  highlightIndex(index: number, seriesIndex?: number): Hit | null {
+    const hit = this.current?.hitIndex(index, seriesIndex) ?? null
+    if (!hit) return null
+    this.source =
+      seriesIndex === undefined ? { kind: 'index', index } : { kind: 'index', index, seriesIndex }
+    this.setHover(hit)
+    return hit
+  }
+
+  /** Remove any highlight. */
+  clearHighlight(): void {
+    this.source = undefined
+    this.setHover(null)
   }
 
   /**
@@ -369,11 +432,12 @@ export class Chart<O extends object = object> {
     if (this.destroyed) return this
     cancel(this)
     const cfg = this.cfg
-    assertType(cfg as ChartConfig<object>)
+    const config = cfg as ChartConfig<object>
+    assertType(config)
     const legend = resolveLegend(cfg)
     const hidden = this.hiddenSet(legend.items)
     const hiddenKey = [...hidden].sort().join('\u0000')
-    this.renderLegend(legend, hidden)
+    for (const plugin of this.plugins) plugin.beforeRender?.({ config, legend, hidden })
     const size = this.size
 
     let cache = this.cache
@@ -384,13 +448,13 @@ export class Chart<O extends object = object> {
       cache.height !== size.height ||
       cache.hidden !== hiddenKey
     if (!cache || stale) {
-      this.interaction = undefined
+      this.current = undefined
       const content = renderContent(
         cfg,
         size,
         this.id,
         (interaction) => {
-          this.interaction = interaction
+          this.current = interaction
         },
         hidden,
       )
@@ -398,36 +462,39 @@ export class Chart<O extends object = object> {
       this.cache = cache
     }
 
-    // Keep hover consumers (tooltips) in sync with new data or layout.
-    if (this.pointer && stale && this.keyboardHover && this.active) {
-      // Keep the keyboard selection on the same category with fresh values.
-      this.focusIndex(this.active.index, this.active.seriesIndex, false)
-    } else if (this.pointer && stale)
-      this.setHover(this.hitTest(this.pointer.x, this.pointer.y), undefined, true, false)
+    // Keep the highlight (and its consumers, like tooltips) in sync with new data or layout.
+    const source = this.source
+    if (stale && source) {
+      const next =
+        source.kind === 'pointer'
+          ? this.hitTest(source.x, source.y)
+          : (this.current?.hitIndex(source.index, source.seriesIndex) ?? null)
+      this.setHover(next, undefined, true, false)
+    }
 
-    const hit = this.active
-    render(
-      this.element,
-      composeChart(
-        cfg as ChartConfig<object>,
-        size,
-        this.id,
-        cache.content,
-        hit && hoverUnderlay(hit, cfg.crosshair !== false),
-        hit && hoverOverlay(hit),
-        cfg.keyboard !== false,
-      ),
-    )
-    if (stale) this.renderTable(cfg, size, hidden)
-    this.placeLegend()
+    const hit = this.hit
+    const under: ChildInput[] = []
+    const over: ChildInput[] = []
+    let attrs: Props | undefined
+    for (const plugin of this.plugins) {
+      if (hit && plugin.layers) {
+        const layer = plugin.layers(hit, config)
+        under.push(layer.under)
+        over.push(layer.over)
+      }
+      const extra = plugin.svgAttrs?.(config)
+      if (extra) attrs = { ...attrs, ...extra }
+    }
+    render(this.element, composeChart(config, size, this.id, cache.content, under, over, attrs))
+
+    for (const plugin of this.plugins) plugin.afterRender?.({ config, legend, hidden, size, stale })
     if (stale) this.emit('render', { size })
-    this.updateTooltip()
     return this
   }
 
   /** What lies at a point in chart pixels, or `null`. */
   hitTest(x: number, y: number): Hit | null {
-    return this.interaction?.hitTest(x, y) ?? null
+    return this.current?.hitTest(x, y) ?? null
   }
 
   /** Subscribe to an event; returns a function that unsubscribes. */
@@ -451,25 +518,12 @@ export class Chart<O extends object = object> {
     clearTimeout(this.resizeTimer)
     this.unobserve()
     this.unlisten()
+    for (const plugin of this.plugins) plugin.destroy?.()
     this.handlers.clear()
     render(this.element, null)
-    if (this.tooltipEl) {
-      render(this.tooltipEl, null)
-      this.tooltipEl.remove()
-    }
-    if (this.legendEl) {
-      render(this.legendEl, null)
-      this.legendEl.remove()
-    }
-    for (const el of [this.tableEl, this.liveEl]) {
-      if (!el) continue
-      render(el, null)
-      el.remove()
-    }
-    if (this.addedContainerClass) this.element.classList.remove('tc-container')
   }
 
-  /** One set of delegated listeners on the element; survives re-renders. */
+  /** One set of delegated pointer listeners on the element; survives re-renders. */
   private listen(): () => void {
     const el = this.element
     if (typeof el.addEventListener !== 'function') return () => {}
@@ -482,24 +536,15 @@ export class Chart<O extends object = object> {
     }
     const onMove = (event: PointerEvent) => {
       const point = local(event)
-      if (point) this.hover(point, event)
+      if (!point) return
+      this.source = { kind: 'pointer', x: point.x, y: point.y }
+      this.setHover(this.hitTest(point.x, point.y), event)
     }
     const onLeave = (event: PointerEvent) => {
-      // On touch, keep the last hover after the finger lifts.
-      if (event.pointerType === 'touch') return
-      this.pointer = undefined
+      // On touch, keep the last highlight after the finger lifts.
+      if (event.pointerType === 'touch' || this.source?.kind !== 'pointer') return
+      this.source = undefined
       this.setHover(null, event)
-    }
-    const onKey = (event: KeyboardEvent) => {
-      if (this.cfg.keyboard === false) return
-      if (!(event.target as Element).matches?.('svg.tc-chart')) return
-      if (this.handleKey(event.key)) event.preventDefault()
-    }
-    const onBlur = (event: FocusEvent) => {
-      if (!(event.target as Element).matches?.('svg.tc-chart') || !this.keyboardHover) return
-      this.keyboardHover = false
-      this.pointer = undefined
-      this.setHover(null)
     }
     const onClick = (event: MouseEvent) => {
       const point = local(event)
@@ -511,11 +556,7 @@ export class Chart<O extends object = object> {
     el.addEventListener('pointerdown', onMove as EventListener)
     el.addEventListener('pointerleave', onLeave as EventListener)
     el.addEventListener('click', onClick as EventListener)
-    el.addEventListener('keydown', onKey as EventListener)
-    el.addEventListener('focusout', onBlur as EventListener)
     return () => {
-      el.removeEventListener('keydown', onKey as EventListener)
-      el.removeEventListener('focusout', onBlur as EventListener)
       el.removeEventListener('pointermove', onMove as EventListener)
       el.removeEventListener('pointerdown', onMove as EventListener)
       el.removeEventListener('pointerleave', onLeave as EventListener)
@@ -523,70 +564,19 @@ export class Chart<O extends object = object> {
     }
   }
 
-  private hover(point: { x: number; y: number }, event?: PointerEvent): void {
-    this.keyboardHover = false
-    this.pointer = point
-    this.setHover(this.hitTest(point.x, point.y), event)
-  }
-
   /**
-   * Update the hovered hit: emit `hover` when it changed (or when `force`d
-   * after new data) and re-render the hover layers in the next frame.
+   * Update the highlighted hit: emit `hover` when it changed (or when
+   * `force`d after new data) and re-render the hover layers in the next frame.
    */
   private setHover(hit: Hit | null, event?: PointerEvent, force = false, rerender = true): void {
     const key = hitKey(hit)
     if (!force && key === this.hovered) return
-    // After a re-render, only a hover that is still active is worth repeating.
+    // After a re-render, only a highlight that is still active is worth repeating.
     if (force && key === '' && this.hovered === '') return
     this.hovered = key
-    this.active = hit
+    this.hit = hit
     this.emit('hover', event ? { hit, event } : { hit })
     if (rerender) this.schedule()
-  }
-
-  /** Render, place or hide the tooltip for the active hit. */
-  private updateTooltip(): void {
-    const option = this.cfg.tooltip
-    const hit = this.active
-    const el = this.element as HTMLElement
-    if (option === false || typeof document === 'undefined') return
-    if (!hit || !this.pointer) {
-      this.tooltipEl?.removeAttribute('data-visible')
-      return
-    }
-
-    let tip = this.tooltipEl
-    if (!tip) {
-      tip = el.ownerDocument.createElement('div')
-      tip.className = 'tc-tooltip'
-      tip.setAttribute('aria-hidden', 'true')
-      el.appendChild(tip)
-      this.tooltipEl = tip
-    }
-    render(tip, tooltipContent(hit, typeof option === 'object' ? option : undefined))
-
-    const svg = el.querySelector('svg.tc-chart')
-    if (!svg) return
-    const { width, height } = this.size
-    const box = el.getBoundingClientRect()
-    const rect = svg.getBoundingClientRect()
-    const sx = rect.width > 0 ? rect.width / width : 1
-    const sy = rect.height > 0 ? rect.height / height : 1
-    const originX = rect.left - box.left - el.clientLeft
-    const originY = rect.top - box.top - el.clientTop
-    const anchor = { x: originX + hit.x * sx, y: originY + this.pointer.y * sy }
-    const place = placeTooltip(
-      anchor,
-      { width: tip.offsetWidth, height: tip.offsetHeight },
-      { width: el.clientWidth || width, height: el.clientHeight || height },
-    )
-    tip.style.transform = `translate(${place.x}px, ${place.y}px)`
-    tip.dataset.side = place.side
-    if (!tip.hasAttribute('data-visible')) {
-      // Commit the position before becoming visible, so it does not glide in from the old spot.
-      void getComputedStyle(tip).transform
-      tip.setAttribute('data-visible', '')
-    }
   }
 
   private hiddenSet(items: readonly LegendItem[]): Set<string> {
@@ -595,152 +585,6 @@ export class Chart<O extends object = object> {
       if (this.toggled.get(item.key) ?? item.hidden) hidden.add(item.key)
     }
     return hidden
-  }
-
-  /** Render (or remove) the legend above or below the SVG. */
-  private renderLegend(
-    legend: ReturnType<typeof resolveLegend>,
-    hidden: ReadonlySet<string>,
-  ): void {
-    if (!legend.show || typeof document === 'undefined') {
-      if (this.legendEl) {
-        render(this.legendEl, null)
-        this.legendEl.remove()
-        this.legendEl = undefined
-      }
-      return
-    }
-    let el = this.legendEl
-    if (!el) {
-      el = this.element.ownerDocument.createElement('div')
-      el.className = 'tc-legend'
-      el.addEventListener('click', (event) => {
-        const button = (event.target as Element).closest?.('.tc-legend-item')
-        const key = button?.getAttribute('data-key')
-        if (key != null) this.toggleSeries(key)
-      })
-      this.legendEl = el
-    }
-    el.dataset.position = legend.position
-    render(el, legendContent(legend.items, hidden))
-    this.placeLegend()
-  }
-
-  /** Keep the legend right before or after the SVG, whatever else lives in the container. */
-  private placeLegend(): void {
-    const el = this.legendEl
-    if (!el) return
-    const svg = this.element.querySelector(':scope > svg.tc-chart')
-    if (el.dataset.position === 'bottom') {
-      if (!svg) {
-        if (!el.isConnected) this.element.appendChild(el)
-      } else if (svg.nextElementSibling !== el) {
-        svg.after(el)
-      }
-    } else if (!el.isConnected || el.nextElementSibling !== svg) {
-      this.element.insertBefore(el, svg ?? this.element.firstChild)
-    }
-  }
-
-  /** Arrow keys walk categories, Up/Down walk series, Home/End jump, Escape clears. */
-  private handleKey(key: string): boolean {
-    const interaction = this.interaction
-    if (!interaction || interaction.count === 0) return false
-    const current = this.keyboardHover ? this.active : null
-    const last = interaction.count - 1
-    const index = current?.index
-    const series = current?.items.map((item) => item.seriesIndex) ?? []
-    const at = current?.seriesIndex === undefined ? -1 : series.indexOf(current.seriesIndex)
-
-    switch (key) {
-      case 'ArrowRight':
-        this.focusIndex(index === undefined ? 0 : Math.min(last, index + 1), current?.seriesIndex)
-        return true
-      case 'ArrowLeft':
-        this.focusIndex(index === undefined ? last : Math.max(0, index - 1), current?.seriesIndex)
-        return true
-      case 'Home':
-        this.focusIndex(0, current?.seriesIndex)
-        return true
-      case 'End':
-        this.focusIndex(last, current?.seriesIndex)
-        return true
-      case 'ArrowDown':
-      case 'ArrowUp': {
-        if (index === undefined || series.length === 0) {
-          this.focusIndex(0)
-          return true
-        }
-        const step = key === 'ArrowDown' ? 1 : -1
-        const next = at === -1 ? (step > 0 ? 0 : series.length - 1) : at + step
-        this.focusIndex(index, next < 0 || next >= series.length ? undefined : series[next])
-        return true
-      }
-      case 'Escape':
-        if (!current) return false
-        this.keyboardHover = false
-        this.pointer = undefined
-        this.setHover(null)
-        return true
-      default:
-        return false
-    }
-  }
-
-  /** Hover a category from the keyboard and announce it. */
-  private focusIndex(index: number, seriesIndex?: number, rerender = true): void {
-    const hit = this.interaction?.hitIndex(index, seriesIndex) ?? null
-    if (!hit) return
-    this.keyboardHover = true
-    const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
-    this.pointer = { x: hit.x, y: item?.y ?? hit.area.y + hit.area.height / 2 }
-    this.setHover(hit, undefined, !rerender, rerender)
-    this.announce(describeHit(hit))
-  }
-
-  private announce(text: string): void {
-    if (typeof document === 'undefined') return
-    let live = this.liveEl
-    if (!live) {
-      live = this.element.ownerDocument.createElement('div')
-      live.className = 'tc-sr-only'
-      live.setAttribute('aria-live', 'polite')
-      live.setAttribute('aria-atomic', 'true')
-      this.element.appendChild(live)
-      this.liveEl = live
-    }
-    live.textContent = text
-  }
-
-  /** Render (or remove) the data table next to the chart. */
-  private renderTable(cfg: ChartConfig<O>, size: Size, hidden: ReadonlySet<string>): void {
-    const option = cfg.table ?? true
-    const table =
-      option !== false && typeof document !== 'undefined'
-        ? cfg.type.table?.(
-            cfg,
-            renderContext(cfg, size, this.id, () => {}, hidden),
-          )
-        : undefined
-    if (!table) {
-      if (this.tableEl) {
-        render(this.tableEl, null)
-        this.tableEl.remove()
-        this.tableEl = undefined
-      }
-      return
-    }
-    let el = this.tableEl
-    if (!el) {
-      el = this.element.ownerDocument.createElement('div')
-      this.tableEl = el
-    }
-    el.className = option === 'visible' ? 'tc-table-wrap' : 'tc-table-wrap tc-sr-only'
-    render(el, tableContent(table, cfg.title))
-    const svg = this.element.querySelector(':scope > svg.tc-chart')
-    const after = this.legendEl?.dataset.position === 'bottom' ? this.legendEl : svg
-    if (after && after.nextElementSibling !== el) after.after(el)
-    else if (!el.isConnected) this.element.appendChild(el)
   }
 
   /** Suspend transitions while the container keeps resizing (see `[data-resizing]` in CSS). */
