@@ -143,7 +143,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 6. `feat(core): add vnode and h() helper` + testy.
 - [x] 7. `feat(core): add string renderer` – `renderToString`, escaping, testy snapshot.
 - [x] 8. `feat(core): add dom renderer with keyed patching` – mount/patch/unmount, testy w happy-dom (dyrektywa `@vitest-environment` per plik).
-- [ ] 9. `feat(core): add linear and band scales` – `nice()`, ticki, testy.
+- [x] 9. `feat(core): add linear and band scales` – `nice()`, ticki, testy, `point()`, `extent()`; wyniki zweryfikowane względem d3.
 - [ ] 10. `feat(core): add number and date formatting via Intl`.
 - [ ] 11. `feat(core): add path generators (line, area, curves)` – linear/monotoneX/step, zaokrąglanie liczb.
 - [ ] 12. `feat(core): add layout and axis/grid components`.
