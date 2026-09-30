@@ -12,9 +12,11 @@
   "dependencies": {
     "@tabler/charts": "workspace:*",
     "@tabler/charts-elements": "workspace:*",
+    "@tabler/charts-react": "workspace:*",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "@tabler/charts-react": "workspace:*"
+    "vue": "^3.5.43",
+    "@tabler/charts-vue": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",

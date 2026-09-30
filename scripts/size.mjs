@@ -9,8 +9,10 @@ import { build } from 'rolldown'
 const DIST = new URL('../packages/core/dist/', import.meta.url).pathname
 const ELEMENTS = new URL('../packages/elements/dist/', import.meta.url).pathname
 const REACT = new URL('../packages/react/dist/', import.meta.url).pathname
+const VUE = new URL('../packages/vue/dist/', import.meta.url).pathname
 /** React itself is the app's, not ours. */
 const react = [/^react($|\/)/, /^react-dom($|\/)/]
+const vue = [/^vue($|\/)/, /^@vue\//]
 
 /** [name, entry source, budget in kB gzipped, externals] */
 const CASES = [
@@ -62,6 +64,7 @@ const CASES = [
   ],
   ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 25.5],
   ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 16.75, react],
+  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 16.75, vue],
   ['everything', `export * from '${DIST}index.js'`, 25.25],
 ]
 

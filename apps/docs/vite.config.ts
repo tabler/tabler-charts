@@ -6,6 +6,8 @@ const core = (path: string) =>
   fileURLToPath(new URL(`../../packages/core/src/${path}`, import.meta.url))
 const react = (path: string) =>
   fileURLToPath(new URL(`../../packages/react/src/${path}`, import.meta.url))
+const vue = (path: string) =>
+  fileURLToPath(new URL(`../../packages/vue/src/${path}`, import.meta.url))
 const elements = (path: string) =>
   fileURLToPath(new URL(`../../packages/elements/src/${path}`, import.meta.url))
 
@@ -19,6 +21,7 @@ export default defineConfig({
       { find: /^@tabler\/charts$/, replacement: core('index.ts') },
       { find: /^@tabler\/charts-elements$/, replacement: elements('index.ts') },
       { find: /^@tabler\/charts-react$/, replacement: react('index.ts') },
+      { find: /^@tabler\/charts-vue$/, replacement: vue('index.ts') },
       { find: /^@tabler\/charts-elements\/shadow$/, replacement: elements('shadow.ts') },
     ],
   },

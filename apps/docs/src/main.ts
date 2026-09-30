@@ -16,6 +16,7 @@ import { reactDemo } from './demos/react.tsx'
 import { scatterDemo } from './demos/scatter.ts'
 import { sparklineDemo } from './demos/sparkline.ts'
 import { timeDemo } from './demos/time.ts'
+import { vueDemo } from './demos/vue.ts'
 
 const demos: Demo[] = [
   sparklineDemo,
@@ -32,6 +33,7 @@ const demos: Demo[] = [
   customType,
   elementDemo,
   reactDemo,
+  vueDemo,
   galleryDemo,
 ]
 

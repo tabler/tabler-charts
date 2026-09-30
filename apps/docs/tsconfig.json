@@ -9,7 +9,8 @@
       "@tabler/charts/core": ["../../packages/core/src/core.ts"],
       "@tabler/charts-elements": ["../../packages/elements/src/index.ts"],
       "@tabler/charts-elements/shadow": ["../../packages/elements/src/shadow.ts"],
-      "@tabler/charts-react": ["../../packages/react/src/index.ts"]
+      "@tabler/charts-react": ["../../packages/react/src/index.ts"],
+      "@tabler/charts-vue": ["../../packages/vue/src/index.ts"]
     }
   },
   "include": ["src", "../../packages/elements/src/globals.d.ts"]
