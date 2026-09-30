@@ -144,7 +144,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 7. `feat(core): add string renderer` – `renderToString`, escaping, testy snapshot.
 - [x] 8. `feat(core): add dom renderer with keyed patching` – mount/patch/unmount, testy w happy-dom (dyrektywa `@vitest-environment` per plik).
 - [x] 9. `feat(core): add linear and band scales` – `nice()`, ticki, testy, `point()`, `extent()`; wyniki zweryfikowane względem d3.
-- [ ] 10. `feat(core): add number and date formatting via Intl`.
+- [x] 10. `feat(core): add number and date formatting via Intl` – cache instancji `Intl`, precyzja etykiet z kroku podziałki, `-0` → `0`.
 - [ ] 11. `feat(core): add path generators (line, area, curves)` – linear/monotoneX/step, zaokrąglanie liczb.
 - [ ] 12. `feat(core): add layout and axis/grid components`.
 - [ ] 13. `feat(core): add Chart class` – config, shared ResizeObserver + rAF scheduler, `update`/`destroy`.

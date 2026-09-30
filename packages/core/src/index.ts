@@ -3,6 +3,15 @@ import { version } from '../package.json'
 /** Version of the `@tabler/charts` package. */
 export const VERSION: string = version
 
+export type { DateFormat, Locale, NumberFormat } from './format.ts'
+export {
+  formatDate,
+  formatNumber,
+  formatTicks,
+  getDateFormat,
+  getNumberFormat,
+  stepPrecision,
+} from './format.ts'
 export { render } from './render/dom.ts'
 export type { RenderToStringOptions } from './render/string.ts'
 export { escapeAttr, escapeText, renderToString } from './render/string.ts'

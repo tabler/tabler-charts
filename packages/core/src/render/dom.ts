@@ -5,10 +5,10 @@ const SVG_NS = 'http://www.w3.org/2000/svg'
 const HTML_NS = 'http://www.w3.org/1999/xhtml'
 
 /** VNode each rendered DOM node was last patched with. */
-const rendered = new WeakMap<Node, Child>()
+const rendered = /* @__PURE__ */ new WeakMap<Node, Child>()
 
 /** Root element rendered into each container. */
-const roots = new WeakMap<Element, Element>()
+const roots = /* @__PURE__ */ new WeakMap<Element, Element>()
 
 /**
  * Render a VNode tree into `container`.
