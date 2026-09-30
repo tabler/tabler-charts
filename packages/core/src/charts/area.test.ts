@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
+import type { Interaction } from '../interaction.ts'
 import { findByClass, findByTag, gridLineOffset } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { type AreaOptions, area } from './area.ts'
@@ -84,6 +85,46 @@ describe('area', () => {
     const node = buildChart({ ...base, type: line, area: true }, size, 'l')
     expect(node.attrs.class).toBe('tc-chart tc-chart-line')
     expect(findByClass(node, 'tc-area')).toHaveLength(2)
+  })
+
+  describe('stacked', () => {
+    const points = (d: unknown) =>
+      (String(d).match(/-?[\d.]+,-?[\d.]+/g) ?? []).map(
+        (p) => p.split(',').map(Number) as [number, number],
+      )
+
+    test('stacks each area on the one below and lines on the totals', () => {
+      const node = render({ stacked: true, curve: 'linear' })
+      const [north, south] = findByClass(node, 'tc-area').map((a) => points(a.attrs.d))
+      const [northLine, southLine] = findByClass(node, 'tc-line').map((l) => points(l.attrs.d))
+      if (!north || !south || !northLine || !southLine) throw new Error('missing paths')
+      // South's bottom edge (second half, reversed) is North's top edge.
+      const southBottom = south.slice(4).reverse()
+      expect(southBottom).toEqual(north.slice(0, 4))
+      expect(southLine).toEqual(south.slice(0, 4))
+      // The stack total (70 + 30 = 100 in Q4) sets the domain.
+      const labels = findByClass(node, 'tc-tick-label').map((t) => t.children[0])
+      expect(labels).toContain('100')
+      expect(northLine[3]?.[1]).toBeGreaterThan(southLine[3]?.[1] ?? 0)
+    })
+
+    test('percent mode fills every category to 100%', () => {
+      const node = render({ stacked: 'percent', curve: 'linear' })
+      const top = findByClass(node, 'tc-line').map((l) => points(l.attrs.d))[1] ?? []
+      expect(new Set(top.map(([, y]) => y)).size).toBe(1)
+      const labels = findByClass(node, 'tc-tick-label').map((t) => t.children[0])
+      expect(labels).toContain('100%')
+    })
+
+    test('anchors hits at the running total but reports raw values', () => {
+      let interaction: Interaction | undefined
+      buildChart({ ...base, stacked: true }, size, 's', (i) => {
+        interaction = i
+      })
+      const hit = interaction?.hitIndex(3)
+      expect(hit?.items.map((i) => i.value)).toEqual([70, 30])
+      expect(hit?.items[1]?.y).toBeLessThan(hit?.items[0]?.y ?? 0)
+    })
   })
 
   test('matches the snapshot', () => {

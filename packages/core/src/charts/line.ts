@@ -5,12 +5,14 @@ import {
   type CartesianOptions,
   cartesianLayout,
   categoryInteraction,
+  resolveLabels,
   type Series,
   seriesAttrs,
   seriesKey,
   seriesLegend,
   seriesTable,
 } from './cartesian.ts'
+import { type StackMode, stackBounds, stackSeries } from './stack.ts'
 
 export interface LineOptions extends CartesianOptions {
   /** Interpolation between points. Defaults to `'monotone'`. */
@@ -26,9 +28,14 @@ export interface LineOptions extends CartesianOptions {
   /**
    * Area fill style: a vertical fade (strength set by `--tc-area-gradient-start`
    * / `--tc-area-gradient-end`) or a flat wash (`--tc-area-opacity`).
-   * Defaults to `'gradient'`.
+   * Defaults to `'gradient'`, or `'solid'` for stacked areas.
    */
   fill?: 'gradient' | 'solid'
+  /**
+   * Stack series on top of each other (each line draws the running total);
+   * `'percent'` shows every category as 100%. Missing values count as zero.
+   */
+  stacked?: StackMode
 }
 
 const round = (value: number): number => Math.round(value * 100) / 100
@@ -61,21 +68,50 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     pointRadius = 4,
     connectNulls = false,
     area: filled = fill,
-    fill: fillStyle = 'gradient',
+    stacked = false,
+    // Faded layers would show light seams between stacked areas, so stacks default to solid.
+    fill: fillStyle = stacked ? 'solid' : 'gradient',
   } = options
   const overhang = points === 'none' ? 2 : pointRadius + 2
-  const layout = cartesianLayout(options, ctx, { scale: 'point', zero: filled, overhang })
+  const { series } = options.data
+  const count = resolveLabels(options.data).length
+  const stacks = stacked
+    ? stackSeries(series, count, {
+        percent: stacked === 'percent',
+        nullAsZero: true,
+        hidden: ctx.hidden,
+      })
+    : null
+  const layout = cartesianLayout(options, ctx, {
+    scale: 'point',
+    zero: filled || stacks !== null,
+    overhang,
+    ...(stacks ? { values: stackBounds(stacks) } : {}),
+    ...(stacked === 'percent' ? { tickFormat: { style: 'percent' } } : {}),
+  })
   const { x, y, labels } = layout
   const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
-  ctx.onHitTest(categoryInteraction(layout, options, ctx, (_, i, v) => ({ x: x.at(i), y: y(v) })))
+  ctx.onHitTest(
+    categoryInteraction(layout, options, ctx, (seriesIndex, i, v) => ({
+      x: x.at(i),
+      y: y(stacks ? (stacks[seriesIndex]?.[i]?.y1 ?? 0) : v),
+    })),
+  )
   const gradient = filled && fillStyle === 'gradient'
   const fadeId = `${ctx.id}-fade`
 
   // Hidden series keep their index (and color slot) but draw nothing.
   const visible = (s: Series) => !ctx.hidden.has(seriesKey(s))
-  const all = options.data.series.map((s) =>
-    visible(s) ? seriesPoints(s, labels.length, (i) => x.at(i), y, connectNulls) : [],
-  )
+  const all = series.map((s, index) => {
+    if (!visible(s)) return []
+    // Stacked series draw their running total.
+    const stack = stacks?.[index]
+    if (stack) return stack.map((seg, i): Point => (seg ? [x.at(i), y(seg.y1)] : null))
+    return seriesPoints(s, labels.length, (i) => x.at(i), y, connectNulls)
+  })
+  /** Area bottom: zero, or the top of the layer below for stacks. */
+  const bottom = (index: number) =>
+    stacks?.[index]?.map((seg) => (seg ? y(seg.y0) : null)) ?? baseline
 
   // All areas go below all lines, so a filled series never covers another line.
   const areas =
@@ -91,7 +127,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
             seriesAttrs(s, index),
             h('path', {
               class: ['tc-area', gradient && 'tc-area-gradient'],
-              d: areaPath(all[index] as Point[], baseline, { curve }),
+              d: areaPath(all[index] as Point[], bottom(index), { curve }),
               mask: gradient ? `url(#${fadeId})` : undefined,
             }),
           ),

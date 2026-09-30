@@ -49,8 +49,13 @@ export const areaDemo: Demo = {
     })
 
     controls.button('Shuffle data', () => chart.setData({ labels: LABELS, series: randomSeries() }))
-    controls.select('Fill', ['gradient', 'solid'] as const, 'gradient', (fill) =>
-      chart.update({ fill }),
+    controls.select('Layout', ['overlap', 'stacked', 'percent'] as const, 'overlap', (value) =>
+      chart.update({
+        stacked: value === 'overlap' ? false : value === 'percent' ? 'percent' : true,
+      }),
+    )
+    controls.select('Fill', ['auto', 'gradient', 'solid'] as const, 'auto', (fill) =>
+      chart.update({ fill: fill === 'auto' ? undefined : fill }),
     )
     controls.select('Curve', ['monotone', 'linear', 'step'] as const, 'monotone', (curve) =>
       chart.update({ curve }),
