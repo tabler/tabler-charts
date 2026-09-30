@@ -31,6 +31,7 @@ export type { AxisOptions, AxisPosition, LinearTicksOptions, Tick } from './comp
 export { axis, axisSize, bandTicks, linearTicks, thinTicks } from './components/axis.ts'
 export type { GridOptions } from './components/grid.ts'
 export { grid } from './components/grid.ts'
+export { hoverOverlay, hoverUnderlay } from './components/hover.ts'
 export type { DateFormat, Locale, NumberFormat } from './format.ts'
 export {
   formatDate,
@@ -56,6 +57,8 @@ export { cancel, flush, schedule } from './scheduler.ts'
 export { barPath } from './shapes/bar.ts'
 export type { Curve, PathOptions, Point } from './shapes/path.ts'
 export { areaPath, linePath } from './shapes/path.ts'
+export type { TooltipOptions, TooltipPlacement } from './tooltip.ts'
+export { placeTooltip, tooltipContent } from './tooltip.ts'
 export type {
   Attrs,
   AttrValue,

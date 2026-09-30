@@ -62,7 +62,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   const layout = cartesianLayout(options, ctx, { scale: 'point', zero: filled, overhang })
   const { x, y, labels } = layout
   const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
-  ctx.onHitTest(categoryHitTester(layout, options.data, (_, i, v) => ({ x: x.at(i), y: y(v) })))
+  ctx.onHitTest(categoryHitTester(layout, options, ctx, (_, i, v) => ({ x: x.at(i), y: y(v) })))
   const gradient = filled && fillStyle === 'gradient'
   const fadeId = `${ctx.id}-fade`
 

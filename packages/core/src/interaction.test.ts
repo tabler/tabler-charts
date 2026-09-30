@@ -89,8 +89,10 @@ describe('hitKey()', () => {
   test('identifies category and mark', () => {
     const area = { x: 0, y: 0, width: 1, height: 1 }
     expect(hitKey(null)).toBe('')
-    expect(hitKey({ index: 2, label: 'a', x: 0, area, items: [] })).toBe('2:')
-    expect(hitKey({ index: 2, label: 'a', x: 0, area, items: [], seriesIndex: 1 })).toBe('2:1')
+    expect(hitKey({ index: 2, label: 'a', title: 'a', x: 0, area, items: [] })).toBe('2:')
+    expect(
+      hitKey({ index: 2, label: 'a', title: 'a', x: 0, area, items: [], seriesIndex: 1 }),
+    ).toBe('2:1')
   })
 })
 

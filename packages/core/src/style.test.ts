@@ -57,6 +57,15 @@ describe('style.css', () => {
       'tc-fade-end',
       'tc-bar',
       'tc-point',
+      'tc-crosshair',
+      'tc-hover-band',
+      'tc-tooltip',
+      'tc-tooltip-title',
+      'tc-tooltip-item',
+      'tc-tooltip-swatch',
+      'tc-tooltip-name',
+      'tc-tooltip-value',
+      'tc-tooltip-footer',
     ]
     for (const name of classes) {
       expect(css, name).toMatch(new RegExp(`\\.${name}[\\s,{]`))

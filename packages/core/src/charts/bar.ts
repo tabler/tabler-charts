@@ -55,7 +55,8 @@ export const bar: ChartType<BarOptions> = {
     ctx.onHitTest(
       categoryHitTester(
         layout,
-        options.data,
+        options,
+        ctx,
         (seriesIndex, i, value) => ({ x: barLeft(seriesIndex, i) + barWidth / 2, y: y(value) }),
         (px, _, i) => {
           // The bar under the pointer, gaps included, so thin bars are easy to hit.

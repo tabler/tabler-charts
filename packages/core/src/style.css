@@ -32,6 +32,12 @@
   --tc-text-muted: #6f6e69;
   --tc-grid-color: #e1e0d9;
   --tc-baseline-color: #c3c2b7;
+  --tc-hover-color: rgb(11 11 11 / 4%);
+  --tc-tooltip-bg: #ffffff;
+  --tc-tooltip-color: var(--tc-text-color);
+  --tc-tooltip-border: rgb(11 11 11 / 10%);
+  --tc-tooltip-shadow: 0 4px 16px rgb(11 11 11 / 12%);
+  --tc-tooltip-radius: 6px;
 
   --tc-font-family: inherit;
   --tc-font-size: 12px;
@@ -43,6 +49,7 @@
   --tc-point-ring: 2px;
 
   --tc-duration: 400ms;
+  --tc-duration-fast: 120ms;
   --tc-easing: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -65,6 +72,10 @@
     --tc-text-muted: #a3a29c;
     --tc-grid-color: #2c2c2a;
     --tc-baseline-color: #4a4a46;
+    --tc-hover-color: rgb(255 255 255 / 6%);
+    --tc-tooltip-bg: #262625;
+    --tc-tooltip-border: rgb(255 255 255 / 10%);
+    --tc-tooltip-shadow: 0 4px 16px rgb(0 0 0 / 40%);
   }
 }
 
@@ -84,6 +95,10 @@
   --tc-text-muted: #a3a29c;
   --tc-grid-color: #2c2c2a;
   --tc-baseline-color: #4a4a46;
+  --tc-hover-color: rgb(255 255 255 / 6%);
+  --tc-tooltip-bg: #262625;
+  --tc-tooltip-border: rgb(255 255 255 / 10%);
+  --tc-tooltip-shadow: 0 4px 16px rgb(0 0 0 / 40%);
 }
 
 /* -- Root ------------------------------------------------------------------- */
@@ -195,12 +210,104 @@
   paint-order: stroke;
 }
 
+/* -- Hover ------------------------------------------------------------------ */
+
+/* Positioning context for the tooltip; zero specificity so page styles win. */
+:where(.tc-container) {
+  position: relative;
+}
+
+.tc-hover {
+  pointer-events: none;
+}
+
+.tc-crosshair {
+  stroke: var(--tc-baseline-color);
+  stroke-width: var(--tc-grid-width);
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
+}
+
+.tc-hover-band {
+  fill: var(--tc-hover-color);
+}
+
+.tc-tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  min-width: 120px;
+  padding: 8px 10px;
+  font-family: var(--tc-font-family);
+  font-size: var(--tc-font-size);
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--tc-tooltip-color);
+  background: var(--tc-tooltip-bg);
+  border: 1px solid var(--tc-tooltip-border);
+  border-radius: var(--tc-tooltip-radius);
+  box-shadow: var(--tc-tooltip-shadow);
+  transition: opacity var(--tc-duration-fast) var(--tc-easing);
+}
+
+/* Only a visible tooltip glides between positions; a hidden one jumps into place. */
+.tc-tooltip[data-visible] {
+  opacity: 1;
+  transition:
+    opacity var(--tc-duration-fast) var(--tc-easing),
+    transform var(--tc-duration-fast) var(--tc-easing);
+}
+
+.tc-tooltip-title {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.tc-tooltip-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tc-tooltip-swatch {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tc-series-color);
+}
+
+.tc-tooltip-name {
+  flex: 1;
+  color: var(--tc-text-muted);
+}
+
+.tc-tooltip-value {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-tooltip-footer {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--tc-tooltip-border);
+}
+
+.tc-tooltip-item-active .tc-tooltip-name {
+  color: var(--tc-tooltip-color);
+}
+
 /* -- Accessibility ---------------------------------------------------------- */
 
 /* Every animation and transition in the library uses --tc-duration. */
 @media (prefers-reduced-motion: reduce) {
-  .tc-chart {
+  .tc-chart,
+  .tc-tooltip {
     --tc-duration: 0ms;
+    --tc-duration-fast: 0ms;
   }
 }
 
@@ -226,5 +333,11 @@
   .tc-point {
     fill: CanvasText;
     stroke: Canvas;
+  }
+  .tc-crosshair {
+    stroke: Highlight;
+  }
+  .tc-tooltip {
+    border-color: CanvasText;
   }
 }

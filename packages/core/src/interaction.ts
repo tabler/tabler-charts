@@ -9,6 +9,8 @@ export interface HitItem {
   /** Custom series color, if one was set. */
   color?: string
   value: number | null
+  /** Value formatted for display (tooltips). */
+  text: string
   /** Anchor of the value in chart pixels (point, bar end); `y` is `null` for gaps. */
   x: number
   y: number | null
@@ -20,10 +22,14 @@ export interface Hit {
   index: number
   /** Category label. */
   label: string | number
+  /** Label formatted for display (tooltips). */
+  title: string
   /** Anchor x of the category in chart pixels (for crosshairs and tooltips). */
   x: number
   /** Plot area, in chart pixels. */
   area: Rect
+  /** The category's band along x, for band scales (bars). */
+  band?: { x: number; width: number }
   /** Every series' value at this category. */
   items: HitItem[]
   /** Series of the mark directly under the pointer (e.g. a bar), if any. */

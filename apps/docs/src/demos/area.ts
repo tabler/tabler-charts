@@ -1,4 +1,4 @@
-import { area, Chart, type Series } from '@tabler/charts'
+import { area, Chart, formatNumber, h, type Series } from '@tabler/charts'
 import type { Demo } from '../demo.ts'
 
 const LABELS = Array.from({ length: 30 }, (_, i) => `Sep ${i + 1}`)
@@ -20,11 +20,13 @@ function randomSeries(): Series[] {
   ]
 }
 
+const formatTotal = formatNumber(undefined, 'en-US')
+
 export const areaDemo: Demo = {
   id: 'area',
   title: 'Area chart',
   description:
-    'Filled lines with zero in the domain. The fade is one shared SVG mask; its strength comes from --tc-area-gradient-start, the color from each series.',
+    'Filled lines with zero in the domain. The fade is one shared SVG mask (strength from --tc-area-gradient-start). The tooltip adds a total through tooltip.footer.',
   mount(el, controls) {
     const chart = new Chart(el, {
       type: area,
@@ -32,6 +34,18 @@ export const areaDemo: Demo = {
       locale: 'en-US',
       aspectRatio: 2.5,
       title: 'Daily sessions by device',
+      // Extra tooltip content below the default rows.
+      tooltip: {
+        footer: (hit) => {
+          const total = hit.items.reduce((sum, item) => sum + (item.value ?? 0), 0)
+          return h(
+            'div',
+            { class: 'tc-tooltip-item' },
+            h('span', { class: 'tc-tooltip-name' }, 'Total'),
+            h('span', { class: 'tc-tooltip-value' }, formatTotal(total)),
+          )
+        },
+      },
     })
 
     controls.button('Shuffle data', () => chart.setData({ labels: LABELS, series: randomSeries() }))

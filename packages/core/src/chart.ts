@@ -1,9 +1,11 @@
+import { hoverOverlay, hoverUnderlay } from './components/hover.ts'
 import type { Locale } from './format.ts'
 import { type Hit, type HitTester, hitKey, toChartPoint } from './interaction.ts'
 import { render } from './render/dom.ts'
 import { renderToString } from './render/string.ts'
 import { observeResize } from './resize.ts'
 import { cancel, schedule } from './scheduler.ts'
+import { placeTooltip, type TooltipOptions, tooltipContent } from './tooltip.ts'
 import { type ChildInput, type ClassValue, h, type VNode } from './vnode.ts'
 
 /** Size and environment a chart type renders into. */
@@ -51,6 +53,10 @@ export interface BaseOptions {
   fontSize?: number
   /** Id prefix; set it explicitly for SSR so server and client ids match. */
   id?: string
+  /** Show a tooltip on hover, optionally with custom content. Defaults to `true`. */
+  tooltip?: boolean | TooltipOptions
+  /** Show a vertical crosshair on hover (point charts). Defaults to `true`. */
+  crosshair?: boolean
 }
 
 /** Full chart configuration: base options, the chart type and its options. */
@@ -86,6 +92,58 @@ export function resolveSize(options: BaseOptions, measured?: Partial<Size>): Siz
   return { width, height: Math.max(0, Math.round(height)) }
 }
 
+/** Run the chart type's `render()` for a config and size. */
+function renderContent<O extends object>(
+  config: ChartConfig<O>,
+  size: Size,
+  id: string,
+  onHitTest: (tester: HitTester) => void,
+): ChildInput {
+  const { type } = config
+  if (!type || typeof type.render !== 'function') {
+    throw new TypeError('@tabler/charts: `type` must be a chart type, e.g. `type: line`.')
+  }
+  return type.render(config, {
+    width: size.width,
+    height: size.height,
+    fontSize: config.fontSize ?? DEFAULT_FONT_SIZE,
+    locale: config.locale,
+    id,
+    onHitTest,
+  })
+}
+
+/** Wrap chart content (and hover layers) in the accessible root `<svg>`. */
+function composeChart(
+  config: ChartConfig<object>,
+  size: Size,
+  id: string,
+  content: ChildInput,
+  underlay?: ChildInput,
+  overlay?: ChildInput,
+): VNode {
+  const { width, height } = size
+  const titleId = config.title ? `${id}-title` : undefined
+  const descId = config.description ? `${id}-desc` : undefined
+  return h(
+    'svg',
+    {
+      class: ['tc-chart', `tc-chart-${config.type.name}`, config.class],
+      viewBox: `0 0 ${width} ${height}`,
+      width,
+      height,
+      role: 'img',
+      'aria-labelledby': titleId,
+      'aria-describedby': descId,
+    },
+    titleId && h('title', { id: titleId }, config.title),
+    descId && h('desc', { id: descId }, config.description),
+    underlay,
+    content,
+    overlay,
+  )
+}
+
 /**
  * Build the VNode tree of a chart: a pure function of the config and size,
  * shared by the DOM chart and server-side rendering.
@@ -96,37 +154,8 @@ export function buildChart<O extends object>(
   id: string = config.id ?? 'tc',
   onHitTest: (tester: HitTester) => void = () => {},
 ): VNode {
-  const { type } = config
-  if (!type || typeof type.render !== 'function') {
-    throw new TypeError('@tabler/charts: `type` must be a chart type, e.g. `type: line`.')
-  }
-  const { width, height } = size
-  const context: RenderContext = {
-    width,
-    height,
-    fontSize: config.fontSize ?? DEFAULT_FONT_SIZE,
-    locale: config.locale,
-    id,
-    onHitTest,
-  }
-  const titleId = config.title ? `${id}-title` : undefined
-  const descId = config.description ? `${id}-desc` : undefined
-
-  return h(
-    'svg',
-    {
-      class: ['tc-chart', `tc-chart-${type.name}`, config.class],
-      viewBox: `0 0 ${width} ${height}`,
-      width,
-      height,
-      role: 'img',
-      'aria-labelledby': titleId,
-      'aria-describedby': descId,
-    },
-    titleId && h('title', { id: titleId }, config.title),
-    descId && h('desc', { id: descId }, config.description),
-    type.render(config, context),
-  )
+  const content = renderContent(config, size, id, onHitTest)
+  return composeChart(config as ChartConfig<object>, size, id, content)
 }
 
 /**
@@ -141,7 +170,7 @@ export function chartToString<O extends object>(config: ChartConfig<O>, size: Si
 }
 
 export interface ChartEvents {
-  /** After the chart rendered into the DOM. */
+  /** After the chart content rendered into the DOM (not on hover-only updates). */
   render: { size: Size }
   /**
    * The hovered category (or mark) changed, or its data changed while hovered.
@@ -178,6 +207,13 @@ export class Chart<O extends object = object> {
   /** Last pointer position in chart pixels while hovering. */
   private pointer: { x: number; y: number } | undefined
   private hovered = ''
+  private active: Hit | null = null
+  /** Chart type output of the last render, reused while only hover state changes. */
+  private cache:
+    | { cfg: ChartConfig<O>; width: number; height: number; content: ChildInput }
+    | undefined
+  private tooltipEl: HTMLElement | undefined
+  private readonly addedContainerClass: boolean
 
   constructor(target: Element | string, config: ChartConfig<O>) {
     const element = typeof target === 'string' ? document.querySelector(target) : target
@@ -185,6 +221,9 @@ export class Chart<O extends object = object> {
     this.element = element
     this.cfg = config
     this.id = config.id ?? nextId()
+    // Positioning context for the tooltip (zero specificity in CSS, so page styles win).
+    this.addedContainerClass = !element.classList.contains('tc-container')
+    element.classList.add('tc-container')
     this.measure()
     this.unobserve = observeResize(element, (width, height) => {
       // Our own SVG sets the container height unless it follows the container.
@@ -232,16 +271,38 @@ export class Chart<O extends object = object> {
     if (this.destroyed) return this
     cancel(this)
     const size = this.size
-    this.tester = undefined
+    const cfg = this.cfg
+
+    let cache = this.cache
+    const stale =
+      !cache || cache.cfg !== cfg || cache.width !== size.width || cache.height !== size.height
+    if (!cache || stale) {
+      this.tester = undefined
+      const content = renderContent(cfg, size, this.id, (tester) => {
+        this.tester = tester
+      })
+      cache = { cfg, width: size.width, height: size.height, content }
+      this.cache = cache
+    }
+
+    // Keep hover consumers (tooltips) in sync with new data or layout.
+    if (this.pointer && stale)
+      this.setHover(this.hitTest(this.pointer.x, this.pointer.y), undefined, true, false)
+
+    const hit = this.active
     render(
       this.element,
-      buildChart(this.cfg, size, this.id, (tester) => {
-        this.tester = tester
-      }),
+      composeChart(
+        cfg as ChartConfig<object>,
+        size,
+        this.id,
+        cache.content,
+        hit && hoverUnderlay(hit, cfg.crosshair !== false),
+        hit && hoverOverlay(hit),
+      ),
     )
-    this.emit('render', { size })
-    // Keep hover consumers (tooltips) in sync with new data or layout.
-    if (this.pointer) this.hover(this.pointer, undefined, true)
+    if (stale) this.emit('render', { size })
+    this.updateTooltip()
     return this
   }
 
@@ -272,6 +333,11 @@ export class Chart<O extends object = object> {
     this.unlisten()
     this.handlers.clear()
     render(this.element, null)
+    if (this.tooltipEl) {
+      render(this.tooltipEl, null)
+      this.tooltipEl.remove()
+    }
+    if (this.addedContainerClass) this.element.classList.remove('tc-container')
   }
 
   /** One set of delegated listeners on the element; survives re-renders. */
@@ -313,18 +379,69 @@ export class Chart<O extends object = object> {
     }
   }
 
-  private hover(point: { x: number; y: number }, event?: PointerEvent, force = false): void {
+  private hover(point: { x: number; y: number }, event?: PointerEvent): void {
     this.pointer = point
-    this.setHover(this.hitTest(point.x, point.y), event, force)
+    this.setHover(this.hitTest(point.x, point.y), event)
   }
 
-  private setHover(hit: Hit | null, event?: PointerEvent, force = false): void {
+  /**
+   * Update the hovered hit: emit `hover` when it changed (or when `force`d
+   * after new data) and re-render the hover layers in the next frame.
+   */
+  private setHover(hit: Hit | null, event?: PointerEvent, force = false, rerender = true): void {
     const key = hitKey(hit)
     if (!force && key === this.hovered) return
     // After a re-render, only a hover that is still active is worth repeating.
     if (force && key === '' && this.hovered === '') return
     this.hovered = key
+    this.active = hit
     this.emit('hover', event ? { hit, event } : { hit })
+    if (rerender) this.schedule()
+  }
+
+  /** Render, place or hide the tooltip for the active hit. */
+  private updateTooltip(): void {
+    const option = this.cfg.tooltip
+    const hit = this.active
+    const el = this.element as HTMLElement
+    if (option === false || typeof document === 'undefined') return
+    if (!hit || !this.pointer) {
+      this.tooltipEl?.removeAttribute('data-visible')
+      return
+    }
+
+    let tip = this.tooltipEl
+    if (!tip) {
+      tip = el.ownerDocument.createElement('div')
+      tip.className = 'tc-tooltip'
+      tip.setAttribute('aria-hidden', 'true')
+      el.appendChild(tip)
+      this.tooltipEl = tip
+    }
+    render(tip, tooltipContent(hit, typeof option === 'object' ? option : undefined))
+
+    const svg = el.querySelector('svg.tc-chart')
+    if (!svg) return
+    const { width, height } = this.size
+    const box = el.getBoundingClientRect()
+    const rect = svg.getBoundingClientRect()
+    const sx = rect.width > 0 ? rect.width / width : 1
+    const sy = rect.height > 0 ? rect.height / height : 1
+    const originX = rect.left - box.left - el.clientLeft
+    const originY = rect.top - box.top - el.clientTop
+    const anchor = { x: originX + hit.x * sx, y: originY + this.pointer.y * sy }
+    const place = placeTooltip(
+      anchor,
+      { width: tip.offsetWidth, height: tip.offsetHeight },
+      { width: el.clientWidth || width, height: el.clientHeight || height },
+    )
+    tip.style.transform = `translate(${place.x}px, ${place.y}px)`
+    tip.dataset.side = place.side
+    if (!tip.hasAttribute('data-visible')) {
+      // Commit the position before becoming visible, so it does not glide in from the old spot.
+      void getComputedStyle(tip).transform
+      tip.setAttribute('data-visible', '')
+    }
   }
 
   private schedule(): void {

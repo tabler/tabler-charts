@@ -38,16 +38,10 @@ export const barDemo: Demo = {
       { style: 'currency', currency: 'USD', maximumFractionDigits: 0 },
       'en-US',
     )
-    const readout = controls.output('Hover')
-    chart.on('hover', ({ hit }) => {
-      const item = hit?.seriesIndex === undefined ? undefined : hit.items[hit.seriesIndex]
-      readout(
-        hit
-          ? item
-            ? `${hit.label} — ${item.name}: ${fmt(item.value ?? 0)}`
-            : `${hit.label} (between bars)`
-          : '',
-      )
+    const readout = controls.output('Clicked')
+    chart.on('click', ({ hit }) => {
+      const item = hit.seriesIndex === undefined ? undefined : hit.items[hit.seriesIndex]
+      readout(item ? `${hit.title} — ${item.name}: ${fmt(item.value ?? 0)}` : hit.title)
     })
 
     controls.button('Shuffle data', refresh)

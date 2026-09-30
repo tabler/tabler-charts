@@ -1,7 +1,7 @@
 import type { RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
-import type { NumberFormat } from '../format.ts'
+import { formatNumber, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, HitTester } from '../interaction.ts'
 import {
   estimateTextWidth,
@@ -260,15 +260,20 @@ const HOVER_SLOP = 8
  * Hit testing by category: the nearest category to the pointer while it is
  * over the plot area, with every series' value there. `anchor` places each
  * value (line point, bar end); `markAt` names the series of the mark directly
- * under the pointer, if the chart has distinct marks (bars).
+ * under the pointer, if the chart has distinct marks (bars). Labels and
+ * values are formatted with the chart's `x.format` / `y.format` and locale.
  */
 export function categoryHitTester(
   layout: CartesianLayout,
-  data: CartesianData,
+  options: CartesianOptions,
+  ctx: RenderContext,
   anchor: (seriesIndex: number, index: number, value: number) => { x: number; y: number },
   markAt?: (x: number, y: number, index: number) => number | undefined,
 ): HitTester {
   const { area, x, labels } = layout
+  const { data } = options
+  const formatLabel = options.x?.format ?? ((label: Label) => String(label))
+  const formatValue = formatNumber(options.y?.format, ctx.locale)
   return (px, py) => {
     if (labels.length === 0) return null
     if (
@@ -280,16 +285,26 @@ export function categoryHitTester(
       return null
     }
     const index = x.indexAt(px)
-    const center = x.at(index) + x.bandwidth / 2
+    const start = x.at(index)
+    const center = start + x.bandwidth / 2
+    const label = labels[index] as Label
     const items: HitItem[] = data.series.map((series, seriesIndex) => {
       const raw = series.values[index]
       const value = raw == null || !Number.isFinite(raw) ? null : raw
       const point = value === null ? { x: center, y: null } : anchor(seriesIndex, index, value)
-      const item: HitItem = { name: series.name, seriesIndex, value, x: point.x, y: point.y }
+      const item: HitItem = {
+        name: series.name,
+        seriesIndex,
+        value,
+        text: value === null ? '–' : formatValue(value),
+        x: point.x,
+        y: point.y,
+      }
       if (series.color) item.color = series.color
       return item
     })
-    const hit: Hit = { index, label: labels[index] as Label, x: center, area, items }
+    const hit: Hit = { index, label, title: formatLabel(label, index), x: center, area, items }
+    if (x.bandwidth > 0) hit.band = { x: start, width: x.bandwidth }
     const mark = markAt?.(px, py, index)
     if (mark !== undefined) hit.seriesIndex = mark
     return hit
