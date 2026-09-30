@@ -15,7 +15,9 @@ export function dataTable(): ChartPlugin {
     name: 'table',
     install(chart) {
       const host = chart.element
-      let el: HTMLElement | undefined
+      // Take over a server-rendered table instead of adding a second one.
+      let el = host.querySelector<HTMLElement>(':scope > .tc-table-wrap') ?? undefined
+      let adopt = el?.firstElementChild ?? null
 
       const remove = () => {
         if (!el) return
@@ -58,7 +60,8 @@ export function dataTable(): ChartPlugin {
           }
           if (!el) el = host.ownerDocument.createElement('div')
           el.className = visible ? 'tc-table-wrap' : 'tc-table-wrap tc-sr-only'
-          render(el, tableContent(rows, caption))
+          render(el, tableContent(rows, caption), adopt)
+          adopt = null
           const svg = host.querySelector(':scope > svg.tc-chart')
           const bottomLegend = host.querySelector(':scope > .tc-legend[data-position="bottom"]')
           const after = bottomLegend ?? svg

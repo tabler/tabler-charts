@@ -297,6 +297,8 @@ export class Chart<O extends object = object> {
   private resizeTimer: ReturnType<typeof setTimeout> | undefined
   /** Visibility set by the user, overriding each entry's default. */
   private readonly toggled = new Map<string, boolean>()
+  /** Server-rendered svg to take over on the first render, if any. */
+  private adopt: Element | null
 
   constructor(
     target: Element | string,
@@ -308,6 +310,7 @@ export class Chart<O extends object = object> {
     this.element = element
     this.cfg = config
     this.id = config.id ?? nextId()
+    this.adopt = element.querySelector(':scope > svg.tc-chart')
     this.measure()
     this.unobserve = observeResize(element, (width, height) => {
       // Our own SVG sets the container height unless it follows the container.
@@ -491,7 +494,12 @@ export class Chart<O extends object = object> {
       const extra = plugin.svgAttrs?.(config)
       if (extra) attrs = { ...attrs, ...extra }
     }
-    render(this.element, composeChart(config, size, this.id, cache.content, under, over, attrs))
+    render(
+      this.element,
+      composeChart(config, size, this.id, cache.content, under, over, attrs),
+      this.adopt,
+    )
+    this.adopt = null
 
     for (const plugin of this.plugins) plugin.afterRender?.({ config, legend, hidden, size, stale })
     if (stale) this.emit('render', { size })

@@ -11,11 +11,21 @@ export function legend(): ChartPlugin {
     name: 'legend',
     install(chart) {
       const host = chart.element
-      let el: HTMLElement | undefined
+      // Take over a server-rendered legend instead of adding a second one.
+      let el = host.querySelector<HTMLElement>(':scope > .tc-legend') ?? undefined
+      let adopt = el?.firstElementChild ?? null
+      let bound = false
+      const onClick = (event: Event) => {
+        const button = (event.target as Element).closest?.('.tc-legend-item')
+        const key = button?.getAttribute('data-key')
+        if (key != null) chart.toggleSeries(key)
+      }
 
       const remove = () => {
         if (!el) return
         render(el, null)
+        el.removeEventListener('click', onClick)
+        bound = false
         el.remove()
         el = undefined
       }
@@ -44,14 +54,14 @@ export function legend(): ChartPlugin {
           if (!el) {
             el = host.ownerDocument.createElement('div')
             el.className = 'tc-legend'
-            el.addEventListener('click', (event) => {
-              const button = (event.target as Element).closest?.('.tc-legend-item')
-              const key = button?.getAttribute('data-key')
-              if (key != null) chart.toggleSeries(key)
-            })
+          }
+          if (!bound) {
+            el.addEventListener('click', onClick)
+            bound = true
           }
           el.dataset.position = legend.position
-          render(el, legendContent(legend.items, hidden))
+          render(el, legendContent(legend.items, hidden), adopt)
+          adopt = null
           place()
         },
         reservedHeight: () => (el?.isConnected ? el.offsetHeight : 0),

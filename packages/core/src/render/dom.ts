@@ -18,10 +18,16 @@ const roots = /* @__PURE__ */ new WeakMap<Element, Element>()
  * transitions on changed attributes keep working. Passing `null` unmounts.
  *
  * The rendered root is appended to `container`; other content of the
- * container is left untouched.
+ * container is left untouched. On the first call, `replace` names an element
+ * already in the container (e.g. server-rendered markup) that the root takes
+ * the place of, so hydration does not duplicate it.
  */
-export function render(container: Element, vnode: VNode | null): Element | null {
-  const prev = roots.get(container)
+export function render(
+  container: Element,
+  vnode: VNode | null,
+  replace?: Element | null,
+): Element | null {
+  const prev = roots.get(container) ?? (replace?.parentNode === container ? replace : undefined)
 
   if (vnode === null || !isValidTag(vnode.tag)) {
     if (prev) {
@@ -33,6 +39,7 @@ export function render(container: Element, vnode: VNode | null): Element | null 
 
   if (prev && canPatch(prev, vnode)) {
     patchElement(prev, vnode)
+    roots.set(container, prev)
     return prev
   }
 
