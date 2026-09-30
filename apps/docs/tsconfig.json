@@ -5,7 +5,8 @@
     "declaration": false,
     "paths": {
       "@tabler/charts": ["../../packages/core/src/index.ts"],
-      "@tabler/charts/core": ["../../packages/core/src/core.ts"]
+      "@tabler/charts/core": ["../../packages/core/src/core.ts"],
+      "@tabler/charts-elements": ["../../packages/elements/src/index.ts"]
     }
   },
   "include": ["src"]

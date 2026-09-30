@@ -7,6 +7,7 @@ import { gzipSync } from 'node:zlib'
 import { build } from 'rolldown'
 
 const DIST = new URL('../packages/core/dist/', import.meta.url).pathname
+const ELEMENTS = new URL('../packages/elements/dist/', import.meta.url).pathname
 
 /** [name, entry source, budget in kB gzipped] */
 const CASES = [
@@ -51,6 +52,12 @@ const CASES = [
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     8.5,
   ],
+  [
+    'elements/core + line',
+    `export { defineChartElement } from '${ELEMENTS}core.js'; export { line } from '${DIST}line.js'`,
+    12.25,
+  ],
+  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 25.5],
   ['everything', `export * from '${DIST}index.js'`, 25.25],
 ]
 

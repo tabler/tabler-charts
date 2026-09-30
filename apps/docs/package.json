@@ -10,7 +10,8 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@tabler/charts": "workspace:*"
+    "@tabler/charts": "workspace:*",
+    "@tabler/charts-elements": "workspace:*"
   },
   "devDependencies": {
     "vite": "^8.3.1"

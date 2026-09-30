@@ -202,12 +202,21 @@ importers:
       '@tabler/charts':
         specifier: workspace:*
         version: link:../../packages/core
+      '@tabler/charts-elements':
+        specifier: workspace:*
+        version: link:../../packages/elements
     devDependencies:
       vite:
         specifier: ^8.3.1
         version: 8.3.1(@types/node@24.19.0)
 
   packages/core: {}
+
+  packages/elements:
+    devDependencies:
+      '@tabler/charts':
+        specifier: workspace:^
+        version: link:../core
 
 packages:
 

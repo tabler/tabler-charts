@@ -172,7 +172,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 29. `perf(core): add LTTB decimation module` (+ demo 50k punktów) – `lttb()` / `lttbIndices()` z zachowaniem przerw i wyrównaniem do baz stosów, opcja `decimate: N` w line/area, wejście `@tabler/charts/decimate`; do tego limit 1000 wierszy tabeli danych, `extent()` zamiast spread, szybszy `thinTicks`. 50k punktów: 22 ms (z decymacją) / 58 ms.
 
 ### M4 – Adaptery
-- [ ] 30. `feat(elements): add <tabler-chart> web component` (light DOM, atrybuty, eventy).
+- [x] 30. `feat(elements): add <tabler-chart> web component` (light DOM, atrybuty, eventy) – pakiet `@tabler/charts-elements`: `defineChartElement()` (rejestracja na żądanie, bez efektów ubocznych importu; wszystkie typy i wbudowane pluginy) oraz `@tabler/charts-elements/core` z wybranymi typami i pluginami; dane z `<script type="application/json">` lub property `data`, typ i wspólne opcje w atrybutach, reszta w `options` (atrybut JSON / property), zdarzenia `tc-hover` / `tc-click` / `tc-legend-toggle` / `tc-render`, obserwacja zmian skryptu (frameworki), `display: block` z zerową specyficznością, demo w playgroundzie.
 - [ ] 31. `feat(elements): add shadow dom mode and cdn iife build`.
 - [ ] 32. `feat(react): add react components and useChart hook` + SSR.
 - [ ] 33. `feat(vue): add vue components` + SSR.
