@@ -1,0 +1,6 @@
+{
+  "name": "@tabler/charts-docs",
+  "private": true,
+  "type": "module",
+  "description": "Playground and documentation for Tabler Charts"
+}
