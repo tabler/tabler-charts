@@ -146,7 +146,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 9. `feat(core): add linear and band scales` – `nice()`, ticki, testy, `point()`, `extent()`; wyniki zweryfikowane względem d3.
 - [x] 10. `feat(core): add number and date formatting via Intl` – cache instancji `Intl`, precyzja etykiet z kroku podziałki, `-0` → `0`.
 - [x] 11. `feat(core): add path generators (line, area, curves)` – linear/monotoneX/step, zaokrąglanie liczb, przerwy w danych, obszary skumulowane; zgodne z d3-shape.
-- [ ] 12. `feat(core): add layout and axis/grid components`.
+- [x] 12. `feat(core): add layout and axis/grid components` – szacowanie szerokości tekstu bez DOM (średni błąd ~2% vs pomiar w przeglądarce), przerzedzanie etykiet, klasy `.tc-axis*`, `.tc-tick*`, `.tc-grid*`.
 - [ ] 13. `feat(core): add Chart class` – config, shared ResizeObserver + rAF scheduler, `update`/`destroy`.
 - [ ] 14. `feat(core): add base stylesheet with css variables` – paleta, dark mode, reduced motion.
 - [ ] 15. `feat(core): add line chart`.
