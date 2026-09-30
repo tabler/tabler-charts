@@ -62,7 +62,11 @@ export interface BaseOptions {
   class?: ClassValue
   /** Locale for number and date formatting. Set it explicitly for SSR. */
   locale?: Locale
-  /** Font size used for layout (keep in sync with `--tc-font-size`). Defaults to `12`. */
+  /**
+   * Font size used to lay out labels. In the browser it is read from the
+   * `--tc-font-size` custom property of the container when not set; set it
+   * explicitly for SSR so server and client layouts match. Defaults to `12`.
+   */
   fontSize?: number
   /** Id prefix; set it explicitly for SSR so server and client ids match. */
   id?: string
@@ -131,8 +135,9 @@ function renderContent<O extends object>(
   id: string,
   onHitTest: (interaction: Interaction) => void,
   hidden: ReadonlySet<string>,
+  fontSize?: number,
 ): ChildInput {
-  return config.type.render(config, renderContext(config, size, id, onHitTest, hidden))
+  return config.type.render(config, renderContext(config, size, id, onHitTest, hidden, fontSize))
 }
 
 /** Render context for a config and size (also used by plugins such as the data table). */
@@ -142,11 +147,12 @@ export function renderContext<O extends object>(
   id: string,
   onHitTest: (interaction: Interaction) => void,
   hidden: ReadonlySet<string>,
+  measuredFontSize?: number,
 ): RenderContext {
   return {
     width: size.width,
     height: size.height,
-    fontSize: config.fontSize ?? DEFAULT_FONT_SIZE,
+    fontSize: config.fontSize ?? measuredFontSize ?? DEFAULT_FONT_SIZE,
     locale: config.locale,
     id,
     onHitTest,
@@ -292,7 +298,14 @@ export class Chart<O extends object = object> {
   private hit: Hit | null = null
   /** Chart type output of the last render, reused while only the highlight changes. */
   private cache:
-    | { cfg: ChartConfig<O>; width: number; height: number; hidden: string; content: ChildInput }
+    | {
+        cfg: ChartConfig<O>
+        width: number
+        height: number
+        hidden: string
+        fontSize: number | undefined
+        content: ChildInput
+      }
     | undefined
   private resizeTimer: ReturnType<typeof setTimeout> | undefined
   /** Visibility set by the user, overriding each entry's default. */
@@ -346,6 +359,11 @@ export class Chart<O extends object = object> {
         ? { ...this.measured, height: this.measured.height - reserved }
         : this.measured
     return resolveSize(this.cfg, measured)
+  }
+
+  /** Font size used by the last render (explicit, measured, or the default). */
+  get fontSize(): number {
+    return this.cache?.fontSize ?? this.cfg.fontSize ?? DEFAULT_FONT_SIZE
   }
 
   /** How pointer and keyboard map to data for the current render. */
@@ -448,6 +466,7 @@ export class Chart<O extends object = object> {
     const hiddenKey = [...hidden].sort().join('\u0000')
     for (const plugin of this.plugins) plugin.beforeRender?.({ config, legend, hidden })
     const size = this.size
+    const fontSize = cfg.fontSize ?? this.measureFontSize()
 
     let cache = this.cache
     const stale =
@@ -455,7 +474,8 @@ export class Chart<O extends object = object> {
       cache.cfg !== cfg ||
       cache.width !== size.width ||
       cache.height !== size.height ||
-      cache.hidden !== hiddenKey
+      cache.hidden !== hiddenKey ||
+      cache.fontSize !== fontSize
     if (!cache || stale) {
       this.current = undefined
       const content = renderContent(
@@ -466,8 +486,9 @@ export class Chart<O extends object = object> {
           this.current = interaction
         },
         hidden,
+        fontSize,
       )
-      cache = { cfg, width: size.width, height: size.height, hidden: hiddenKey, content }
+      cache = { cfg, width: size.width, height: size.height, hidden: hiddenKey, fontSize, content }
       this.cache = cache
     }
 
@@ -612,6 +633,15 @@ export class Chart<O extends object = object> {
 
   private schedule(): void {
     if (!this.destroyed) schedule(this, () => this.render())
+  }
+
+  /** The `--tc-font-size` in effect on the container, in pixels (browser only). */
+  private measureFontSize(): number | undefined {
+    if (typeof getComputedStyle !== 'function') return undefined
+    const value = Number.parseFloat(
+      getComputedStyle(this.element).getPropertyValue('--tc-font-size'),
+    )
+    return Number.isFinite(value) && value > 0 ? value : undefined
   }
 
   /** Measure the content box, matching what `ResizeObserver` reports. */

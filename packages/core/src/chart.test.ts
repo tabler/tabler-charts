@@ -222,6 +222,19 @@ describe('Chart', () => {
     expect(chart.size).toEqual({ width: 400, height: 180 })
   })
 
+  test('reads the font size from --tc-font-size unless set explicitly', () => {
+    el.style.setProperty('--tc-font-size', '18px')
+    const measured = new Chart(el, { type: dots, data: [] })
+    expect(renders.at(-1)?.fontSize).toBe(18)
+    expect(measured.fontSize).toBe(18)
+    measured.destroy()
+    new Chart(el, { type: dots, data: [], fontSize: 10 })
+    expect(renders.at(-1)?.fontSize).toBe(10)
+    el.style.removeProperty('--tc-font-size')
+    new Chart(el, { type: dots, data: [] })
+    expect(renders.at(-1)?.fontSize).toBe(12)
+  })
+
   test('animate: false marks the svg static', () => {
     new Chart(el, { type: dots, data: [], animate: false })
     expect(el.querySelector('svg')?.classList.contains('tc-static')).toBe(true)

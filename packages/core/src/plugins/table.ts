@@ -36,7 +36,7 @@ export function dataTable(): ChartPlugin {
             option !== false && typeof document !== 'undefined'
               ? config.type.table?.(
                   config,
-                  renderContext(config, size, chart.id, () => {}, hidden),
+                  renderContext(config, size, chart.id, () => {}, hidden, chart.fontSize),
                   maxRows,
                 )
               : undefined
