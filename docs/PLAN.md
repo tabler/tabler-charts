@@ -186,7 +186,7 @@ Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexC
 - [x] 42. `feat(core): dash and width per series` – `series[].dash` (px lub pełne `stroke-dasharray`) i `series[].width` jako `--tc-series-dash` / `--tc-series-width` na grupie serii (`y.max` już było); kafelek „This week vs. last” w galerii.
 - [x] 43. `feat(core): mixed series in bar charts` – `series[].type: 'bar' | 'line' | 'area'` w wykresie `bar`: linie przez środki pasm nad słupkami, poza stosem (ale w domenie osi), w tooltipie / legendzie / tabeli jak każda seria, `curve`; kafelki „Spend and leads” i „Mentions” w galerii.
 - [x] 44. `feat(core): tristate sparkline` – `variant: 'tristate'`: liczy się tylko znak (wygrana w górę, strata w dół w `--tc-negative-color`, remis jako kreska na linii środka); kafelki w demie sparkline i galerii.
-- [ ] 45. `feat(core): add heatmap chart` (karta „Weekly activity”).
+- [x] 45. `feat(core): add heatmap chart` (+ demo, kafelki w galerii) – wiersze = serie, kolumny = etykiety (te same dane co line/bar), jedna barwa od pustego odcienia do pełnego koloru (`color-mix`, `--tc-heat-color` / `--tc-heat-empty`), `min` / `max`, odstęp i zaokrąglenie komórek, puste komórki dla `null`, pierścień przy hover, tooltip z całą kolumną i aktywnym wierszem, klawiatura w 2D, tabela, wejście `@tabler/charts/heatmap`.
 - [ ] 46. `feat(core): add candlestick chart` (karta crypto).
 
 ### M5 – Wydanie

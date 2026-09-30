@@ -5,6 +5,7 @@ import { Chart } from './chart-default.ts'
 import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
 import { gauge } from './charts/gauge.ts'
+import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
 import { donut, pie } from './charts/pie.ts'
 import { scatter } from './charts/scatter.ts'
@@ -56,7 +57,10 @@ const pieTypes: ChartType<object>[] = [pie, donut] as ChartType<object>[]
 const sameFamily = (a: ChartType<object>, b: ChartType<object>): boolean =>
   a === b ||
   (cartesianTypes.includes(a) && cartesianTypes.includes(b)) ||
-  (pieTypes.includes(a) && pieTypes.includes(b))
+  (pieTypes.includes(a) && pieTypes.includes(b)) ||
+  // A heatmap takes the same data as line / area / bar.
+  (a === heatmap && cartesianTypes.includes(b)) ||
+  (b === heatmap && cartesianTypes.includes(a))
 
 /** A random config for the same family as `type`. */
 function randomConfigLike(type: ChartType<object>): ChartConfig<object> {
@@ -84,7 +88,17 @@ function randomConfig(): ChartConfig<object> {
     keyboard: maybe(0.2, false),
     animate: maybe(0.3, false),
   }
-  const kind = pick(['cartesian', 'cartesian', 'pie', 'scatter', 'sparkline', 'gauge'])
+  const kind = pick(['cartesian', 'cartesian', 'pie', 'scatter', 'sparkline', 'gauge', 'heatmap'])
+  if (kind === 'heatmap') {
+    return {
+      type: heatmap,
+      ...base,
+      data: { labels: labels.map(String), series: series(n, len) },
+      min: maybe(0.2, 0),
+      max: maybe(0.2, pick([0, 10])),
+      gap: maybe(0.3, pick([0, 50])),
+    } as ChartConfig<object>
+  }
   if (kind === 'gauge') {
     const rings = series(n, 1).map((s) => ({
       name: s.name,

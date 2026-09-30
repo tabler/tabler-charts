@@ -11,6 +11,7 @@ export default defineConfig({
     'src/bar.ts',
     'src/pie.ts',
     'src/gauge.ts',
+    'src/heatmap.ts',
     'src/scatter.ts',
     'src/sparkline.ts',
     'src/decimate.ts',

@@ -27,6 +27,11 @@ const CASES = [
     7.5,
   ],
   [
+    'core + heatmap',
+    `export { Chart } from '${DIST}core.js'; export { heatmap } from '${DIST}heatmap.js'`,
+    8,
+  ],
+  [
     'core + line + tooltip + legend',
     `export { Chart, tooltip, highlight, legend } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     12.5,
@@ -37,7 +42,7 @@ const CASES = [
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     8.5,
   ],
-  ['everything', `export * from '${DIST}index.js'`, 24],
+  ['everything', `export * from '${DIST}index.js'`, 25],
 ]
 
 let failed = false
@@ -54,10 +59,10 @@ for (const [name, source, budget] of CASES) {
   )
 }
 const css = gzipSync(readFileSync(`${DIST}style.css`)).length / 1000
-const cssOk = css <= 4.25
+const cssOk = css <= 4.5
 failed ||= !cssOk
 console.log(
-  `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 4.25)`,
+  `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 4.5)`,
 )
 writeFileSync(entry, '')
 if (failed) {

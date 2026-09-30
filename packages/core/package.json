@@ -111,6 +111,16 @@
         "default": "./dist/gauge.cjs"
       }
     },
+    "./heatmap": {
+      "import": {
+        "types": "./dist/heatmap.d.ts",
+        "default": "./dist/heatmap.js"
+      },
+      "require": {
+        "types": "./dist/heatmap.d.cts",
+        "default": "./dist/heatmap.cjs"
+      }
+    },
     "./scatter": {
       "import": {
         "types": "./dist/scatter.d.ts",

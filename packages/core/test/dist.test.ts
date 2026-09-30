@@ -53,6 +53,7 @@ describe('built package', () => {
     const { pie, donut } = await import('../dist/pie.js')
     const { scatter } = await import('../dist/scatter.js')
     const { gauge } = await import('../dist/gauge.js')
+    const { heatmap } = await import('../dist/heatmap.js')
     const { sparkline } = await import('../dist/sparkline.js')
     for (const type of [line, area, bar])
       expect(chartToString({ type, data }, size)).toContain('tc-series-1')
@@ -67,6 +68,7 @@ describe('built package', () => {
     ).toContain('tc-point')
     expect(chartToString({ type: sparkline, data: [1, 2] }, size)).toContain('tc-sparkline')
     expect(chartToString({ type: gauge, data: 42 }, size)).toContain('tc-gauge-arc')
+    expect(chartToString({ type: heatmap, data }, size)).toContain('tc-cell')
   })
 
   test('the stylesheet ships', async () => {

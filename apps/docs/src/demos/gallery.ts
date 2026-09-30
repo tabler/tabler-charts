@@ -8,6 +8,7 @@ import {
   gauge,
   type Hit,
   h,
+  heatmap,
   type Label,
   line,
   pie,
@@ -366,6 +367,45 @@ const ITEMS: Item[] = [
       center: { value: '11.0K', label: 'orders' },
       format: { notation: 'compact' },
     },
+  },
+  {
+    title: 'Weekly activity',
+    note: 'A contribution-style heatmap: days by weeks, green, a missing week.',
+    config: {
+      type: heatmap,
+      ...common,
+      data: {
+        labels: Array.from({ length: 10 }, (_, i) => `W${i + 1}`),
+        series: WEEKDAYS.map((name, d) => ({
+          name,
+          values: Array.from({ length: 10 }, (_, w) =>
+            w === 6 ? null : Math.round(rnd() * (d < 5 ? 10 : 4)),
+          ),
+        })),
+      },
+    },
+    style: { '--tc-heat-color': '#2fb344' },
+  },
+  {
+    title: 'Response times',
+    note: 'Heatmap with a fixed range (min 0, max 800 ms) and no gap.',
+    config: {
+      type: heatmap,
+      ...common,
+      data: {
+        labels: ['00', '04', '08', '12', '16', '20'],
+        series: ['EU', 'US', 'APAC'].map((name) => ({
+          name,
+          values: Array.from({ length: 6 }, () => Math.round(100 + rnd() * 700)),
+        })),
+      },
+      min: 0,
+      max: 800,
+      gap: 0,
+      radius: 0,
+      format: { style: 'unit', unit: 'millisecond' },
+    },
+    style: { '--tc-heat-color': '#d63939' },
   },
   {
     title: 'Gauge',

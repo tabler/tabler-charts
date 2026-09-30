@@ -43,6 +43,8 @@ export {
 } from './charts/cartesian.ts'
 export type { GaugeOptions, GaugeRing } from './charts/gauge.ts'
 export { gauge } from './charts/gauge.ts'
+export type { HeatmapOptions } from './charts/heatmap.ts'
+export { heatmap } from './charts/heatmap.ts'
 export type { LineOptions } from './charts/line.ts'
 export { line } from './charts/line.ts'
 export type { PieOptions, PieSlice } from './charts/pie.ts'

@@ -347,6 +347,40 @@
   transform-origin: 50% 0;
 }
 
+/* Heatmap cells: one hue from the empty shade (--tc-heat-empty) to the full
+   color (--tc-heat-color) by --tc-heat, the value's share set per cell. */
+.tc-cell {
+  fill: var(--tc-heat-color, var(--tc-color-1));
+  transition: fill var(--tc-duration) var(--tc-easing);
+}
+
+@supports (color: color-mix(in oklab, red 50%, blue)) {
+  .tc-cell {
+    fill: color-mix(
+      in oklab,
+      var(--tc-heat-color, var(--tc-color-1)) var(--tc-heat, 100%),
+      var(--tc-heat-empty, var(--tc-grid-color))
+    );
+  }
+}
+
+.tc-cell-empty {
+  fill: var(--tc-heat-empty, var(--tc-grid-color));
+  opacity: 0.5;
+}
+
+.tc-heatmap-cells {
+  animation: tc-fade-in var(--tc-duration) var(--tc-easing);
+}
+
+/* The hovered cell gets a ring in the text color, visible on any shade. */
+.tc-chart-heatmap .tc-hover-mark {
+  fill: none;
+  stroke: var(--tc-text-color);
+  stroke-width: 2px;
+  opacity: 0.6;
+}
+
 /* Tristate sparklines: losses in the last palette slot (red), draws as a muted tick. */
 .tc-tristate-loss {
   fill: var(--tc-negative-color, var(--tc-color-8));
