@@ -64,10 +64,10 @@ for (const [name, source, budget] of CASES) {
   )
 }
 const css = gzipSync(readFileSync(`${DIST}style.css`)).length / 1000
-const cssOk = css <= 4.5
+const cssOk = css <= 3
 failed ||= !cssOk
 console.log(
-  `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 4.5)`,
+  `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 3)`,
 )
 writeFileSync(entry, '')
 if (failed) {

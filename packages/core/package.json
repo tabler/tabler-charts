@@ -188,7 +188,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && node scripts/build-css.mjs",
     "dev": "tsdown --watch",
     "typecheck": "tsc -p .",
     "lint:pkg": "publint && attw --pack . --profile node16 --exclude-entrypoints ./style.css"

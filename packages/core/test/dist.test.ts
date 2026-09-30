@@ -82,5 +82,11 @@ describe('built package', () => {
     const { readFile } = await import('node:fs/promises')
     const css = await readFile(new URL('../dist/style.css', import.meta.url), 'utf8')
     expect(css).toContain('.tc-chart')
+    // Minified, with the banner kept and nothing down-levelled.
+    expect(css.startsWith('/*! @tabler/charts')).toBe(true)
+    expect(css.match(/\/\*/g)).toHaveLength(1)
+    for (const kept of ['@supports', 'color-mix(', 'prefers-reduced-motion', ':where(']) {
+      expect(css, kept).toContain(kept)
+    }
   })
 })

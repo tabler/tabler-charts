@@ -19,5 +19,4 @@ export default defineConfig({
     'src/time.ts',
     'src/log.ts',
   ],
-  copy: [{ from: 'src/style.css', to: 'dist' }],
 })
