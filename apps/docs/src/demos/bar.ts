@@ -21,7 +21,7 @@ export const barDemo: Demo = {
   id: 'bar',
   title: 'Bar chart',
   description:
-    'Grouped bars capped at 24px with a 2px gap, rounded only at the data end and growing from zero — negative values grow down.',
+    'Grouped or stacked (also 100%) bars capped at 24px with a 2px gap, rounded only at the outer data end, growing from zero — negative values grow and stack down.',
   mount(el, controls) {
     const chart = new Chart(el, {
       type: bar,
@@ -49,6 +49,11 @@ export const barDemo: Demo = {
       seriesCount = Number(value)
       refresh()
     })
+    controls.select('Layout', ['grouped', 'stacked', 'percent'] as const, 'grouped', (value) =>
+      chart.update({
+        stacked: value === 'grouped' ? false : value === 'percent' ? 'percent' : true,
+      }),
+    )
     controls.select('Negative values', ['off', 'on'] as const, 'off', (value) => {
       negatives = value === 'on'
       refresh()

@@ -84,6 +84,10 @@ export interface CartesianOptions {
 export interface CartesianLayoutOptions {
   /** `point` places categories on points (lines), `band` on bands (bars). */
   scale: 'point' | 'band'
+  /** Values spanning the y domain, when they differ from the raw data (stacks). */
+  values?: readonly (number | null | undefined)[]
+  /** Format of the value axis ticks, when it differs from `y.format` (percent stacks). */
+  tickFormat?: NumberFormat
   /** Default for `y.zero`. */
   zero: boolean
   /** Space marks need beyond the plot edge (point radius, stroke). */
@@ -138,8 +142,10 @@ export function valueDomain(
   zeroDefault: boolean,
   count: number,
   hidden: ReadonlySet<string> = new Set(),
+  override?: readonly (number | null | undefined)[],
 ): [number, number] {
-  const values = data.series.filter((s) => !hidden.has(seriesKey(s))).flatMap((s) => s.values)
+  const values =
+    override ?? data.series.filter((s) => !hidden.has(seriesKey(s))).flatMap((s) => s.values)
   let [lo, hi] = extent(values) ?? [0, 1]
   if (options.zero ?? zeroDefault) {
     lo = Math.min(lo, 0)
@@ -183,8 +189,9 @@ export function cartesianLayout(
   const showX = xOptions.show !== false && labels.length > 0
 
   const count = yOptions.ticks ?? Math.max(2, Math.round(height / TICK_SPACING))
-  const domain = valueDomain(data, yOptions, layout.zero, count, ctx.hidden)
-  const probeY = linearTicks(linear(domain, [1, 0]), { count, format: yOptions.format, locale })
+  const domain = valueDomain(data, yOptions, layout.zero, count, ctx.hidden, layout.values)
+  const tickFormat = layout.tickFormat ?? yOptions.format
+  const probeY = linearTicks(linear(domain, [1, 0]), { count, format: tickFormat, locale })
 
   // Margins: labels outside the plot, half a line above the top tick,
   // half of the first/last x label for point scales.
@@ -221,7 +228,7 @@ export function cartesianLayout(
         })
   const y = linear(domain, [area.y + area.height, area.y])
 
-  const yTicks = linearTicks(y, { count, format: yOptions.format, locale })
+  const yTicks = linearTicks(y, { count, format: tickFormat, locale })
   const xTicks = showX
     ? thinTicks(
         bandTicks(x, (key: BandKey, i) => format(key, i)),

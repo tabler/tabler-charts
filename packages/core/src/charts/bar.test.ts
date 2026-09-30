@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
+import type { Interaction } from '../interaction.ts'
 import { findByClass, gridLineOffset } from '../test-utils.ts'
 import { type BarOptions, bar } from './bar.ts'
 
@@ -112,6 +113,95 @@ describe('bar', () => {
       expect(top).toBeGreaterThanOrEqual(0)
       expect(bottom).toBeLessThanOrEqual(size.height)
     }
+  })
+
+  describe('stacked', () => {
+    const stackedData = {
+      labels: ['Q1', 'Q2'],
+      series: [
+        { name: 'A', values: [30, -10] },
+        { name: 'B', values: [20, 25] },
+        { name: 'C', values: [10, -5] },
+      ],
+    }
+    const stackedNode = (config: Partial<ChartConfig<BarOptions>> = {}) =>
+      render({ data: stackedData, stacked: true, ...config })
+    const q = (node: ReturnType<typeof render>, key: string) =>
+      barsOf(node, key).map((b) => ({ ...bounds(b.attrs.d), d: String(b.attrs.d) }))
+
+    test('draws one column per category with segments on top of each other', () => {
+      const [a, b, c] = q(stackedNode(), 'Q1')
+      if (!a || !b || !c) throw new Error('expected three segments')
+      expect(a.left).toBe(b.left)
+      expect(b.left).toBe(c.left)
+      expect(a.right - a.left).toBeLessThanOrEqual(24)
+      // B sits on A and C on B, separated by the 2px gap.
+      expect(a.top - b.bottom).toBeCloseTo(2)
+      expect(b.top - c.bottom).toBeCloseTo(2)
+      expect(a.bottom).toBe(gridLineOffset(findByClass(stackedNode(), 'tc-grid-line-zero')[0]))
+    })
+
+    test('rounds only the outermost segment of each sign', () => {
+      const [a, b, c] = q(stackedNode(), 'Q1')
+      expect([a?.d.includes('A'), b?.d.includes('A'), c?.d.includes('A')]).toEqual([
+        false,
+        false,
+        true,
+      ])
+      // Q2: B is the only positive (rounded), C the outermost negative (rounded), A in between.
+      const [na, nb, nc] = q(stackedNode(), 'Q2')
+      expect([na?.d.includes('A'), nb?.d.includes('A'), nc?.d.includes('A')]).toEqual([
+        false,
+        true,
+        true,
+      ])
+    })
+
+    test('stacks negative values down from zero', () => {
+      const node = stackedNode()
+      const zero = gridLineOffset(findByClass(node, 'tc-grid-line-zero')[0])
+      const [a, , c] = q(node, 'Q2')
+      expect(a?.top).toBe(zero)
+      expect(c?.top).toBeCloseTo((a?.bottom ?? 0) + 2)
+    })
+
+    test('uses the stack totals for the y domain', () => {
+      const labels = findByClass(stackedNode(), 'tc-tick-label').map((t) => t.children[0])
+      expect(labels).toContain('60')
+      expect(labels).toContain('-20')
+    })
+
+    test('percent mode shows 100% columns with a percent axis', () => {
+      const node = stackedNode({
+        stacked: 'percent',
+        data: {
+          labels: ['Q1'],
+          series: stackedData.series.map((s) => ({ ...s, values: [Math.abs(s.values[0] ?? 0)] })),
+        },
+      })
+      const labels = findByClass(node, 'tc-tick-label').map((t) => t.children[0])
+      expect(labels).toContain('100%')
+      const [a, , c] = q(node, 'Q1')
+      const zero = gridLineOffset(findByClass(node, 'tc-grid-line-zero')[0])
+      expect(a?.bottom).toBe(zero)
+      expect(c?.top).toBeLessThan(a?.top ?? 0)
+    })
+
+    test('reports the segment under the pointer and raw values', () => {
+      let interaction: Interaction | undefined
+      buildChart({ ...base, data: stackedData, stacked: true }, size, 's', (i) => {
+        interaction = i
+      })
+      const [a, b] = q(stackedNode(), 'Q1')
+      if (!interaction || !a || !b) throw new Error('missing')
+      const cx = (a.left + a.right) / 2
+      expect(interaction.hitTest(cx, (a.top + a.bottom) / 2)?.seriesIndex).toBe(0)
+      expect(interaction.hitTest(cx, (b.top + b.bottom) / 2)?.seriesIndex).toBe(1)
+      expect(interaction.hitTest(cx, (b.top + b.bottom) / 2)?.items.map((i) => i.value)).toEqual([
+        30, 20, 10,
+      ])
+      expect(interaction.hitTest(cx + 40, (a.top + a.bottom) / 2)?.seriesIndex).toBeUndefined()
+    })
   })
 
   test('renders empty data without errors', () => {
