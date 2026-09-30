@@ -182,7 +182,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 
 ### M5 – Wydanie
 - [ ] 37. `test: add playwright visual regression tests`.
-- [ ] 38. `chore: add size budget check`.
+- [x] 38. `chore: add size budget check` – `pnpm size` (rolldown + gzip typowych importów, budżety w `scripts/size.mjs`), w CI. **Zrobione wcześniej**, w fazie optymalizacji po M3.
 - [ ] 39. `docs: write documentation site`.
 - [ ] 40. `chore: add changesets and release 0.1.0`.
 
