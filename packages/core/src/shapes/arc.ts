@@ -33,37 +33,37 @@ export interface ArcOptions {
 /** Canvas-like path builder emitting SVG path data (after d3-path). */
 class ArcPath {
   d = ''
-  private x0: number | null = null
-  private y0: number | null = null
-  private x1: number | null = null
-  private y1: number | null = null
-  private readonly k: number
+  #x0: number | null = null
+  #y0: number | null = null
+  #x1: number | null = null
+  #y1: number | null = null
+  readonly #k: number
 
   constructor(precision: number) {
-    this.k = 10 ** Math.max(0, Math.min(12, Math.floor(precision)))
+    this.#k = 10 ** Math.max(0, Math.min(12, Math.floor(precision)))
   }
 
-  private n(value: number): string {
-    const rounded = Math.round(value * this.k) / this.k
+  #n(value: number): string {
+    const rounded = Math.round(value * this.#k) / this.#k
     return String(rounded === 0 ? 0 : rounded)
   }
 
   moveTo(x: number, y: number): void {
-    this.x0 = this.x1 = x
-    this.y0 = this.y1 = y
-    this.d += `M${this.n(x)},${this.n(y)}`
+    this.#x0 = this.#x1 = x
+    this.#y0 = this.#y1 = y
+    this.d += `M${this.#n(x)},${this.#n(y)}`
   }
 
   lineTo(x: number, y: number): void {
-    this.x1 = x
-    this.y1 = y
-    this.d += `L${this.n(x)},${this.n(y)}`
+    this.#x1 = x
+    this.#y1 = y
+    this.d += `L${this.#n(x)},${this.#n(y)}`
   }
 
   closePath(): void {
-    if (this.x1 !== null) {
-      this.x1 = this.x0
-      this.y1 = this.y0
+    if (this.#x1 !== null) {
+      this.#x1 = this.#x0
+      this.#y1 = this.#y0
       this.d += 'Z'
     }
   }
@@ -76,27 +76,27 @@ class ArcPath {
     const cw = ccw ? 0 : 1
     let da = ccw ? a0 - a1 : a1 - a0
 
-    if (this.x1 === null || this.y1 === null) {
-      this.d += `M${this.n(x0)},${this.n(y0)}`
-      this.x0 = x0
-      this.y0 = y0
-    } else if (Math.abs(this.x1 - x0) > EPSILON || Math.abs(this.y1 - y0) > EPSILON) {
-      this.d += `L${this.n(x0)},${this.n(y0)}`
+    if (this.#x1 === null || this.#y1 === null) {
+      this.d += `M${this.#n(x0)},${this.#n(y0)}`
+      this.#x0 = x0
+      this.#y0 = y0
+    } else if (Math.abs(this.#x1 - x0) > EPSILON || Math.abs(this.#y1 - y0) > EPSILON) {
+      this.d += `L${this.#n(x0)},${this.#n(y0)}`
     }
-    this.x1 = x0
-    this.y1 = y0
+    this.#x1 = x0
+    this.#y1 = y0
     if (!r) return
 
     if (da < 0) da = (da % TAU) + TAU
-    const rr = this.n(r)
+    const rr = this.#n(r)
     if (da > TAU - EPSILON) {
       // A complete circle: two half arcs.
-      this.d += `A${rr},${rr},0,1,${cw},${this.n(x - dx)},${this.n(y - dy)}`
-      this.d += `A${rr},${rr},0,1,${cw},${this.n(x0)},${this.n(y0)}`
+      this.d += `A${rr},${rr},0,1,${cw},${this.#n(x - dx)},${this.#n(y - dy)}`
+      this.d += `A${rr},${rr},0,1,${cw},${this.#n(x0)},${this.#n(y0)}`
     } else if (da > EPSILON) {
-      this.x1 = x + r * Math.cos(a1)
-      this.y1 = y + r * Math.sin(a1)
-      this.d += `A${rr},${rr},0,${da >= PI ? 1 : 0},${cw},${this.n(this.x1)},${this.n(this.y1)}`
+      this.#x1 = x + r * Math.cos(a1)
+      this.#y1 = y + r * Math.sin(a1)
+      this.d += `A${rr},${rr},0,${da >= PI ? 1 : 0},${cw},${this.#n(this.#x1)},${this.#n(this.#y1)}`
     }
   }
 }

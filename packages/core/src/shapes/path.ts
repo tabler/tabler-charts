@@ -16,31 +16,31 @@ type Pt = readonly [number, number]
 /** Accumulates SVG path commands with rounded coordinates. */
 class PathBuilder {
   d = ''
-  private readonly k: number
+  readonly #k: number
 
   constructor(precision: number) {
-    this.k = 10 ** Math.max(0, Math.min(12, Math.floor(precision)))
+    this.#k = 10 ** Math.max(0, Math.min(12, Math.floor(precision)))
   }
 
-  private n(value: number): string {
-    const rounded = Math.round(value * this.k) / this.k
+  #n(value: number): string {
+    const rounded = Math.round(value * this.#k) / this.#k
     return String(rounded === 0 ? 0 : rounded)
   }
 
-  private xy(x: number, y: number): string {
-    return `${this.n(x)},${this.n(y)}`
+  #xy(x: number, y: number): string {
+    return `${this.#n(x)},${this.#n(y)}`
   }
 
   moveTo(x: number, y: number): void {
-    this.d += `M${this.xy(x, y)}`
+    this.d += `M${this.#xy(x, y)}`
   }
 
   lineTo(x: number, y: number): void {
-    this.d += `L${this.xy(x, y)}`
+    this.d += `L${this.#xy(x, y)}`
   }
 
   curveTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number): void {
-    this.d += `C${this.xy(x1, y1)},${this.xy(x2, y2)},${this.xy(x, y)}`
+    this.d += `C${this.#xy(x1, y1)},${this.#xy(x2, y2)},${this.#xy(x, y)}`
   }
 
   close(): void {

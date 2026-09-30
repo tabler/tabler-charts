@@ -292,19 +292,19 @@ export class Chart<O extends object = object> {
   readonly element: Element
   /** Id prefix used for elements inside the chart. */
   readonly id: string
-  private cfg: ChartConfig<O>
-  private measured: Partial<Size> = {}
-  private readonly handlers = new Map<keyof ChartEvents, Set<Handler<never>>>()
-  private readonly unobserve: () => void
-  private readonly unlisten: () => void
-  private readonly plugins: PluginInstance[]
-  private destroyed = false
-  private current: Interaction | undefined
-  private source: Source | undefined
-  private hovered = ''
-  private hit: Hit | null = null
+  #cfg: ChartConfig<O>
+  #measured: Partial<Size> = {}
+  readonly #handlers = new Map<keyof ChartEvents, Set<Handler<never>>>()
+  readonly #unobserve: () => void
+  readonly #unlisten: () => void
+  readonly #plugins: PluginInstance[]
+  #destroyed = false
+  #current: Interaction | undefined
+  #source: Source | undefined
+  #hovered = ''
+  #hit: Hit | null = null
   /** Chart type output of the last render, reused while only the highlight changes. */
-  private cache:
+  #cache:
     | {
         cfg: ChartConfig<O>
         width: number
@@ -314,11 +314,11 @@ export class Chart<O extends object = object> {
         content: ChildInput
       }
     | undefined
-  private resizeTimer: ReturnType<typeof setTimeout> | undefined
+  #resizeTimer: ReturnType<typeof setTimeout> | undefined
   /** Visibility set by the user, overriding each entry's default. */
-  private readonly toggled = new Map<string, boolean>()
+  readonly #toggled = new Map<string, boolean>()
   /** Server-rendered svg to take over on the first render, if any. */
-  private adopt: Element | null
+  #adopt: Element | null
 
   constructor(
     target: Element | string,
@@ -328,24 +328,24 @@ export class Chart<O extends object = object> {
     const element = typeof target === 'string' ? document.querySelector(target) : target
     if (!element) throw new Error(`@tabler/charts: element "${String(target)}" not found.`)
     this.element = element
-    this.cfg = config
+    this.#cfg = config
     this.id = config.id ?? nextId()
-    this.adopt = element.querySelector(':scope > svg.tc-chart')
-    this.measure()
-    this.unobserve = observeResize(element, (width, height) => {
+    this.#adopt = element.querySelector(':scope > svg.tc-chart')
+    this.#measure()
+    this.#unobserve = observeResize(element, (width, height) => {
       // Our own SVG sets the container height unless it follows the container.
-      const followsHeight = this.cfg.height === 'container'
+      const followsHeight = this.#cfg.height === 'container'
       const changed =
-        width !== this.measured.width || (followsHeight && height !== this.measured.height)
-      this.measured = { width, height }
+        width !== this.#measured.width || (followsHeight && height !== this.#measured.height)
+      this.#measured = { width, height }
       if (changed) {
-        this.markResizing()
-        this.schedule()
+        this.#markResizing()
+        this.#schedule()
       }
     })
-    this.unlisten = this.listen()
+    this.#unlisten = this.#listen()
     const self = this as unknown as Chart<object>
-    this.plugins = [...defaultPlugins, ...(config.plugins ?? [])].map((plugin) =>
+    this.#plugins = [...defaultPlugins, ...(config.plugins ?? [])].map((plugin) =>
       plugin.install(self),
     )
     this.render()
@@ -353,40 +353,40 @@ export class Chart<O extends object = object> {
 
   /** Current configuration. */
   get config(): ChartConfig<O> {
-    return this.cfg
+    return this.#cfg
   }
 
   /** Size of the last render. */
   get size(): Size {
     // In 'container' height mode, plugins such as the legend take part of the container.
     let reserved = 0
-    for (const plugin of this.plugins) reserved += plugin.reservedHeight?.() ?? 0
+    for (const plugin of this.#plugins) reserved += plugin.reservedHeight?.() ?? 0
     const measured =
-      reserved && this.measured.height
-        ? { ...this.measured, height: this.measured.height - reserved }
-        : this.measured
-    return resolveSize(this.cfg, measured)
+      reserved && this.#measured.height
+        ? { ...this.#measured, height: this.#measured.height - reserved }
+        : this.#measured
+    return resolveSize(this.#cfg, measured)
   }
 
   /** Font size used by the last render (explicit, measured, or the default). */
   get fontSize(): number {
-    return this.cache?.fontSize ?? this.cfg.fontSize ?? DEFAULT_FONT_SIZE
+    return this.#cache?.fontSize ?? this.#cfg.fontSize ?? DEFAULT_FONT_SIZE
   }
 
   /** How pointer and keyboard map to data for the current render. */
   get interaction(): Interaction | undefined {
-    return this.current
+    return this.#current
   }
 
   /** The highlighted category (hover or keyboard), or `null`. */
   get active(): Hit | null {
-    return this.hit
+    return this.#hit
   }
 
   /** Where the highlight is anchored in chart pixels (pointer, or the focused value). */
   get anchor(): { x: number; y: number } | undefined {
-    const source = this.source
-    const hit = this.hit
+    const source = this.#source
+    const hit = this.#hit
     if (!source || !hit) return undefined
     if (source.kind === 'pointer') return { x: source.x, y: source.y }
     const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
@@ -396,7 +396,7 @@ export class Chart<O extends object = object> {
 
   /** Whether the highlight comes from the pointer or from `highlightIndex()` (keyboard). */
   get highlightSource(): 'pointer' | 'index' | undefined {
-    return this.hit ? this.source?.kind : undefined
+    return this.#hit ? this.#source?.kind : undefined
   }
 
   /**
@@ -404,18 +404,18 @@ export class Chart<O extends object = object> {
    * keyboard navigation does. Returns the hit, or `null` for an invalid index.
    */
   highlightIndex(index: number, seriesIndex?: number): Hit | null {
-    const hit = this.current?.hitIndex(index, seriesIndex) ?? null
+    const hit = this.#current?.hitIndex(index, seriesIndex) ?? null
     if (!hit) return null
-    this.source =
+    this.#source =
       seriesIndex === undefined ? { kind: 'index', index } : { kind: 'index', index, seriesIndex }
-    this.setHover(hit)
+    this.#setHover(hit)
     return hit
   }
 
   /** Remove any highlight. */
   clearHighlight(): void {
-    this.source = undefined
-    this.setHover(null)
+    this.#source = undefined
+    this.#setHover(null)
   }
 
   /**
@@ -423,29 +423,29 @@ export class Chart<O extends object = object> {
    * `hidden` is omitted. Re-renders in the next frame.
    */
   toggleSeries(target: string | number, hidden?: boolean): this {
-    const { items } = resolveLegend(this.cfg)
+    const { items } = resolveLegend(this.#cfg)
     const item =
       typeof target === 'number'
         ? items.find((entry) => entry.index === target)
         : (items.find((entry) => entry.key === target) ??
           items.find((entry) => entry.name === target))
     if (!item) return this
-    const next = hidden ?? !this.hiddenSet(items).has(item.key)
-    this.toggled.set(item.key, next)
-    this.emit('legend-toggle', { key: item.key, name: item.name, index: item.index, hidden: next })
-    this.schedule()
+    const next = hidden ?? !this.#hiddenSet(items).has(item.key)
+    this.#toggled.set(item.key, next)
+    this.#emit('legend-toggle', { key: item.key, name: item.name, index: item.index, hidden: next })
+    this.#schedule()
     return this
   }
 
   /** Whether a legend entry is hidden. */
   isHidden(key: string): boolean {
-    return this.hiddenSet(resolveLegend(this.cfg).items).has(key)
+    return this.#hiddenSet(resolveLegend(this.#cfg).items).has(key)
   }
 
   /** Merge `options` into the configuration and re-render in the next frame. */
   update(options: Partial<ChartConfig<O>>): this {
-    this.cfg = { ...this.cfg, ...options }
-    this.schedule()
+    this.#cfg = { ...this.#cfg, ...options }
+    this.#schedule()
     return this
   }
 
@@ -456,26 +456,26 @@ export class Chart<O extends object = object> {
 
   /** Re-measure the container and re-render in the next frame. */
   resize(): this {
-    this.measure()
-    this.schedule()
+    this.#measure()
+    this.#schedule()
     return this
   }
 
   /** Render synchronously now. */
   render(): this {
-    if (this.destroyed) return this
+    if (this.#destroyed) return this
     cancel(this)
-    const cfg = this.cfg
+    const cfg = this.#cfg
     const config = cfg as ChartConfig<object>
     assertType(config)
     const legend = resolveLegend(cfg)
-    const hidden = this.hiddenSet(legend.items)
+    const hidden = this.#hiddenSet(legend.items)
     const hiddenKey = [...hidden].sort().join('\u0000')
-    for (const plugin of this.plugins) plugin.beforeRender?.({ config, legend, hidden })
+    for (const plugin of this.#plugins) plugin.beforeRender?.({ config, legend, hidden })
     const size = this.size
-    const fontSize = cfg.fontSize ?? this.measureFontSize()
+    const fontSize = cfg.fontSize ?? this.#measureFontSize()
 
-    let cache = this.cache
+    let cache = this.#cache
     const stale =
       !cache ||
       cache.cfg !== cfg ||
@@ -484,36 +484,36 @@ export class Chart<O extends object = object> {
       cache.hidden !== hiddenKey ||
       cache.fontSize !== fontSize
     if (!cache || stale) {
-      this.current = undefined
+      this.#current = undefined
       const content = renderContent(
         cfg,
         size,
         this.id,
         (interaction) => {
-          this.current = interaction
+          this.#current = interaction
         },
         hidden,
         fontSize,
       )
       cache = { cfg, width: size.width, height: size.height, hidden: hiddenKey, fontSize, content }
-      this.cache = cache
+      this.#cache = cache
     }
 
     // Keep the highlight (and its consumers, like tooltips) in sync with new data or layout.
-    const source = this.source
+    const source = this.#source
     if (stale && source) {
       const next =
         source.kind === 'pointer'
           ? this.hitTest(source.x, source.y)
-          : (this.current?.hitIndex(source.index, source.seriesIndex) ?? null)
-      this.setHover(next, undefined, true, false)
+          : (this.#current?.hitIndex(source.index, source.seriesIndex) ?? null)
+      this.#setHover(next, undefined, true, false)
     }
 
-    const hit = this.hit
+    const hit = this.#hit
     const under: ChildInput[] = []
     const over: ChildInput[] = []
     let attrs: Props | undefined
-    for (const plugin of this.plugins) {
+    for (const plugin of this.#plugins) {
       if (hit && plugin.layers) {
         const layer = plugin.layers(hit, config)
         under.push(layer.under)
@@ -525,26 +525,27 @@ export class Chart<O extends object = object> {
     render(
       this.element,
       composeChart(config, size, this.id, cache.content, under, over, attrs),
-      this.adopt,
+      this.#adopt,
     )
-    this.adopt = null
+    this.#adopt = null
 
-    for (const plugin of this.plugins) plugin.afterRender?.({ config, legend, hidden, size, stale })
-    if (stale) this.emit('render', { size })
+    for (const plugin of this.#plugins)
+      plugin.afterRender?.({ config, legend, hidden, size, stale })
+    if (stale) this.#emit('render', { size })
     return this
   }
 
   /** What lies at a point in chart pixels, or `null`. */
   hitTest(x: number, y: number): Hit | null {
-    return this.current?.hitTest(x, y) ?? null
+    return this.#current?.hitTest(x, y) ?? null
   }
 
   /** Subscribe to an event; returns a function that unsubscribes. */
   on<K extends keyof ChartEvents>(name: K, handler: Handler<ChartEvents[K]>): () => void {
-    let set = this.handlers.get(name)
+    let set = this.#handlers.get(name)
     if (!set) {
       set = new Set()
-      this.handlers.set(name, set)
+      this.#handlers.set(name, set)
     }
     set.add(handler as Handler<never>)
     return () => {
@@ -554,19 +555,19 @@ export class Chart<O extends object = object> {
 
   /** Remove the chart from the DOM and stop observing its container. */
   destroy(): void {
-    if (this.destroyed) return
-    this.destroyed = true
+    if (this.#destroyed) return
+    this.#destroyed = true
     cancel(this)
-    clearTimeout(this.resizeTimer)
-    this.unobserve()
-    this.unlisten()
-    for (const plugin of this.plugins) plugin.destroy?.()
-    this.handlers.clear()
+    clearTimeout(this.#resizeTimer)
+    this.#unobserve()
+    this.#unlisten()
+    for (const plugin of this.#plugins) plugin.destroy?.()
+    this.#handlers.clear()
     render(this.element, null)
   }
 
   /** One set of delegated pointer listeners on the element; survives re-renders. */
-  private listen(): () => void {
+  #listen(): () => void {
     const el = this.element
     if (typeof el.addEventListener !== 'function') return () => {}
 
@@ -579,19 +580,19 @@ export class Chart<O extends object = object> {
     const onMove = (event: PointerEvent) => {
       const point = local(event)
       if (!point) return
-      this.source = { kind: 'pointer', x: point.x, y: point.y }
-      this.setHover(this.hitTest(point.x, point.y), event)
+      this.#source = { kind: 'pointer', x: point.x, y: point.y }
+      this.#setHover(this.hitTest(point.x, point.y), event)
     }
     const onLeave = (event: PointerEvent) => {
       // On touch, keep the last highlight after the finger lifts.
-      if (event.pointerType === 'touch' || this.source?.kind !== 'pointer') return
-      this.source = undefined
-      this.setHover(null, event)
+      if (event.pointerType === 'touch' || this.#source?.kind !== 'pointer') return
+      this.#source = undefined
+      this.#setHover(null, event)
     }
     const onClick = (event: MouseEvent) => {
       const point = local(event)
       const hit = point ? this.hitTest(point.x, point.y) : null
-      if (hit) this.emit('click', { hit, event })
+      if (hit) this.#emit('click', { hit, event })
     }
 
     el.addEventListener('pointermove', onMove as EventListener)
@@ -610,40 +611,40 @@ export class Chart<O extends object = object> {
    * Update the highlighted hit: emit `hover` when it changed (or when
    * `force`d after new data) and re-render the hover layers in the next frame.
    */
-  private setHover(hit: Hit | null, event?: PointerEvent, force = false, rerender = true): void {
+  #setHover(hit: Hit | null, event?: PointerEvent, force = false, rerender = true): void {
     const key = hitKey(hit)
-    if (!force && key === this.hovered) return
+    if (!force && key === this.#hovered) return
     // After a re-render, only a highlight that is still active is worth repeating.
-    if (force && key === '' && this.hovered === '') return
-    this.hovered = key
-    this.hit = hit
-    this.emit('hover', event ? { hit, event } : { hit })
-    if (rerender) this.schedule()
+    if (force && key === '' && this.#hovered === '') return
+    this.#hovered = key
+    this.#hit = hit
+    this.#emit('hover', event ? { hit, event } : { hit })
+    if (rerender) this.#schedule()
   }
 
-  private hiddenSet(items: readonly LegendItem[]): Set<string> {
+  #hiddenSet(items: readonly LegendItem[]): Set<string> {
     const hidden = new Set<string>()
     for (const item of items) {
-      if (this.toggled.get(item.key) ?? item.hidden) hidden.add(item.key)
+      if (this.#toggled.get(item.key) ?? item.hidden) hidden.add(item.key)
     }
     return hidden
   }
 
   /** Suspend transitions while the container keeps resizing (see `[data-resizing]` in CSS). */
-  private markResizing(): void {
+  #markResizing(): void {
     const svg = this.element.querySelector(':scope > svg.tc-chart')
     if (!svg) return
     svg.setAttribute('data-resizing', '')
-    clearTimeout(this.resizeTimer)
-    this.resizeTimer = setTimeout(() => svg.removeAttribute('data-resizing'), 200)
+    clearTimeout(this.#resizeTimer)
+    this.#resizeTimer = setTimeout(() => svg.removeAttribute('data-resizing'), 200)
   }
 
-  private schedule(): void {
-    if (!this.destroyed) schedule(this, () => this.render())
+  #schedule(): void {
+    if (!this.#destroyed) schedule(this, () => this.render())
   }
 
   /** The `--tc-font-size` in effect on the container, in pixels (browser only). */
-  private measureFontSize(): number | undefined {
+  #measureFontSize(): number | undefined {
     if (typeof getComputedStyle !== 'function') return undefined
     const value = Number.parseFloat(
       getComputedStyle(this.element).getPropertyValue('--tc-font-size'),
@@ -652,18 +653,18 @@ export class Chart<O extends object = object> {
   }
 
   /** Measure the content box, matching what `ResizeObserver` reports. */
-  private measure(): void {
+  #measure(): void {
     const el = this.element as HTMLElement
     const style = typeof getComputedStyle === 'function' ? getComputedStyle(el) : undefined
     const px = (value: string | undefined) => Number.parseFloat(value ?? '') || 0
-    this.measured = {
+    this.#measured = {
       width: el.clientWidth - px(style?.paddingLeft) - px(style?.paddingRight),
       height: el.clientHeight - px(style?.paddingTop) - px(style?.paddingBottom),
     }
   }
 
-  private emit<K extends keyof ChartEvents>(name: K, event: ChartEvents[K]): void {
-    const set = this.handlers.get(name)
+  #emit<K extends keyof ChartEvents>(name: K, event: ChartEvents[K]): void {
+    const set = this.#handlers.get(name)
     if (set) for (const handler of set) (handler as Handler<ChartEvents[K]>)(event)
   }
 }
