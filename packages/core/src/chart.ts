@@ -199,7 +199,6 @@ function composeChart(
   extraAttrs?: Props,
 ): VNode {
   const { width, height } = size
-  const titleId = config.title ? `${id}-title` : undefined
   const descId = config.description ? `${id}-desc` : undefined
   return h(
     'svg',
@@ -214,13 +213,13 @@ function composeChart(
       width,
       height,
       role: 'img',
-      'aria-labelledby': titleId,
+      // An svg <title> would also show as a native tooltip, so the name is an attribute.
+      'aria-label': config.title,
       'aria-describedby': descId,
       ...extraAttrs,
     },
     // Keyed, so their coming and going never shifts the (unkeyed) chart
     // content in the DOM patcher: that would recreate it and restart animations.
-    titleId && h('title', { key: 'title', id: titleId }, config.title),
     descId && h('desc', { key: 'desc', id: descId }, config.description),
     underlay && h('g', { key: 'hover-under', class: 'tc-hover-layer' }, underlay),
     content,

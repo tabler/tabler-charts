@@ -114,15 +114,15 @@ describe('buildChart()', () => {
       width: 200,
       height: 100,
       role: 'img',
-      'aria-labelledby': 'c1-title',
+      'aria-label': 'Sales',
       'aria-describedby': 'c1-desc',
     })
     expect(
       chartToString({ type: dots, data: [], title: 'A&B', id: 'x' }, { width: 10, height: 5 }),
     ).toBe(
       '<svg xmlns="http://www.w3.org/2000/svg" class="tc-chart tc-chart-dots" viewBox="0 0 10 5" ' +
-        'width="10" height="5" role="img" aria-labelledby="x-title">' +
-        '<title id="x-title">A&amp;B</title><g class="dots"/></svg>',
+        'width="10" height="5" role="img" aria-label="A&amp;B">' +
+        '<g class="dots"/></svg>',
     )
   })
 
