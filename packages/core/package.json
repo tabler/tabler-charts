@@ -96,6 +96,16 @@
         "default": "./dist/scatter.cjs"
       }
     },
+    "./sparkline": {
+      "import": {
+        "types": "./dist/sparkline.d.ts",
+        "default": "./dist/sparkline.js"
+      },
+      "require": {
+        "types": "./dist/sparkline.d.cts",
+        "default": "./dist/sparkline.cjs"
+      }
+    },
     "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },

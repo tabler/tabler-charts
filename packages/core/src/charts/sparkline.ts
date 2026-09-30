@@ -1,0 +1,212 @@
+import type { ChartType, RenderContext } from '../chart.ts'
+import { formatNumber, type NumberFormat } from '../format.ts'
+import type { Hit, HitItem, Interaction } from '../interaction.ts'
+import { type InsetsInput, innerRect, insets } from '../layout.ts'
+import { linear } from '../scales/linear.ts'
+import { barPath } from '../shapes/bar.ts'
+import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
+import { h } from '../vnode.ts'
+import { domainOf, type Label } from './cartesian.ts'
+
+export interface SparklineOptions {
+  /** The values; `null` leaves a gap. */
+  data: readonly (number | null | undefined)[]
+  /** Labels for the tooltip, one per value (e.g. dates). */
+  labels?: readonly Label[]
+  /** Name shown in the tooltip. Defaults to `'Value'`. */
+  name?: string
+  /** `'line'` (default), `'area'` or `'bar'`. */
+  variant?: 'line' | 'area' | 'bar'
+  /** Interpolation for lines and areas. Defaults to `'monotone'`. */
+  curve?: Curve
+  /** Dot on the last value. Defaults to `'last'`. */
+  point?: 'last' | 'none'
+  /** Mark the minimum and maximum values. */
+  markers?: 'minmax' | 'none'
+  /** Dot radius in pixels. Defaults to `3`. */
+  pointRadius?: number
+  /** Include zero in the value range. Defaults to `true` for areas and bars, `false` for lines. */
+  zero?: boolean
+  /** Format of values in the tooltip. */
+  format?: NumberFormat
+  /** Extra space around the plot, in pixels. */
+  padding?: InsetsInput
+}
+
+const round = (value: number): number => Math.round(value * 100) / 100
+const circlePath = (r: number): string => `M${r},0A${r},${r},0,1,1,${-r},0A${r},${r},0,1,1,${r},0Z`
+
+function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
+  const {
+    variant = 'line',
+    curve = 'monotone',
+    point = 'last',
+    markers = 'none',
+    pointRadius = 3,
+    name = 'Value',
+  } = options
+  const values = options.data.map((v) => (v == null || !Number.isFinite(v) ? null : v))
+  const count = values.length
+  const dots = point === 'last' || markers === 'minmax'
+  // Room for the stroke and dots so nothing is clipped at the edges.
+  const overhang = dots ? pointRadius + 2 : 2
+  const pad = insets(options.padding, 0)
+  const area = innerRect(ctx.width, ctx.height, {
+    top: pad.top + overhang,
+    right: pad.right + overhang,
+    bottom: pad.bottom + overhang,
+    left: pad.left + overhang,
+  })
+  const zero = options.zero ?? variant !== 'line'
+  const domain = domainOf(values, { nice: false }, zero, 2)
+
+  const bars = variant === 'bar'
+  const gap = 1
+  const slot = count > 0 ? area.width / count : 0
+  const xAt = (i: number) =>
+    bars
+      ? area.x + slot * i + slot / 2
+      : area.x + (count > 1 ? (area.width * i) / (count - 1) : area.width / 2)
+  const y = linear(domain, [area.y + area.height, area.y])
+  const baseline = y(Math.min(Math.max(0, domain[0]), domain[1]))
+  const points: Point[] = values.map((v, i) => (v === null ? null : [xAt(i), y(v)]))
+
+  const format = formatNumber(options.format, ctx.locale)
+  const labelOf = (i: number) => {
+    const label = options.labels?.[i]
+    return label === undefined ? '' : String(label)
+  }
+  const hitFor = (i: number): Hit | null => {
+    const value = values[i]
+    if (value === undefined) return null
+    const px = xAt(i)
+    const item: HitItem = {
+      name,
+      seriesIndex: 0,
+      value,
+      text: value === null ? '–' : format(value),
+      x: px,
+      y: value === null ? null : y(value),
+    }
+    const hit: Hit = {
+      index: i,
+      label: options.labels?.[i] ?? i + 1,
+      title: labelOf(i),
+      x: px,
+      area,
+      items: [item],
+    }
+    if (value !== null) hit.mark = { d: circlePath(pointRadius + 3), x: px, y: y(value) }
+    return hit
+  }
+  const interaction: Interaction = {
+    count,
+    hitIndex: (i) => hitFor(i),
+    hitTest(px, py) {
+      if (count === 0 || py < area.y - overhang || py > area.y + area.height + overhang) return null
+      const i = bars
+        ? Math.floor((px - area.x) / slot)
+        : Math.round(((px - area.x) / Math.max(1, area.width)) * (count - 1))
+      return hitFor(Math.max(0, Math.min(count - 1, i)))
+    },
+  }
+  ctx.onHitTest(interaction)
+
+  const marks = []
+  if (bars) {
+    const width = Math.max(1, slot - gap)
+    values.forEach((v, i) => {
+      if (v === null) return
+      marks.push(
+        h('path', {
+          key: i,
+          class: ['tc-bar', v < 0 && 'tc-bar-negative'],
+          d: barPath(xAt(i) - width / 2, width, baseline, y(v), Math.min(2, width / 2)),
+        }),
+      )
+    })
+  } else {
+    if (variant === 'area') {
+      marks.push(
+        h('path', {
+          class: 'tc-area tc-area-gradient',
+          d: areaPath(points, baseline, { curve }),
+          mask: `url(#${ctx.id}-fade)`,
+        }),
+      )
+    }
+    marks.push(h('path', { class: 'tc-line', d: linePath(points, { curve }) }))
+  }
+
+  const dotAt = (i: number, cls: string) => {
+    const v = values[i]
+    return v == null
+      ? null
+      : h('circle', {
+          key: `${cls}-${i}`,
+          class: ['tc-point', cls],
+          cx: round(xAt(i)),
+          cy: round(y(v)),
+          r: pointRadius,
+        })
+  }
+  const extremes = []
+  if (markers === 'minmax') {
+    let min = -1
+    let max = -1
+    values.forEach((v, i) => {
+      if (v === null) return
+      if (min === -1 || v < (values[min] as number)) min = i
+      if (max === -1 || v > (values[max] as number)) max = i
+    })
+    if (min !== -1) extremes.push(dotAt(min, 'tc-point-min'))
+    if (max !== -1 && max !== min) extremes.push(dotAt(max, 'tc-point-max'))
+  }
+  let last = -1
+  if (point === 'last') {
+    for (let i = count - 1; i >= 0; i--) {
+      if (values[i] !== null) {
+        last = i
+        break
+      }
+    }
+  }
+
+  return [
+    variant === 'area' &&
+      h(
+        'defs',
+        null,
+        h(
+          'mask',
+          { id: `${ctx.id}-fade`, maskContentUnits: 'objectBoundingBox' },
+          h(
+            'linearGradient',
+            { id: `${ctx.id}-fade-gradient`, x1: 0, y1: 0, x2: 0, y2: 1 },
+            h('stop', { class: 'tc-fade-start', offset: 0 }),
+            h('stop', { class: 'tc-fade-end', offset: 1 }),
+          ),
+          h('rect', { width: 1, height: 1, fill: `url(#${ctx.id}-fade-gradient)` }),
+        ),
+      ),
+    h(
+      'g',
+      { class: 'tc-series tc-series-1 tc-sparkline' },
+      marks,
+      extremes,
+      last !== -1 && !bars && dotAt(last, 'tc-point-last'),
+    ),
+  ]
+}
+
+/**
+ * Sparkline: a tiny line, area or bar chart without axes, for stat tiles.
+ *
+ * ```ts
+ * new Chart('#el', { type: sparkline, data: [3, 5, 4, 7, 6], height: 40 })
+ * ```
+ */
+export const sparkline: ChartType<SparklineOptions> = {
+  name: 'sparkline',
+  render: renderSparkline,
+}

@@ -227,6 +227,17 @@
   fill: var(--tc-series-color);
 }
 
+/* Sparklines: thinner strokes, min/max markers in text colors. */
+.tc-chart-sparkline {
+  --tc-stroke-width: 1.5px;
+  --tc-area-gradient-start: 0.3;
+}
+
+.tc-point-min,
+.tc-point-max {
+  fill: var(--tc-text-muted);
+}
+
 /* Bubbles overlap, so they are slightly see-through. */
 .tc-bubble {
   fill-opacity: var(--tc-bubble-opacity);
