@@ -253,3 +253,57 @@ code {
   font-weight: 600;
   letter-spacing: -0.01em;
 }
+
+/* Gallery of many charts. */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.gallery-item {
+  margin: 0;
+  padding: 12px 14px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--fg);
+  min-width: 0;
+}
+
+.gallery-wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 720px) {
+  .gallery-wide {
+    grid-column: span 1;
+  }
+}
+
+.gallery-item figcaption {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.gallery-item figcaption strong {
+  color: var(--fg);
+  margin-right: 4px;
+}
+
+/* Dark subtree inside the light page (and vice versa). */
+.gallery-dark {
+  color-scheme: dark;
+  --card: #1a222c;
+  --border: #2a3441;
+  --fg: #e6ebf1;
+  --muted: #9aa6b5;
+  --tc-surface: var(--card);
+}
+
+/* Per-series styling through classes on the series group. */
+.gallery-styled .is-forecast .tc-line {
+  stroke-dasharray: 6 4;
+  stroke-width: 2px;
+}
