@@ -141,7 +141,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 
 ### M1 – Fundament renderowania
 - [x] 6. `feat(core): add vnode and h() helper` + testy.
-- [ ] 7. `feat(core): add string renderer` – `renderToString`, escaping, testy snapshot.
+- [x] 7. `feat(core): add string renderer` – `renderToString`, escaping, testy snapshot.
 - [ ] 8. `feat(core): add dom renderer with keyed patching` – mount/patch/unmount, testy w happy-dom.
 - [ ] 9. `feat(core): add linear and band scales` – `nice()`, ticki, testy.
 - [ ] 10. `feat(core): add number and date formatting via Intl`.
