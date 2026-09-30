@@ -36,6 +36,13 @@ describe('style.css', () => {
     }
   })
 
+  test('repeats derived tokens in every theme block', () => {
+    // Otherwise a [data-theme="dark"] subtree inherits the light value resolved on :root.
+    for (const token of ['--tc-tooltip-color', '--tc-focus-color']) {
+      expect(css.match(new RegExp(`${token}: var\\(`, 'g'))?.length, token).toBe(3)
+    }
+  })
+
   test('maps every series class to its color slot', () => {
     for (const n of SLOTS) {
       expect(block(`.tc-series-${n} `)).toContain(`--tc-series-color: var(--tc-color-${n})`)

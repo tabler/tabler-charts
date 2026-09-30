@@ -34,6 +34,9 @@
   --tc-baseline-color: #c3c2b7;
   --tc-hover-color: rgb(11 11 11 / 4%);
   --tc-tooltip-bg: #ffffff;
+  /* Tokens defined through other tokens are repeated in every theme block: a custom
+     property is substituted where it is declared, so a [data-theme] subtree would
+     otherwise inherit the value already resolved on :root. */
   --tc-tooltip-color: var(--tc-text-color);
   --tc-tooltip-border: rgb(11 11 11 / 10%);
   --tc-tooltip-shadow: 0 4px 16px rgb(11 11 11 / 12%);
@@ -77,8 +80,10 @@
     --tc-baseline-color: #4a4a46;
     --tc-hover-color: rgb(255 255 255 / 6%);
     --tc-tooltip-bg: #262625;
+    --tc-tooltip-color: var(--tc-text-color);
     --tc-tooltip-border: rgb(255 255 255 / 10%);
     --tc-tooltip-shadow: 0 4px 16px rgb(0 0 0 / 40%);
+    --tc-focus-color: var(--tc-color-1);
   }
 }
 
@@ -100,8 +105,10 @@
   --tc-baseline-color: #4a4a46;
   --tc-hover-color: rgb(255 255 255 / 6%);
   --tc-tooltip-bg: #262625;
+  --tc-tooltip-color: var(--tc-text-color);
   --tc-tooltip-border: rgb(255 255 255 / 10%);
   --tc-tooltip-shadow: 0 4px 16px rgb(0 0 0 / 40%);
+  --tc-focus-color: var(--tc-color-1);
 }
 
 /* -- Root ------------------------------------------------------------------- */
