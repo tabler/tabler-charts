@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { Chart, type ChartConfig } from './chart.ts'
+import { Chart as DefaultChart } from './chart-default.ts'
 import { bar } from './charts/bar.ts'
 import { line } from './charts/line.ts'
 import { flush } from './scheduler.ts'
@@ -62,6 +63,33 @@ describe('marks keep their nodes across data updates', () => {
     )
     expect(r.after).toEqual(r.nodes)
     expect(r.now).not.toEqual(r.before)
+  })
+
+  test('hover layers coming and going never recreate the chart content', () => {
+    chart = new DefaultChart(el, {
+      type: line,
+      data: data(1),
+      width: 400,
+      height: 200,
+    } as ChartConfig<object>)
+    const svg = el.querySelector('svg') as SVGSVGElement
+    svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 200 }) as DOMRect
+    const before = {
+      list: el.querySelector('.tc-series-list'),
+      grid: el.querySelector('.tc-grid'),
+      line: el.querySelector('.tc-line'),
+    }
+    svg.dispatchEvent(
+      new PointerEvent('pointermove', { clientX: 200, clientY: 100, bubbles: true }),
+    )
+    flush()
+    expect(el.querySelector('.tc-crosshair')).not.toBeNull()
+    el.dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'mouse' }))
+    flush()
+    expect(el.querySelector('.tc-crosshair')).toBeNull()
+    expect(el.querySelector('.tc-series-list')).toBe(before.list)
+    expect(el.querySelector('.tc-grid')).toBe(before.grid)
+    expect(el.querySelector('.tc-line')).toBe(before.line)
   })
 
   test('ticks that stay on the axis', () => {

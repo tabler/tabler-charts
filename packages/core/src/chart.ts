@@ -218,11 +218,13 @@ function composeChart(
       'aria-describedby': descId,
       ...extraAttrs,
     },
-    titleId && h('title', { id: titleId }, config.title),
-    descId && h('desc', { id: descId }, config.description),
-    underlay,
+    // Keyed, so their coming and going never shifts the (unkeyed) chart
+    // content in the DOM patcher: that would recreate it and restart animations.
+    titleId && h('title', { key: 'title', id: titleId }, config.title),
+    descId && h('desc', { key: 'desc', id: descId }, config.description),
+    underlay && h('g', { key: 'hover-under', class: 'tc-hover-layer' }, underlay),
     content,
-    overlay,
+    overlay && h('g', { key: 'hover-over', class: 'tc-hover-layer' }, overlay),
   )
 }
 
