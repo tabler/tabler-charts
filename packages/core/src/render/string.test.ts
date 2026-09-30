@@ -12,6 +12,27 @@ describe('renderToString()', () => {
     expect(renderToString(node)).toBe('<g class="tc-axis"><text x="4">Jan</text><line/></g>')
   })
 
+  test('closes empty html elements explicitly and void elements without a closing tag', () => {
+    expect(renderToString(h('div', null, h('span', { class: 'x' }), h('br')))).toBe(
+      '<div><span class="x"></span><br></div>',
+    )
+  })
+
+  test('treats svg fragments as svg and can force the namespace', () => {
+    expect(renderToString(h('g', null, h('path')))).toBe('<g><path/></g>')
+    expect(renderToString(h('g', null, h('path')), { namespace: 'html' })).toBe(
+      '<g><path></path></g>',
+    )
+    expect(renderToString(h('div', null, h('i')), { namespace: 'svg' })).toBe('<div><i/></div>')
+  })
+
+  test('self-closes inside svg but not inside foreignObject', () => {
+    const node = h('svg', null, h('g'), h('foreignObject', null, h('div'), h('svg', null, h('g'))))
+    expect(renderToString(node, { xmlns: false })).toBe(
+      '<svg><g/><foreignObject><div></div><svg><g/></svg></foreignObject></svg>',
+    )
+  })
+
   test('renders a bare text node', () => {
     expect(renderToString('a < b')).toBe('a &lt; b')
   })
