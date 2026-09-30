@@ -16,7 +16,8 @@
     "@tabler/charts-vue": "workspace:*",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "vue": "^3.5.43"
+    "vue": "^3.5.43",
+    "@tabler/charts-bootstrap": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",

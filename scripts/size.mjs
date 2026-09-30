@@ -10,6 +10,7 @@ const DIST = new URL('../packages/core/dist/', import.meta.url).pathname
 const ELEMENTS = new URL('../packages/elements/dist/', import.meta.url).pathname
 const REACT = new URL('../packages/react/dist/', import.meta.url).pathname
 const VUE = new URL('../packages/vue/dist/', import.meta.url).pathname
+const BOOTSTRAP = new URL('../packages/bootstrap/dist/', import.meta.url).pathname
 /** React itself is the app's, not ours. */
 const react = [/^react($|\/)/, /^react-dom($|\/)/]
 const vue = [/^vue($|\/)/, /^@vue\//]
@@ -65,6 +66,7 @@ const CASES = [
   ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 25.5],
   ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 16.75, react],
   ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 16.75, vue],
+  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 25.75],
   ['everything', `export * from '${DIST}index.js'`, 25.25],
 ]
 
@@ -93,16 +95,19 @@ for (const [name, source, budget, external] of CASES) {
 const css = gzipSync(readFileSync(`${DIST}style.css`)).length / 1000
 const cssOk = css <= 2.75
 failed ||= !cssOk
-// The CDN script as shipped: library, styles and element, already minified.
-const cdn = gzipSync(readFileSync(`${ELEMENTS}tabler-charts.min.js`)).length / 1000
-const cdnOk = cdn <= 29.5
-failed ||= !cdnOk
-console.log(
-  `${cdnOk ? 'ok  ' : 'FAIL'} ${'CDN tabler-charts.min.js'.padEnd(32)} ${cdn.toFixed(2).padStart(6)} kB gzip  (budget 29.5)`,
-)
-console.log(
-  `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 2.75)`,
-)
+// The CDN scripts as shipped: library, styles and adapter, already minified.
+for (const [name, file, budget] of [
+  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 29.5],
+  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 29.5],
+  ['bootstrap.css', `${BOOTSTRAP}bootstrap.css`, 0.6],
+]) {
+  const kb = gzipSync(readFileSync(file)).length / 1000
+  const ok = kb <= budget
+  failed ||= !ok
+  console.log(
+    `${ok ? 'ok  ' : 'FAIL'} ${name.padEnd(32)} ${kb.toFixed(2).padStart(6)} kB gzip  (budget ${budget})`,
+  )
+}
 writeFileSync(entry, '')
 if (failed) {
   console.error('\nSize budget exceeded. Raise the budget in scripts/size.mjs only on purpose.')

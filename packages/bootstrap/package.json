@@ -10,7 +10,7 @@
     "tabler"
   ],
   "license": "MIT",
-  "author": "Paweł Kuna",
+  "author": "Pawe\u0142 Kuna",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codecalm/tabler-charts.git",
@@ -21,8 +21,23 @@
     "**/*.css",
     "**/*.scss"
   ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/tabler-charts-bootstrap.min.js",
+  "jsdelivr": "./dist/tabler-charts-bootstrap.min.js",
   "style": "./dist/bootstrap.css",
   "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
     "./bootstrap.css": "./dist/bootstrap.css",
     "./scss/charts": {
       "sass": "./scss/_charts.scss",
@@ -35,8 +50,10 @@
     "scss"
   ],
   "scripts": {
-    "build": "node scripts/build-css.mjs",
-    "lint:pkg": "publint"
+    "build": "tsdown && node scripts/build-css.mjs",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc -p .",
+    "lint:pkg": "publint && attw --pack . --profile node16 --exclude-entrypoints ./bootstrap.css ./scss/charts"
   },
   "peerDependencies": {
     "@tabler/charts": "workspace:^",

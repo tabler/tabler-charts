@@ -202,6 +202,9 @@ importers:
       '@tabler/charts':
         specifier: workspace:*
         version: link:../../packages/core
+      '@tabler/charts-bootstrap':
+        specifier: workspace:*
+        version: link:../../packages/bootstrap
       '@tabler/charts-elements':
         specifier: workspace:*
         version: link:../../packages/elements
