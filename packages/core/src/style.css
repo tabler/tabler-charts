@@ -1,7 +1,7 @@
-/*!
- * @tabler/charts — base stylesheet
- *
- * Every visual decision lives here, driven by custom properties. Override any
+/*! @tabler/charts | MIT */
+
+/*
+ * Base stylesheet. Every visual decision lives here, driven by custom properties. Override any
  * --tc-* variable on a container (or :root) to theme charts:
  *
  *   .my-chart { --tc-color-1: #066fd1; --tc-stroke-width: 3px; }
@@ -161,20 +161,27 @@
   font-variant-numeric: tabular-nums;
 }
 
-.tc-grid-line {
-  stroke: var(--tc-grid-color);
+/* Hairlines: grid, zero line, axes, crosshair, sparkline middle line. */
+.tc-grid-line,
+.tc-grid-line-zero,
+.tc-axis-line,
+.tc-tick-line,
+.tc-crosshair,
+.tc-sparkline-zero {
+  stroke: var(--tc-baseline-color);
   stroke-width: var(--tc-grid-width);
   shape-rendering: crispEdges;
   vector-effect: non-scaling-stroke;
 }
 
-.tc-grid-line-zero,
-.tc-axis-line,
-.tc-tick-line {
+.tc-grid-line,
+.tc-sparkline-zero {
+  stroke: var(--tc-grid-color);
+}
+
+/* The zero line is also a grid line, so it comes after. */
+.tc-grid-line-zero {
   stroke: var(--tc-baseline-color);
-  stroke-width: var(--tc-grid-width);
-  shape-rendering: crispEdges;
-  vector-effect: non-scaling-stroke;
 }
 
 /* -- Marks ------------------------------------------------------------------ */
@@ -195,18 +202,14 @@
   stroke: none;
 }
 
-/* Pie and donut slices; the gap between them is left empty (surface). */
-.tc-slice {
-  fill: var(--tc-series-color);
-  transition: d var(--tc-duration) var(--tc-easing);
-}
-
-/* Full pies draw their gap as a surface-colored stroke, so its edges stay parallel. */
+/* Pie and donut slices. Full pies draw their gap as a surface-colored
+   stroke (--tc-pie-gap), so its edges stay parallel. */
 .tc-pie-slices {
   --tc-pie-gap: 0px;
 }
 
 .tc-slice {
+  fill: var(--tc-series-color);
   stroke: var(--tc-surface);
   stroke-width: var(--tc-pie-gap);
   stroke-linejoin: round;
@@ -217,14 +220,8 @@
   fill: var(--tc-grid-color);
 }
 
-/* Gauge arcs grow and shrink along the track; rings slide when one is toggled. */
 .tc-gauge-arc {
   fill: var(--tc-series-color);
-}
-
-.tc-gauge-arc,
-.tc-gauge-track {
-  transition: d var(--tc-duration) var(--tc-easing);
 }
 
 .tc-pie-value,
@@ -255,10 +252,6 @@
   stop-opacity: var(--tc-area-gradient-end);
 }
 
-.tc-bar {
-  fill: var(--tc-series-color);
-}
-
 /* Sparklines: thinner strokes, min/max markers in text colors. */
 .tc-chart-sparkline {
   --tc-stroke-width: 1.5px;
@@ -280,6 +273,9 @@
   stroke: var(--tc-surface);
   stroke-width: var(--tc-point-ring);
   paint-order: stroke;
+  transition:
+    cx var(--tc-duration) var(--tc-easing),
+    cy var(--tc-duration) var(--tc-easing);
 }
 
 /* -- Motion ----------------------------------------------------------------- */
@@ -318,8 +314,14 @@
   }
 }
 
+/* Paths morph to their new shape. */
 .tc-line,
-.tc-area {
+.tc-area,
+.tc-bar,
+.tc-slice,
+.tc-gauge-arc,
+.tc-gauge-track,
+.tc-candle-wick {
   transition: d var(--tc-duration) var(--tc-easing);
 }
 
@@ -329,17 +331,23 @@
   animation: tc-reveal calc(var(--tc-duration) * 2) var(--tc-easing);
 }
 
-/* Series shown again from the legend fade in. */
+/* New marks fade in: series shown again from the legend, points, heatmap
+   cells, candles, and ticks and grid lines of a changed scale. */
 .tc-series-list .tc-series,
-.tc-areas .tc-series {
+.tc-areas .tc-series,
+.tc-series-list .tc-point,
+.tc-heatmap-cells,
+.tc-candles,
+.tc-tick,
+.tc-grid-line {
   animation: tc-fade-in var(--tc-duration) var(--tc-easing);
 }
 
 /* Bars grow from the baseline: up, or down for negative values. */
 .tc-bar {
+  fill: var(--tc-series-color);
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  transition: d var(--tc-duration) var(--tc-easing);
   animation: tc-grow var(--tc-duration) var(--tc-easing);
 }
 
@@ -369,10 +377,6 @@
   opacity: 0.5;
 }
 
-.tc-heatmap-cells {
-  animation: tc-fade-in var(--tc-duration) var(--tc-easing);
-}
-
 /* Candlesticks: green when the period closed higher, red when lower. */
 .tc-candle {
   --tc-candle-color: var(--tc-up-color, var(--tc-color-6));
@@ -391,11 +395,6 @@
   stroke: var(--tc-candle-color);
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
-  transition: d var(--tc-duration) var(--tc-easing);
-}
-
-.tc-candles {
-  animation: tc-fade-in var(--tc-duration) var(--tc-easing);
 }
 
 /* Tristate sparklines: losses in the last palette slot (red), draws as a muted tick. */
@@ -405,12 +404,6 @@
 
 .tc-tristate-draw {
   fill: var(--tc-baseline-color);
-}
-
-.tc-sparkline-zero {
-  stroke: var(--tc-grid-color);
-  stroke-width: 1px;
-  vector-effect: non-scaling-stroke;
 }
 
 /* Horizontal bars grow right from the baseline (left for negative values). */
@@ -423,21 +416,10 @@
   transform-origin: 100% 50%;
 }
 
-.tc-point {
-  transition:
-    cx var(--tc-duration) var(--tc-easing),
-    cy var(--tc-duration) var(--tc-easing);
-}
-
-.tc-series-list .tc-point {
-  animation: tc-fade-in var(--tc-duration) var(--tc-easing);
-}
-
-/* Ticks and grid lines glide to new positions; new ones fade in. */
+/* Ticks and grid lines glide to new positions. */
 .tc-tick,
 .tc-grid-line {
   transition: transform var(--tc-duration) var(--tc-easing);
-  animation: tc-fade-in var(--tc-duration) var(--tc-easing);
 }
 
 /* Pies and gauges scale in from their center. */
@@ -478,13 +460,6 @@
 
 .tc-hover {
   pointer-events: none;
-}
-
-.tc-crosshair {
-  stroke: var(--tc-baseline-color);
-  stroke-width: var(--tc-grid-width);
-  shape-rendering: crispEdges;
-  vector-effect: non-scaling-stroke;
 }
 
 .tc-hover-band {
@@ -544,7 +519,8 @@
   gap: 8px;
 }
 
-.tc-tooltip-swatch {
+.tc-tooltip-swatch,
+.tc-legend-swatch {
   flex: none;
   width: 8px;
   height: 8px;
@@ -614,14 +590,6 @@
 .tc-legend-item:focus-visible {
   outline: 2px solid var(--tc-focus-color);
   outline-offset: 1px;
-}
-
-.tc-legend-swatch {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--tc-series-color);
 }
 
 /* Hidden entries keep their identity: a hollow swatch in the series color. */
