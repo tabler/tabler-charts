@@ -2,6 +2,7 @@ import type { RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import type { NumberFormat } from '../format.ts'
+import type { Hit, HitItem, HitTester } from '../interaction.ts'
 import {
   estimateTextWidth,
   type InsetsInput,
@@ -249,5 +250,48 @@ export function seriesAttrs(series: Series, index: number): Record<string, strin
     class: ['tc-series', `tc-series-${index + 1}`, series.class],
     'data-series': series.name,
     ...(series.color ? { style: `--tc-series-color:${series.color}` } : {}),
+  }
+}
+
+/** Pixels around the plot area that still count as hovering it. */
+const HOVER_SLOP = 8
+
+/**
+ * Hit testing by category: the nearest category to the pointer while it is
+ * over the plot area, with every series' value there. `anchor` places each
+ * value (line point, bar end); `markAt` names the series of the mark directly
+ * under the pointer, if the chart has distinct marks (bars).
+ */
+export function categoryHitTester(
+  layout: CartesianLayout,
+  data: CartesianData,
+  anchor: (seriesIndex: number, index: number, value: number) => { x: number; y: number },
+  markAt?: (x: number, y: number, index: number) => number | undefined,
+): HitTester {
+  const { area, x, labels } = layout
+  return (px, py) => {
+    if (labels.length === 0) return null
+    if (
+      px < area.x - HOVER_SLOP ||
+      px > area.x + area.width + HOVER_SLOP ||
+      py < area.y - HOVER_SLOP ||
+      py > area.y + area.height + HOVER_SLOP
+    ) {
+      return null
+    }
+    const index = x.indexAt(px)
+    const center = x.at(index) + x.bandwidth / 2
+    const items: HitItem[] = data.series.map((series, seriesIndex) => {
+      const raw = series.values[index]
+      const value = raw == null || !Number.isFinite(raw) ? null : raw
+      const point = value === null ? { x: center, y: null } : anchor(seriesIndex, index, value)
+      const item: HitItem = { name: series.name, seriesIndex, value, x: point.x, y: point.y }
+      if (series.color) item.color = series.color
+      return item
+    })
+    const hit: Hit = { index, label: labels[index] as Label, x: center, area, items }
+    const mark = markAt?.(px, py, index)
+    if (mark !== undefined) hit.seriesIndex = mark
+    return hit
   }
 }

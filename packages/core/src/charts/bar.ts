@@ -1,7 +1,12 @@
 import type { ChartType } from '../chart.ts'
 import { barPath } from '../shapes/bar.ts'
 import { h } from '../vnode.ts'
-import { type CartesianOptions, cartesianLayout, seriesAttrs } from './cartesian.ts'
+import {
+  type CartesianOptions,
+  cartesianLayout,
+  categoryHitTester,
+  seriesAttrs,
+} from './cartesian.ts'
 
 export interface BarOptions extends CartesianOptions {
   /** Corner radius of the data end of each bar. Defaults to `4`. */
@@ -44,6 +49,24 @@ export const bar: ChartType<BarOptions> = {
     const groupWidth = barWidth * n + gap * (n - 1)
     const offset = (x.bandwidth - groupWidth) / 2
 
+    const barLeft = (seriesIndex: number, i: number) =>
+      x.at(i) + offset + seriesIndex * (barWidth + gap)
+
+    ctx.onHitTest(
+      categoryHitTester(
+        layout,
+        options.data,
+        (seriesIndex, i, value) => ({ x: barLeft(seriesIndex, i) + barWidth / 2, y: y(value) }),
+        (px, _, i) => {
+          // The bar under the pointer, gaps included, so thin bars are easy to hit.
+          const slot = Math.floor((px - (x.at(i) + offset) + gap / 2) / (barWidth + gap))
+          return slot >= 0 && slot < series.length && series[slot]?.values[i] != null
+            ? slot
+            : undefined
+        },
+      ),
+    )
+
     const groups = series.map((s, index) =>
       h(
         'g',
@@ -51,7 +74,7 @@ export const bar: ChartType<BarOptions> = {
         labels.map((label, i) => {
           const value = s.values[i]
           if (value == null || !Number.isFinite(value)) return null
-          const left = x.at(i) + offset + index * (barWidth + gap)
+          const left = barLeft(index, i)
           return h('path', {
             key: label,
             class: ['tc-bar', value < 0 && 'tc-bar-negative'],

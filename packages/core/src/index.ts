@@ -24,6 +24,7 @@ export type {
   Series,
   ValueAxisOptions,
 } from './charts/cartesian.ts'
+export { categoryHitTester } from './charts/cartesian.ts'
 export type { LineOptions } from './charts/line.ts'
 export { line } from './charts/line.ts'
 export type { AxisOptions, AxisPosition, LinearTicksOptions, Tick } from './components/axis.ts'
@@ -39,6 +40,7 @@ export {
   getNumberFormat,
   stepPrecision,
 } from './format.ts'
+export type { Hit, HitItem, HitTester } from './interaction.ts'
 export type { Insets, InsetsInput, Rect } from './layout.ts'
 export { estimateTextWidth, innerRect, insets, LINE_HEIGHT } from './layout.ts'
 export { render } from './render/dom.ts'

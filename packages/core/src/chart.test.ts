@@ -132,7 +132,13 @@ describe('buildChart()', () => {
       { width: 50, height: 20 },
       'z',
     )
-    expect(renders[0]).toEqual({ width: 50, height: 20, fontSize: 14, locale: 'pl-PL', id: 'z' })
+    expect(renders[0]).toMatchObject({
+      width: 50,
+      height: 20,
+      fontSize: 14,
+      locale: 'pl-PL',
+      id: 'z',
+    })
   })
 
   test('throws a helpful error without a chart type', () => {

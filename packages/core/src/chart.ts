@@ -1,4 +1,5 @@
 import type { Locale } from './format.ts'
+import { type Hit, type HitTester, hitKey, toChartPoint } from './interaction.ts'
 import { render } from './render/dom.ts'
 import { renderToString } from './render/string.ts'
 import { observeResize } from './resize.ts'
@@ -14,6 +15,8 @@ export interface RenderContext {
   locale: Locale
   /** Unique, stable prefix for ids inside this chart. */
   id: string
+  /** Register how points map to data, for pointer interaction (ignored in SSR). */
+  onHitTest(tester: HitTester): void
 }
 
 /**
@@ -91,6 +94,7 @@ export function buildChart<O extends object>(
   config: ChartConfig<O>,
   size: Size,
   id: string = config.id ?? 'tc',
+  onHitTest: (tester: HitTester) => void = () => {},
 ): VNode {
   const { type } = config
   if (!type || typeof type.render !== 'function') {
@@ -103,6 +107,7 @@ export function buildChart<O extends object>(
     fontSize: config.fontSize ?? DEFAULT_FONT_SIZE,
     locale: config.locale,
     id,
+    onHitTest,
   }
   const titleId = config.title ? `${id}-title` : undefined
   const descId = config.description ? `${id}-desc` : undefined
@@ -138,6 +143,13 @@ export function chartToString<O extends object>(config: ChartConfig<O>, size: Si
 export interface ChartEvents {
   /** After the chart rendered into the DOM. */
   render: { size: Size }
+  /**
+   * The hovered category (or mark) changed, or its data changed while hovered.
+   * `hit` is `null` when the pointer left the plot.
+   */
+  hover: { hit: Hit | null; event?: PointerEvent }
+  /** A click on the plot. */
+  click: { hit: Hit; event: MouseEvent }
 }
 
 type Handler<T> = (event: T) => void
@@ -160,7 +172,12 @@ export class Chart<O extends object = object> {
   private measured: Partial<Size> = {}
   private readonly handlers = new Map<keyof ChartEvents, Set<Handler<never>>>()
   private readonly unobserve: () => void
+  private readonly unlisten: () => void
   private destroyed = false
+  private tester: HitTester | undefined
+  /** Last pointer position in chart pixels while hovering. */
+  private pointer: { x: number; y: number } | undefined
+  private hovered = ''
 
   constructor(target: Element | string, config: ChartConfig<O>) {
     const element = typeof target === 'string' ? document.querySelector(target) : target
@@ -177,6 +194,7 @@ export class Chart<O extends object = object> {
       this.measured = { width, height }
       if (changed) this.schedule()
     })
+    this.unlisten = this.listen()
     this.render()
   }
 
@@ -214,9 +232,22 @@ export class Chart<O extends object = object> {
     if (this.destroyed) return this
     cancel(this)
     const size = this.size
-    render(this.element, buildChart(this.cfg, size, this.id))
+    this.tester = undefined
+    render(
+      this.element,
+      buildChart(this.cfg, size, this.id, (tester) => {
+        this.tester = tester
+      }),
+    )
     this.emit('render', { size })
+    // Keep hover consumers (tooltips) in sync with new data or layout.
+    if (this.pointer) this.hover(this.pointer, undefined, true)
     return this
+  }
+
+  /** What lies at a point in chart pixels, or `null`. */
+  hitTest(x: number, y: number): Hit | null {
+    return this.tester?.(x, y) ?? null
   }
 
   /** Subscribe to an event; returns a function that unsubscribes. */
@@ -238,8 +269,62 @@ export class Chart<O extends object = object> {
     this.destroyed = true
     cancel(this)
     this.unobserve()
+    this.unlisten()
     this.handlers.clear()
     render(this.element, null)
+  }
+
+  /** One set of delegated listeners on the element; survives re-renders. */
+  private listen(): () => void {
+    const el = this.element
+    if (typeof el.addEventListener !== 'function') return () => {}
+
+    const local = (event: MouseEvent) => {
+      const svg = el.querySelector('svg.tc-chart')
+      if (!svg) return undefined
+      const { width, height } = this.size
+      return toChartPoint(svg, event.clientX, event.clientY, width, height)
+    }
+    const onMove = (event: PointerEvent) => {
+      const point = local(event)
+      if (point) this.hover(point, event)
+    }
+    const onLeave = (event: PointerEvent) => {
+      // On touch, keep the last hover after the finger lifts.
+      if (event.pointerType === 'touch') return
+      this.pointer = undefined
+      this.setHover(null, event)
+    }
+    const onClick = (event: MouseEvent) => {
+      const point = local(event)
+      const hit = point ? this.hitTest(point.x, point.y) : null
+      if (hit) this.emit('click', { hit, event })
+    }
+
+    el.addEventListener('pointermove', onMove as EventListener)
+    el.addEventListener('pointerdown', onMove as EventListener)
+    el.addEventListener('pointerleave', onLeave as EventListener)
+    el.addEventListener('click', onClick as EventListener)
+    return () => {
+      el.removeEventListener('pointermove', onMove as EventListener)
+      el.removeEventListener('pointerdown', onMove as EventListener)
+      el.removeEventListener('pointerleave', onLeave as EventListener)
+      el.removeEventListener('click', onClick as EventListener)
+    }
+  }
+
+  private hover(point: { x: number; y: number }, event?: PointerEvent, force = false): void {
+    this.pointer = point
+    this.setHover(this.hitTest(point.x, point.y), event, force)
+  }
+
+  private setHover(hit: Hit | null, event?: PointerEvent, force = false): void {
+    const key = hitKey(hit)
+    if (!force && key === this.hovered) return
+    // After a re-render, only a hover that is still active is worth repeating.
+    if (force && key === '' && this.hovered === '') return
+    this.hovered = key
+    this.emit('hover', event ? { hit, event } : { hit })
   }
 
   private schedule(): void {

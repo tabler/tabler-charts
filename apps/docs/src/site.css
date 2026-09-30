@@ -219,3 +219,12 @@ code {
   border-radius: 4px;
   background: none;
 }
+
+.control-readout {
+  flex-basis: 100%;
+}
+
+.control-output {
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}

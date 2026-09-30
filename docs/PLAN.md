@@ -155,7 +155,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 18. `docs: add playground app` – Vite, strona z line/area/bar, przełącznik light/dark. **Zrobione wcześniej (po kroku 14)**: playground na https://tabler-charts.vercel.app, importuje bibliotekę ze źródeł; od teraz każdy krok z nowym typem wykresu / funkcją dodaje swoje demo.
 
 ### M2 – Interakcje i a11y
-- [ ] 19. `feat(core): add event delegation and nearest-point hit testing`.
+- [x] 19. `feat(core): add event delegation and nearest-point hit testing` – `ctx.onHitTest()` (layout liczony raz), `categoryHitTester()`, zdarzenia `hover`/`click`, `chart.hitTest()`, odświeżanie hover po zmianie danych, dotyk.
 - [ ] 20. `feat(core): add tooltip and crosshair`.
 - [ ] 21. `feat(core): add legend with series toggle`.
 - [ ] 22. `feat(core): animate data updates via css transitions`.

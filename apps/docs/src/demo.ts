@@ -16,6 +16,8 @@ export interface DemoControls {
     onChange: (value: T) => void,
   ): void
   color(label: string, value: string, onChange: (value: string) => void): void
+  /** A live text readout; returns a setter. */
+  output(label: string): (text: string) => void
   range(
     label: string,
     options: { min: number; max: number; step: number; value: number },
@@ -56,6 +58,18 @@ export function createControls(root: HTMLElement): DemoControls {
       input.value = value
       input.addEventListener('input', () => onChange(input.value))
       control(label, input)
+    },
+    output(label) {
+      const out = document.createElement('output')
+      out.className = 'control-output'
+      out.textContent = '—'
+      const wrap = document.createElement('span')
+      wrap.className = 'control control-readout'
+      wrap.append(`${label}: `, out)
+      root.append(wrap)
+      return (text) => {
+        out.textContent = text || '—'
+      }
     },
     range(label, { min, max, step, value }, onChange) {
       const input = document.createElement('input')

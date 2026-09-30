@@ -1,4 +1,4 @@
-import { Chart, line, type Series } from '@tabler/charts'
+import { Chart, formatNumber, line, type Series } from '@tabler/charts'
 import type { Demo } from '../demo.ts'
 
 const LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -36,6 +36,16 @@ export const lineDemo: Demo = {
       aspectRatio: 2.5,
       title: 'Visitors and sign-ups per month',
     })
+
+    const fmt = formatNumber(undefined, 'en-US')
+    const readout = controls.output('Hover')
+    chart.on('hover', ({ hit }) =>
+      readout(
+        hit
+          ? `${hit.label} — ${hit.items.map((i) => `${i.name} ${i.value === null ? 'n/a' : fmt(i.value)}`).join(' · ')}`
+          : '',
+      ),
+    )
 
     controls.button('Shuffle data', () => chart.setData({ labels: LABELS, series: randomSeries() }))
     controls.select('Curve', ['monotone', 'linear', 'step'] as const, 'monotone', (curve) =>

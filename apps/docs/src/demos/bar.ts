@@ -1,4 +1,4 @@
-import { bar, Chart, type Series } from '@tabler/charts'
+import { bar, Chart, formatNumber, type Series } from '@tabler/charts'
 import type { Demo } from '../demo.ts'
 
 const LABELS = ['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025', 'Q1 2026', 'Q2 2026']
@@ -33,6 +33,22 @@ export const barDemo: Demo = {
     })
 
     const refresh = () => chart.setData({ labels: LABELS, series: randomSeries() })
+
+    const fmt = formatNumber(
+      { style: 'currency', currency: 'USD', maximumFractionDigits: 0 },
+      'en-US',
+    )
+    const readout = controls.output('Hover')
+    chart.on('hover', ({ hit }) => {
+      const item = hit?.seriesIndex === undefined ? undefined : hit.items[hit.seriesIndex]
+      readout(
+        hit
+          ? item
+            ? `${hit.label} — ${item.name}: ${fmt(item.value ?? 0)}`
+            : `${hit.label} (between bars)`
+          : '',
+      )
+    })
 
     controls.button('Shuffle data', refresh)
     controls.select('Series', ['1', '2', '3'] as const, '2', (value) => {

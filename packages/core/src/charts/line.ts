@@ -1,7 +1,13 @@
 import type { ChartType, RenderContext } from '../chart.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { type ChildInput, h } from '../vnode.ts'
-import { type CartesianOptions, cartesianLayout, type Series, seriesAttrs } from './cartesian.ts'
+import {
+  type CartesianOptions,
+  cartesianLayout,
+  categoryHitTester,
+  type Series,
+  seriesAttrs,
+} from './cartesian.ts'
 
 export interface LineOptions extends CartesianOptions {
   /** Interpolation between points. Defaults to `'monotone'`. */
@@ -56,6 +62,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   const layout = cartesianLayout(options, ctx, { scale: 'point', zero: filled, overhang })
   const { x, y, labels } = layout
   const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
+  ctx.onHitTest(categoryHitTester(layout, options.data, (_, i, v) => ({ x: x.at(i), y: y(v) })))
   const gradient = filled && fillStyle === 'gradient'
   const fadeId = `${ctx.id}-fade`
 
