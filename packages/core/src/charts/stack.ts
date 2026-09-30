@@ -49,7 +49,9 @@ export function stackSeries(
       const valid = raw != null && Number.isFinite(raw)
       if (!valid && !nullAsZero) return
       let v = valid ? (raw as number) : 0
-      if (percent) v = total === 0 ? 0 : v / total
+      // Rounded so shares sum to exactly 1 (floating point would give 1.0000000000000002
+      // and nice() would then stretch the axis to 120%).
+      if (percent) v = total === 0 ? 0 : Math.round((v / total) * 1e9) / 1e9
       const row = out[j] as (Segment | null)[]
       if (v < 0) {
         row[i] = { y0: down, y1: down + v }

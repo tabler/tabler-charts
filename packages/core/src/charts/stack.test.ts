@@ -40,6 +40,19 @@ describe('stackSeries()', () => {
     expect(ea?.[0]).toEqual({ y0: 0, y1: 0 })
   })
 
+  test('percent shares sum to exactly one', () => {
+    const [, , c] = stackSeries(
+      [
+        { name: 'a', values: [0.1] },
+        { name: 'b', values: [0.2] },
+        { name: 'c', values: [0.7] },
+      ],
+      1,
+      { percent: true },
+    )
+    expect(c?.[0]?.y1).toBe(1)
+  })
+
   test('leaves hidden series out of the stack', () => {
     const [a, b] = stackSeries(series, 4, { hidden: new Set(['A']) })
     expect(a?.every((segment) => segment === null)).toBe(true)
