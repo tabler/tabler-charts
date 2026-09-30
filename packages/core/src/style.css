@@ -382,7 +382,7 @@
 }
 
 .tc-pie-slices,
-.tc-gauge {
+.tc-gauge-rings {
   animation: tc-pie-in calc(var(--tc-duration) * 1.5) var(--tc-easing);
 }
 

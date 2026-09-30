@@ -35,6 +35,15 @@ describe('gauge', () => {
     expect(texts(node)).toEqual(['58%'])
   })
 
+  test('animates the rings, not the translated group', () => {
+    // The entrance keyframe sets transform; on the translated group it would
+    // replace the translate and fly the gauge in from the top-left corner.
+    const node = render()
+    const group = findByClass(node, 'tc-gauge')[0]
+    expect(String(group?.attrs.style)).toMatch(/^transform:translate\(/)
+    expect(findByClass(group ?? node, 'tc-gauge-rings')).toHaveLength(1)
+  })
+
   test('names the ring in the center and in the table', () => {
     const node = render({ data: { name: 'completed', value: 1392, max: 2400 } })
     expect(texts(node)).toEqual(['58%', 'completed'])

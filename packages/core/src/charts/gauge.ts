@@ -177,7 +177,12 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
   const centerLabel = showCenter ? (center?.label ?? (first.data.name || undefined)) : undefined
 
   return [
-    h('g', { class: 'tc-gauge', style: `transform:translate(${cx}px,${cy}px)` }, groups),
+    // Rings sit in their own group: the entrance animation transforms it, not the translated parent.
+    h(
+      'g',
+      { class: 'tc-gauge', style: `transform:translate(${cx}px,${cy}px)` },
+      h('g', { class: 'tc-gauge-rings' }, groups),
+    ),
     showCenter &&
       h(
         'g',
