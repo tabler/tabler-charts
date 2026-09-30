@@ -4,6 +4,7 @@ import { createControls, type Demo } from './demo.ts'
 import { areaDemo } from './demos/area.ts'
 import { barDemo } from './demos/bar.ts'
 import { customType } from './demos/custom-type.ts'
+import { decimateDemo } from './demos/decimate.ts'
 import { lineDemo } from './demos/line.ts'
 import { pieDemo } from './demos/pie.ts'
 import { scatterDemo } from './demos/scatter.ts'
@@ -14,6 +15,7 @@ const demos: Demo[] = [
   sparklineDemo,
   lineDemo,
   timeDemo,
+  decimateDemo,
   areaDemo,
   barDemo,
   pieDemo,

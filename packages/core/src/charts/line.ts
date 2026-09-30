@@ -1,4 +1,5 @@
 import type { ChartType, RenderContext } from '../chart.ts'
+import { lttbIndices } from '../shapes/decimate.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { type ChildInput, h } from '../vnode.ts'
 import {
@@ -36,6 +37,12 @@ export interface LineOptions extends CartesianOptions {
    * `'percent'` shows every category as 100%. Missing values count as zero.
    */
   stacked?: StackMode
+  /**
+   * Draw long series with at most this many points, chosen by LTTB
+   * downsampling so peaks and valleys survive. Tooltips and keyboard
+   * navigation still use every value. Off by default.
+   */
+  decimate?: number
 }
 
 const round = (value: number): number => Math.round(value * 100) / 100
@@ -69,6 +76,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     connectNulls = false,
     area: filled = fill,
     stacked = false,
+    decimate,
     // Faded layers would show light seams between stacked areas, so stacks default to solid.
     fill: fillStyle = stacked ? 'solid' : 'gradient',
   } = options
@@ -109,9 +117,23 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     if (stack) return stack.map((seg, i): Point => (seg ? [x.at(i), y(seg.y1)] : null))
     return seriesPoints(s, labels.length, (i) => x.at(i), y, connectNulls)
   })
-  /** Area bottom: zero, or the top of the layer below for stacks. */
-  const bottom = (index: number) =>
-    stacks?.[index]?.map((seg) => (seg ? y(seg.y0) : null)) ?? baseline
+  /** Indices drawn per series: a downsampled subset when `decimate` is set. */
+  const kept = all.map((pts) =>
+    decimate !== undefined && pts.length > decimate ? lttbIndices(pts, decimate) : null,
+  )
+  const drawn = (index: number): Point[] => {
+    const pts = all[index] as Point[]
+    const keep = kept[index]
+    return keep ? keep.map((i) => pts[i] as Point) : pts
+  }
+  /** Area bottom: zero, or the top of the layer below for stacks (downsampled alike). */
+  const bottom = (index: number): number | (number | null)[] => {
+    const stack = stacks?.[index]
+    if (!stack) return baseline
+    const bottoms = stack.map((seg) => (seg ? y(seg.y0) : null))
+    const keep = kept[index]
+    return keep ? keep.map((i) => bottoms[i] ?? null) : bottoms
+  }
 
   // All areas go below all lines, so a filled series never covers another line.
   const areas =
@@ -127,7 +149,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
             seriesAttrs(s, index),
             h('path', {
               class: ['tc-area', gradient && 'tc-area-gradient'],
-              d: areaPath(all[index] as Point[], bottom(index), { curve }),
+              d: areaPath(drawn(index), bottom(index), { curve }),
               mask: gradient ? `url(#${fadeId})` : undefined,
             }),
           ),
@@ -136,7 +158,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
 
   const lines = options.data.series.map((s, index) => {
     if (!visible(s)) return null
-    const pts = all[index] as Point[]
+    const pts = drawn(index)
     const valid = pts.filter((p): p is readonly [number, number] => p != null)
     const dots = points === 'all' ? valid : points === 'last' ? valid.slice(-1) : []
     return h(
@@ -201,5 +223,5 @@ export const line: ChartType<LineOptions> = {
   name: 'line',
   render: (options, ctx) => renderLines(options, ctx, false),
   legend: (options) => seriesLegend(options.data),
-  table: (options, ctx) => seriesTable(options, ctx),
+  table: (options, ctx, limit) => seriesTable(options, ctx, limit),
 }

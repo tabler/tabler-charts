@@ -106,6 +106,16 @@
         "default": "./dist/sparkline.cjs"
       }
     },
+    "./decimate": {
+      "import": {
+        "types": "./dist/decimate.d.ts",
+        "default": "./dist/decimate.js"
+      },
+      "require": {
+        "types": "./dist/decimate.d.cts",
+        "default": "./dist/decimate.cjs"
+      }
+    },
     "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },

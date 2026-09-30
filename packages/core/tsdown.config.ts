@@ -12,6 +12,7 @@ export default defineConfig({
     'src/pie.ts',
     'src/scatter.ts',
     'src/sparkline.ts',
+    'src/decimate.ts',
   ],
   copy: [{ from: 'src/style.css', to: 'dist' }],
 })
