@@ -11,15 +11,16 @@
   },
   "dependencies": {
     "@tabler/charts": "workspace:*",
+    "@tabler/charts-bootstrap": "workspace:*",
     "@tabler/charts-elements": "workspace:*",
     "@tabler/charts-react": "workspace:*",
     "@tabler/charts-vue": "workspace:*",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "vue": "^3.5.43",
-    "@tabler/charts-bootstrap": "workspace:*"
+    "vue": "^3.5.43"
   },
   "devDependencies": {
+    "@tabler/core": "^1.6.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "bootstrap": "^5.3.8",

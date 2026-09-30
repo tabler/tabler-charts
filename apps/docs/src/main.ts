@@ -16,6 +16,7 @@ import { pieDemo } from './demos/pie.ts'
 import { reactDemo } from './demos/react.tsx'
 import { scatterDemo } from './demos/scatter.ts'
 import { sparklineDemo } from './demos/sparkline.ts'
+import { tablerDemo } from './demos/tabler.ts'
 import { timeDemo } from './demos/time.ts'
 import { vueDemo } from './demos/vue.ts'
 
@@ -36,6 +37,7 @@ const demos: Demo[] = [
   reactDemo,
   vueDemo,
   bootstrapDemo,
+  tablerDemo,
   galleryDemo,
 ]
 

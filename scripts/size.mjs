@@ -100,6 +100,7 @@ for (const [name, file, budget] of [
   ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 29.5],
   ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 29.5],
   ['bootstrap.css', `${BOOTSTRAP}bootstrap.css`, 0.6],
+  ['tabler.css', `${BOOTSTRAP}tabler.css`, 0.6],
 ]) {
   const kb = gzipSync(readFileSync(file)).length / 1000
   const ok = kb <= budget

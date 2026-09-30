@@ -1,7 +1,8 @@
-/** Write dist/bootstrap.css: scss/_charts.scss compiled and minified. */
+/** Write dist/bootstrap.css and dist/tabler.css, compiled from scss/ and minified. */
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { mappingStyles } from './styles.mjs'
+import { mappingStyles, tablerStyles } from './styles.mjs'
 
-const out = new URL('../dist/bootstrap.css', import.meta.url)
-mkdirSync(new URL('.', out), { recursive: true })
-writeFileSync(out, mappingStyles())
+const dist = new URL('../dist/', import.meta.url)
+mkdirSync(dist, { recursive: true })
+writeFileSync(new URL('bootstrap.css', dist), mappingStyles())
+writeFileSync(new URL('tabler.css', dist), tablerStyles())

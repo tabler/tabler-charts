@@ -2,6 +2,16 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { compileString } from 'sass'
+
+const scssDir = fileURLToPath(new URL('../scss/', import.meta.url))
+/** Compile a snippet that loads the package's partials, like an app would. */
+const app = (source: string) =>
+  compileString(source, {
+    loadPaths: [scssDir],
+    style: 'expanded',
+    silenceDeprecations: ['import'],
+  }).css
+
 import { describe, expect, test } from 'vitest'
 
 const scssPath = fileURLToPath(new URL('../scss/_charts.scss', import.meta.url))
@@ -63,5 +73,42 @@ describe('bootstrap mapping', () => {
     expect(built.startsWith('/*! @tabler/charts-bootstrap | MIT */')).toBe(true)
     expect(built).toContain(':where(:root,[data-bs-theme]){--tc-color-1:var(--bs-primary,#2a78d6)')
     expect(built).toContain(':where([data-bs-theme=dark]){--tc-color-2:#d95926')
+  })
+
+  describe('Tabler preset', () => {
+    const tabler = app('@use "tabler";')
+
+    test('reads --tblr-* variables, keeps data-bs-theme and scopes the theme options', () => {
+      const scopes =
+        ':where(:root, [data-bs-theme], [data-bs-theme-primary], [data-bs-theme-base], [data-bs-theme-font], [data-bs-theme-radius])'
+      const tokens = rule(tabler, scopes)
+      expect(tokens).toContain('--tc-color-1: var(--tblr-primary, #066fd1)')
+      // Charts sit on cards: the surface is Tabler's card background.
+      expect(tokens).toContain('--tc-surface: var(--tblr-bg-surface, #fff)')
+      expect(tokens).toContain('--tc-tooltip-bg: var(--tblr-bg-surface, #fff)')
+      expect(tokens).toContain('--tc-text-muted: var(--tblr-secondary, #6f6e69)')
+      expect(tokens).toContain('--tc-grid-color: var(--tblr-border-color-translucent, #e1e0d9)')
+      expect(tokens).toContain('--tc-font-family: var(--tblr-body-font-family, inherit)')
+      expect(tabler).not.toContain('--bs-')
+      expect(palette(rule(tabler, ':where([data-bs-theme=dark])'))).toEqual(
+        palette(rule(compile(), ':where([data-bs-theme=dark])')),
+      )
+    })
+
+    test('can be configured with @use … with, or with variables before @import', () => {
+      const used = app('@use "tabler" with ($tc-series-1: var(--tblr-green));')
+      expect(used).toContain('--tc-color-1: var(--tblr-green)')
+      expect(used).toContain('--tc-surface: var(--tblr-bg-surface, #fff)')
+      const imported = app('$tc-series-1: var(--tblr-red); @import "tabler";')
+      expect(imported).toContain('--tc-color-1: var(--tblr-red)')
+      expect(imported).toContain('--tc-text-muted: var(--tblr-secondary, #6f6e69)')
+    })
+
+    test('the built tabler.css is the compiled preset', () => {
+      const built = readFileSync(new URL('../dist/tabler.css', import.meta.url), 'utf8')
+      expect(built.startsWith('/*! @tabler/charts-bootstrap, Tabler preset | MIT */')).toBe(true)
+      expect(built).toContain('--tc-color-1:var(--tblr-primary,#066fd1)')
+      expect(built).toContain(':where([data-bs-theme=dark]){--tc-color-2:#d95926')
+    })
   })
 })

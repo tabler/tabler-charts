@@ -1,7 +1,8 @@
 /**
- * Stylesheets for the builds: `mapping` is scss/_charts.scss compiled, and
- * `page` the core chart stylesheet followed by the mapping (what the CDN
- * script injects). Both minified with lightningcss, without targets.
+ * Stylesheets for the builds: `mapping` is scss/_charts.scss compiled (the
+ * Bootstrap mapping), `tabler` the Tabler preset, and `page` the core chart
+ * stylesheet followed by the Bootstrap mapping (what the CDN script
+ * injects). All minified with lightningcss, without targets.
  */
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -11,11 +12,19 @@ import { compile } from 'sass'
 const minify = (code) =>
   transform({ filename: 'style.css', code: Buffer.from(code), minify: true }).code.toString()
 
-export function mappingStyles() {
-  const { css } = compile(fileURLToPath(new URL('../scss/_charts.scss', import.meta.url)), {
+const build = (file, banner) => {
+  const { css } = compile(fileURLToPath(new URL(`../scss/${file}`, import.meta.url)), {
     style: 'expanded',
   })
-  return minify(`/*! @tabler/charts-bootstrap | MIT */\n${css}`)
+  return minify(`/*! ${banner} | MIT */\n${css}`)
+}
+
+export function mappingStyles() {
+  return build('_charts.scss', '@tabler/charts-bootstrap')
+}
+
+export function tablerStyles() {
+  return build('_tabler.scss', '@tabler/charts-bootstrap, Tabler preset')
 }
 
 export function pageStyles() {

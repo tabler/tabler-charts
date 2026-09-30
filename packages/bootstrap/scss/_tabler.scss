@@ -1,0 +1,22 @@
+// @tabler/charts-bootstrap Tabler preset: the Bootstrap mapping with Tabler's
+// variables. Tabler keeps Bootstrap's color-mode attribute (data-bs-theme)
+// but prefixes its variables with `tblr-`, and sets its theme options
+// (data-bs-theme-primary, -base, -font, -radius) as attributes too.
+//
+// Charts then sit on the card surface (--tblr-bg-surface), use Tabler's
+// muted gray, border colors, radius, shadow and font, and the first series
+// follows the theme's primary color. Load it after `@tabler/charts/style.css`;
+// the plain CSS build is `@tabler/charts-bootstrap/tabler.css`.
+//
+//   @use "@tabler/charts-bootstrap/scss/tabler";
+//   @use "@tabler/charts-bootstrap/scss/tabler" with ($tc-series-1: var(--tblr-green));
+
+@forward "charts" with (
+  $tc-prefix: "tblr-" !default,
+  $tc-theme-attribute: "data-bs-theme" !default,
+  $tc-theme-scopes: ":root, [data-bs-theme], [data-bs-theme-primary], [data-bs-theme-base], [data-bs-theme-font], [data-bs-theme-radius]" !default,
+  $tc-series-1: var(--tblr-primary, #066fd1) !default,
+  $tc-surface: var(--tblr-bg-surface, #fff) !default,
+  $tc-tooltip-bg: var(--tblr-bg-surface, #fff) !default,
+  $tc-text-muted: var(--tblr-secondary, #6f6e69) !default
+);

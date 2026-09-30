@@ -224,6 +224,9 @@ importers:
         specifier: ^3.5.43
         version: 3.5.43(typescript@7.0.2)
     devDependencies:
+      '@tabler/core':
+        specifier: ^1.6.1
+        version: 1.6.1
       '@types/react':
         specifier: ^19.3.0
         version: 19.3.0
@@ -593,6 +596,15 @@ packages:
   '@sindresorhus/is@4.6.0':
     resolution: {integrity: sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==}
     engines: {node: '>=10'}
+
+  '@tabler/core@1.6.1':
+    resolution: {integrity: sha512-lgmR9gcxRp5JlLxcmRi9Rz85JrEvH6Bz71KnlcPVSa97wtwQNjgSs3g3fxwbAlulHyRMghhIV04QUuW3pqDsIg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      vanilla-calendar-pro: ^3.3.2
+    peerDependenciesMeta:
+      vanilla-calendar-pro:
+        optional: true
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -1789,6 +1801,10 @@ snapshots:
   '@rolldown/pluginutils@1.0.1': {}
 
   '@sindresorhus/is@4.6.0': {}
+
+  '@tabler/core@1.6.1':
+    dependencies:
+      '@popperjs/core': 2.11.8
 
   '@types/chai@5.2.3':
     dependencies:

@@ -1,7 +1,7 @@
 {
   "name": "@tabler/charts-bootstrap",
   "version": "0.0.0",
-  "description": "Bootstrap 5.3 theme mapping (CSS and SCSS) for @tabler/charts.",
+  "description": "Bootstrap 5.3 and Tabler theme mapping (CSS and SCSS) and a data API for @tabler/charts.",
   "keywords": [
     "charts",
     "svg",
@@ -39,9 +39,14 @@
       }
     },
     "./bootstrap.css": "./dist/bootstrap.css",
+    "./tabler.css": "./dist/tabler.css",
     "./scss/charts": {
       "sass": "./scss/_charts.scss",
       "default": "./scss/_charts.scss"
+    },
+    "./scss/tabler": {
+      "sass": "./scss/_tabler.scss",
+      "default": "./scss/_tabler.scss"
     },
     "./package.json": "./package.json"
   },
@@ -53,7 +58,7 @@
     "build": "tsdown && node scripts/build-css.mjs",
     "dev": "tsdown --watch",
     "typecheck": "tsc -p .",
-    "lint:pkg": "publint && attw --pack . --profile node16 --exclude-entrypoints ./bootstrap.css ./scss/charts"
+    "lint:pkg": "publint && attw --pack . --profile node16 --exclude-entrypoints ./bootstrap.css ./tabler.css ./scss/charts ./scss/tabler"
   },
   "peerDependencies": {
     "@tabler/charts": "workspace:^",
