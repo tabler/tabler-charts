@@ -41,6 +41,8 @@ export {
   seriesLegend,
   seriesTable,
 } from './charts/cartesian.ts'
+export type { GaugeOptions, GaugeRing } from './charts/gauge.ts'
+export { gauge } from './charts/gauge.ts'
 export type { LineOptions } from './charts/line.ts'
 export { line } from './charts/line.ts'
 export type { PieOptions, PieSlice } from './charts/pie.ts'

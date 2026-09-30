@@ -4,6 +4,7 @@ import type { ChartConfig, ChartType } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
+import { gauge } from './charts/gauge.ts'
 import { line } from './charts/line.ts'
 import { donut, pie } from './charts/pie.ts'
 import { scatter } from './charts/scatter.ts'
@@ -80,7 +81,23 @@ function randomConfig(): ChartConfig<object> {
     keyboard: maybe(0.2, false),
     animate: maybe(0.3, false),
   }
-  const kind = pick(['cartesian', 'cartesian', 'pie', 'scatter', 'sparkline'])
+  const kind = pick(['cartesian', 'cartesian', 'pie', 'scatter', 'sparkline', 'gauge'])
+  if (kind === 'gauge') {
+    const rings = series(n, 1).map((s) => ({
+      name: s.name,
+      value: s.values[0] ?? 0,
+      max: maybe(0.3, pick([0, 50, 1000])),
+      hidden: s.hidden,
+    }))
+    return {
+      type: gauge,
+      ...base,
+      data: n === 0 ? rnd() * 150 : rings,
+      angle: maybe(0.4, pick([0, 180, 270])),
+      startAngle: maybe(0.4, -135),
+      thickness: maybe(0.3, pick([1, 30, 400])),
+    } as ChartConfig<object>
+  }
   if (kind === 'pie') {
     return {
       type: pick([pie, donut]),

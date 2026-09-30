@@ -211,18 +211,31 @@
   stroke-linejoin: round;
 }
 
-.tc-pie-track {
+.tc-pie-track,
+.tc-gauge-track {
   fill: var(--tc-grid-color);
 }
 
-.tc-pie-value {
+/* Gauge arcs grow and shrink along the track; rings slide when one is toggled. */
+.tc-gauge-arc {
+  fill: var(--tc-series-color);
+}
+
+.tc-gauge-arc,
+.tc-gauge-track {
+  transition: d var(--tc-duration) var(--tc-easing);
+}
+
+.tc-pie-value,
+.tc-gauge-value {
   font-size: var(--tc-pie-value-size);
   font-weight: 600;
   fill: var(--tc-text-color);
   font-variant-numeric: tabular-nums;
 }
 
-.tc-pie-label {
+.tc-pie-label,
+.tc-gauge-label {
   fill: var(--tc-text-muted);
 }
 
@@ -360,7 +373,7 @@
   animation: tc-fade-in var(--tc-duration) var(--tc-easing);
 }
 
-/* Pies scale in from their center. */
+/* Pies and gauges scale in from their center. */
 @keyframes tc-pie-in {
   from {
     opacity: 0;
@@ -368,7 +381,8 @@
   }
 }
 
-.tc-pie-slices {
+.tc-pie-slices,
+.tc-gauge {
   animation: tc-pie-in calc(var(--tc-duration) * 1.5) var(--tc-easing);
 }
 

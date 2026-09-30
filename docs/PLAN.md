@@ -180,6 +180,15 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [ ] 35. `feat(bootstrap): add tabler preset`.
 - [ ] 36. `docs: add ssr examples (next, nuxt, astro)`.
 
+### M6 – Typy z Tablera
+Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexCharts), wg liczby użyć.
+- [x] 41. `feat(core): add gauge chart` (+ demo, 3 kafelki w galerii) – `gauge` (radial bar): wartość jako łuk na torze, udział i nazwa w środku (`center`), `max`, `startAngle` / `angle` (pełny pierścień, tarcza 270°, półkole), grubość / odstęp / zaokrąglenie, kilka współśrodkowych pierścieni z legendą i tabelą, tooltip z udziałem, płynne przejścia `d` (`arcPathStable`), wejście `@tabler/charts/gauge`.
+- [ ] 42. `feat(core): dash per series and y.max` – `series[].dash`, `y: { max }` (karty line Tablera).
+- [ ] 43. `feat(core): mixed series types` – `series[].type: 'bar' | 'line'` (karta „mentions”).
+- [ ] 44. `feat(core): tristate sparkline` – słupki kolorowane wg znaku.
+- [ ] 45. `feat(core): add heatmap chart` (karta „Weekly activity”).
+- [ ] 46. `feat(core): add candlestick chart` (karta crypto).
+
 ### M5 – Wydanie
 - [ ] 37. `test: add playwright visual regression tests`.
 - [x] 38. `chore: add size budget check` – `pnpm size` (rolldown + gzip typowych importów, budżety w `scripts/size.mjs`), w CI. **Zrobione wcześniej**, w fazie optymalizacji po M3.

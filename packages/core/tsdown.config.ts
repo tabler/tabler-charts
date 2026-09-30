@@ -10,6 +10,7 @@ export default defineConfig({
     'src/area.ts',
     'src/bar.ts',
     'src/pie.ts',
+    'src/gauge.ts',
     'src/scatter.ts',
     'src/sparkline.ts',
     'src/decimate.ts',
