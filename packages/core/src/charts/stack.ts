@@ -43,26 +43,29 @@ export function stackSeries(
     }
     let up = 0
     let down = 0
-    let lastUp: Segment | null = null
-    let lastDown: Segment | null = null
-    series.forEach((s, j) => {
-      if (!visible[j]) return
+    let lastUp: Segment | undefined
+    let lastDown: Segment | undefined
+    for (let j = 0; j < series.length; j++) {
+      const s = series[j] as Series
+      if (!visible[j]) continue
       const raw = s.values[i]
       const valid = raw != null && Number.isFinite(raw)
-      if (!valid && !nullAsZero) return
+      if (!valid && !nullAsZero) continue
       let v = valid ? (raw as number) : 0
       if (percent) v = total === 0 ? 0 : v / total
       const row = out[j] as (Segment | null)[]
       if (v < 0) {
-        row[i] = { y0: down, y1: down + v }
+        const segment: Segment = { y0: down, y1: down + v }
+        row[i] = segment
         down += v
-        lastDown = row[i]
+        lastDown = segment
       } else {
-        row[i] = { y0: up, y1: up + v }
+        const segment: Segment = { y0: up, y1: up + v }
+        row[i] = segment
         up += v
-        lastUp = row[i]
+        lastUp = segment
       }
-    })
+    }
     // Shares must end exactly at ±100%: floating point drift (1.0000000000000002)
     // would otherwise make nice() stretch the axis to 120%, or leave a hairline gap.
     if (percent) {
