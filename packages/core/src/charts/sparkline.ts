@@ -210,4 +210,6 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
 export const sparkline: ChartType<SparklineOptions> = {
   name: 'sparkline',
   render: renderSparkline,
+  // Decorative by default: opt in with `keyboard: true`.
+  keyboard: false,
 }

@@ -39,6 +39,12 @@ export interface ChartType<O extends object = object> {
    * option. `limit` is the most rows wanted; report the real count in `total`.
    */
   table?(options: O, context: RenderContext, limit: number): DataTable
+  /**
+   * Whether the chart should be focusable and keyboard-navigable by default
+   * (`keyboard` in the config overrides it). Decorative types such as
+   * sparklines opt out so a page of stat tiles does not multiply tab stops.
+   */
+  readonly keyboard?: boolean
 }
 
 export type { DataTable, LegendItem }

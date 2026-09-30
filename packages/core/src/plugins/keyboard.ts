@@ -6,6 +6,10 @@ import type { ChartPlugin } from '../plugin.ts'
  * categories, Up/Down walk series, Home/End jump, Escape (or leaving)
  * clears. Every step is announced through a polite live region.
  */
+/** The config's `keyboard` option, else the chart type's default, else on. */
+const enabled = (config: { keyboard?: boolean; type: { keyboard?: boolean } }): boolean =>
+  config.keyboard ?? config.type.keyboard ?? true
+
 export function keyboard(): ChartPlugin {
   return {
     name: 'keyboard',
@@ -78,7 +82,7 @@ export function keyboard(): ChartPlugin {
         (target as Element | null)?.matches?.('svg.tc-chart') === true
       const onKey = (event: Event) => {
         const { key } = event as KeyboardEvent
-        if (chart.config.keyboard === false || !isChart(event.target)) return
+        if (!enabled(chart.config) || !isChart(event.target)) return
         if (handle(key)) event.preventDefault()
       }
       const onBlur = (event: Event) => {
@@ -88,7 +92,7 @@ export function keyboard(): ChartPlugin {
       host.addEventListener('focusout', onBlur)
 
       return {
-        svgAttrs: (config) => (config.keyboard === false ? undefined : { tabindex: 0 }),
+        svgAttrs: (config) => (enabled(config) ? { tabindex: 0 } : undefined),
         destroy() {
           host.removeEventListener('keydown', onKey)
           host.removeEventListener('focusout', onBlur)

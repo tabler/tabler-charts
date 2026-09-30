@@ -92,6 +92,10 @@ describe('sparkline', () => {
     expect(hit.hitTest(114, 20)?.index).toBe(6)
   })
 
+  test('is not a tab stop unless asked', () => {
+    expect(sparkline.keyboard).toBe(false)
+  })
+
   test('renders empty and single values', () => {
     expect(() => chartToString({ ...base, data: [] }, size)).not.toThrow()
     const one = render({ data: [5] })

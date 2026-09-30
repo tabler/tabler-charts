@@ -5,6 +5,7 @@ import type { ChartConfig } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import { bar } from './charts/bar.ts'
 import { line } from './charts/line.ts'
+import { sparkline } from './charts/sparkline.ts'
 import { renderToString } from './render/string.ts'
 import { flush } from './scheduler.ts'
 
@@ -119,6 +120,11 @@ describe('Chart accessibility', () => {
   test('makes the svg focusable unless keyboard is disabled', () => {
     chart = new Chart(el, base)
     expect(svg().getAttribute('tabindex')).toBe('0')
+    chart.update({ type: sparkline, data: [1, 2] } as Partial<ChartConfig<object>>).render()
+    expect(svg().hasAttribute('tabindex')).toBe(false)
+    chart.update({ keyboard: true } as Partial<ChartConfig<object>>).render()
+    expect(svg().getAttribute('tabindex')).toBe('0')
+    chart.update({ type: line, data, keyboard: undefined } as Partial<ChartConfig<object>>).render()
     chart.update({ keyboard: false } as Partial<ChartConfig<object>>).render()
     expect(svg().hasAttribute('tabindex')).toBe(false)
   })
