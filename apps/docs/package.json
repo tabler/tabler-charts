@@ -2,5 +2,17 @@
   "name": "@tabler/charts-docs",
   "private": true,
   "type": "module",
-  "description": "Playground and documentation for Tabler Charts"
+  "description": "Playground and documentation for Tabler Charts",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@tabler/charts": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^8.3.1"
+  }
 }

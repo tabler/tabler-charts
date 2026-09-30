@@ -191,7 +191,15 @@ importers:
         specifier: ^5.0.2
         version: 5.0.2(@types/node@24.19.0)(happy-dom@20.14.5)(vite@8.3.1(@types/node@24.19.0))
 
-  apps/docs: {}
+  apps/docs:
+    dependencies:
+      '@tabler/charts':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      vite:
+        specifier: ^8.3.1
+        version: 8.3.1(@types/node@24.19.0)
 
   packages/core: {}
 

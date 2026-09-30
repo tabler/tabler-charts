@@ -18,7 +18,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
-    "lint:pkg": "pnpm -r --if-present lint:pkg"
+    "lint:pkg": "pnpm -r --if-present lint:pkg",
+    "docs:dev": "pnpm --filter @tabler/charts-docs dev",
+    "docs:build": "pnpm --filter @tabler/charts-docs build"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
