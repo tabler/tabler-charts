@@ -59,6 +59,12 @@ describe('style.css', () => {
       'tc-bar-horizontal',
       'tc-point',
       'tc-crosshair',
+      'tc-slice',
+      'tc-pie-track',
+      'tc-pie-value',
+      'tc-pie-label',
+      'tc-pie-slices',
+      'tc-hover-mark',
       'tc-hover-band',
       'tc-tooltip',
       'tc-tooltip-title',
@@ -94,7 +100,7 @@ describe('style.css', () => {
   })
 
   test('defines the entrance keyframes', () => {
-    for (const name of ['tc-reveal', 'tc-grow', 'tc-grow-x', 'tc-fade-in']) {
+    for (const name of ['tc-reveal', 'tc-grow', 'tc-grow-x', 'tc-fade-in', 'tc-pie-in']) {
       expect(css).toContain(`@keyframes ${name} {`)
     }
   })

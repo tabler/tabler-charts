@@ -25,15 +25,17 @@ export function hoverUnderlay(hit: Hit, crosshair = true): VNode {
   return h(
     'g',
     { class: 'tc-hover', 'aria-hidden': 'true' },
-    hit.band
-      ? h('rect', {
-          class: 'tc-hover-band',
-          x: round(hit.band.x),
-          y: round(hit.band.y),
-          width: round(hit.band.width),
-          height: round(hit.band.height),
-        })
-      : crosshair &&
+    hit.mark
+      ? null
+      : hit.band
+        ? h('rect', {
+            class: 'tc-hover-band',
+            x: round(hit.band.x),
+            y: round(hit.band.y),
+            width: round(hit.band.width),
+            height: round(hit.band.height),
+          })
+        : crosshair &&
           h('line', {
             class: 'tc-crosshair',
             x1: round(hit.x),
@@ -44,8 +46,29 @@ export function hoverUnderlay(hit: Hit, crosshair = true): VNode {
   )
 }
 
-/** Hover marks drawn above the series: an active dot on every point of point charts. */
+/**
+ * Hover marks drawn above the series: the hit's own mark (pie slices), or
+ * an active dot on every point of point charts.
+ */
 export function hoverOverlay(hit: Hit, radius = 4): VNode {
+  const { mark } = hit
+  if (mark) {
+    const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
+    return h(
+      'g',
+      { class: 'tc-hover', 'aria-hidden': 'true' },
+      item &&
+        seriesGroup(
+          item.seriesIndex,
+          item.color,
+          h('path', {
+            class: 'tc-hover-mark',
+            d: mark.d,
+            style: `transform:translate(${round(mark.x)}px,${round(mark.y)}px)`,
+          }),
+        ),
+    )
+  }
   return h(
     'g',
     { class: 'tc-hover', 'aria-hidden': 'true' },

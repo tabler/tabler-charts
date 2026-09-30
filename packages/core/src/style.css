@@ -47,6 +47,7 @@
   --tc-area-opacity: 0.1;
   --tc-area-gradient-start: 0.24;
   --tc-area-gradient-end: 0;
+  --tc-pie-value-size: 1.75em;
   --tc-point-ring: 2px;
 
   --tc-duration: 400ms;
@@ -185,6 +186,27 @@
   stroke: none;
 }
 
+/* Pie and donut slices; the gap between them is left empty (surface). */
+.tc-slice {
+  fill: var(--tc-series-color);
+  transition: d var(--tc-duration) var(--tc-easing);
+}
+
+.tc-pie-track {
+  fill: var(--tc-grid-color);
+}
+
+.tc-pie-value {
+  font-size: var(--tc-pie-value-size);
+  font-weight: 600;
+  fill: var(--tc-text-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-pie-label {
+  fill: var(--tc-text-muted);
+}
+
 /* Gradient areas are faded by a shared mask; the fill itself stays opaque. */
 .tc-area-gradient {
   fill-opacity: 1;
@@ -303,6 +325,18 @@
   animation: tc-fade-in var(--tc-duration) var(--tc-easing);
 }
 
+/* Pies scale in from their center. */
+@keyframes tc-pie-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+.tc-pie-slices {
+  animation: tc-pie-in calc(var(--tc-duration) * 1.5) var(--tc-easing);
+}
+
 /* Hover marks follow the pointer immediately. */
 .tc-hover .tc-point {
   transition: none;
@@ -339,6 +373,11 @@
 
 .tc-hover-band {
   fill: var(--tc-hover-color);
+}
+
+.tc-hover-mark {
+  fill: var(--tc-series-color);
+  opacity: 0.35;
 }
 
 .tc-tooltip {

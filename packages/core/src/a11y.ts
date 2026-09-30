@@ -50,5 +50,6 @@ export function describeHit(hit: Hit): string {
     hit.seriesIndex === undefined
       ? hit.items
       : hit.items.filter((item) => item.seriesIndex === hit.seriesIndex)
-  return `${hit.title}: ${items.map((item) => `${item.name} ${item.text}`).join(', ')}`
+  const values = items.map((item) => `${item.name} ${item.text}`).join(', ')
+  return hit.title ? `${hit.title}: ${values}` : values
 }

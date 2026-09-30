@@ -38,6 +38,11 @@ export interface Hit {
   items: HitItem[]
   /** Series of the mark directly under the pointer (e.g. a bar), if any. */
   seriesIndex?: number
+  /**
+   * A shape to highlight instead of a crosshair or band (e.g. a halo around a
+   * pie slice): path data `d`, drawn translated by `x` / `y`.
+   */
+  mark?: { d: string; x: number; y: number }
 }
 
 /** Maps a point in chart pixels to what lies there. */

@@ -16,7 +16,7 @@ export function tooltipContent(hit: Hit, options: TooltipOptions = {}): VNode {
   const body: ChildInput = options.format
     ? options.format(hit)
     : [
-        h('div', { class: 'tc-tooltip-title' }, hit.title),
+        hit.title && h('div', { class: 'tc-tooltip-title' }, hit.title),
         hit.items.map((item) =>
           h(
             'div',

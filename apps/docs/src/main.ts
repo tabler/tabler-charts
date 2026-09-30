@@ -5,8 +5,9 @@ import { areaDemo } from './demos/area.ts'
 import { barDemo } from './demos/bar.ts'
 import { customType } from './demos/custom-type.ts'
 import { lineDemo } from './demos/line.ts'
+import { pieDemo } from './demos/pie.ts'
 
-const demos: Demo[] = [lineDemo, areaDemo, barDemo, customType]
+const demos: Demo[] = [lineDemo, areaDemo, barDemo, pieDemo, customType]
 
 // -- Theme switch -------------------------------------------------------------
 

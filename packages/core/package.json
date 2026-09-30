@@ -76,6 +76,16 @@
         "default": "./dist/bar.cjs"
       }
     },
+    "./pie": {
+      "import": {
+        "types": "./dist/pie.d.ts",
+        "default": "./dist/pie.js"
+      },
+      "require": {
+        "types": "./dist/pie.d.cts",
+        "default": "./dist/pie.cjs"
+      }
+    },
     "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },
