@@ -48,8 +48,11 @@ export function tooltip(): ChartPlugin {
             x: rect.left - box.left - el.clientLeft,
             y: rect.top - box.top - el.clientTop,
           }
+          // Snap to the category, follow the pointer along the values.
+          const ax = hit.axis === 'y' ? anchor.x : hit.x
+          const ay = hit.axis === 'y' ? (hit.y ?? anchor.y) : anchor.y
           const place = placeTooltip(
-            { x: origin.x + hit.x * sx, y: origin.y + anchor.y * sy },
+            { x: origin.x + ax * sx, y: origin.y + ay * sy },
             { width: tip.offsetWidth, height: tip.offsetHeight },
             { width: el.clientWidth || width, height: el.clientHeight || height },
           )

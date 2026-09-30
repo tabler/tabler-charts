@@ -88,6 +88,11 @@ export interface CartesianLayoutOptions {
   values?: readonly (number | null | undefined)[]
   /** Format of the value axis ticks, when it differs from `y.format` (percent stacks). */
   tickFormat?: NumberFormat
+  /**
+   * Lay categories out along y and values along x (horizontal bars). The
+   * `x` / `y` options keep meaning category / value axis.
+   */
+  horizontal?: boolean
   /** Default for `y.zero`. */
   zero: boolean
   /** Space marks need beyond the plot edge (point radius, stroke). */
@@ -100,8 +105,12 @@ export interface CartesianLayoutOptions {
 export interface CartesianLayout {
   area: Rect
   labels: readonly Label[]
+  /** Category scale (along x, or along y when `horizontal`). */
   x: BandScale
+  /** Value scale (along y, or along x when `horizontal`). */
   y: LinearScale
+  /** Whether categories run along y. */
+  horizontal: boolean
   xTicks: Tick[]
   yTicks: Tick[]
   /** Grid lines, drawn below the marks. */
@@ -113,6 +122,8 @@ export interface CartesianLayout {
 }
 
 const TICK_SPACING = 60
+/** Horizontal value axes need more room per label. */
+const TICK_SPACING_X = 80
 const EDGE = 8
 
 /** Stable key of a series: its `id`, or its name. */
@@ -188,9 +199,15 @@ export function cartesianLayout(
   const showY = yOptions.show !== false
   const showX = xOptions.show !== false && labels.length > 0
 
-  const count = yOptions.ticks ?? Math.max(2, Math.round(height / TICK_SPACING))
+  const horizontal = layout.horizontal === true
+  const count =
+    yOptions.ticks ??
+    Math.max(2, Math.round(horizontal ? width / TICK_SPACING_X : height / TICK_SPACING))
   const domain = valueDomain(data, yOptions, layout.zero, count, ctx.hidden, layout.values)
   const tickFormat = layout.tickFormat ?? yOptions.format
+  if (horizontal) {
+    return horizontalLayout(options, ctx, layout, labels, domain, count, tickFormat)
+  }
   const probeY = linearTicks(linear(domain, [1, 0]), { count, format: tickFormat, locale })
 
   // Margins: labels outside the plot, half a line above the top tick,
@@ -247,9 +264,25 @@ export function cartesianLayout(
     foreground.push(axis({ position: 'bottom', ticks: xTicks, area, line: xOptions.line === true }))
   }
 
+  return {
+    area,
+    labels,
+    x,
+    y,
+    horizontal: false,
+    xTicks,
+    yTicks,
+    background,
+    foreground,
+    clip: plotClip(ctx, area, overhang),
+  }
+}
+
+/** Clip path around the plot area, a little larger so strokes and dots are not cut. */
+function plotClip(ctx: RenderContext, area: Rect, overhang: number): CartesianLayout['clip'] {
   const clipId = `${ctx.id}-clip`
   const bleed = overhang + 1
-  const clip = {
+  return {
     def: h(
       'clipPath',
       { id: clipId },
@@ -262,8 +295,89 @@ export function cartesianLayout(
     ),
     url: `url(#${clipId})`,
   }
+}
 
-  return { area, labels, x, y, xTicks, yTicks, background, foreground, clip }
+/** Categories along y (labels on the left), values along x (labels at the bottom). */
+function horizontalLayout(
+  options: CartesianOptions,
+  ctx: RenderContext,
+  layout: CartesianLayoutOptions,
+  labels: Label[],
+  domain: [number, number],
+  count: number,
+  tickFormat: NumberFormat | undefined,
+): CartesianLayout {
+  const yOptions = options.y ?? {}
+  const xOptions = options.x ?? {}
+  const { fontSize, locale, width, height } = ctx
+  const overhang = layout.overhang ?? 0
+  const pad = insets(options.padding)
+  const format = xOptions.format ?? ((label: Label) => String(label))
+  const showValues = yOptions.show !== false
+  const showCategories = xOptions.show !== false && labels.length > 0
+
+  const probeValues = linearTicks(linear(domain, [0, 1]), { count, format: tickFormat, locale })
+  const probeCategories: Tick[] = labels.map((label, i) => ({
+    value: label,
+    position: 0,
+    label: format(label, i),
+  }))
+  const edgeLabel = (tick: Tick | undefined) =>
+    showValues && tick ? Math.ceil(estimateTextWidth(tick.label, fontSize) / 2) : 0
+
+  const margins = {
+    top: pad.top + Math.max(overhang, EDGE / 2),
+    right: pad.right + Math.max(edgeLabel(probeValues[probeValues.length - 1]), overhang, EDGE),
+    bottom:
+      pad.bottom +
+      Math.max(showValues ? axisSize('bottom', probeValues, fontSize) : 0, overhang, EDGE / 2),
+    left:
+      pad.left +
+      Math.max(
+        showCategories ? axisSize('left', probeCategories, fontSize) : 0,
+        edgeLabel(probeValues[0]),
+        overhang,
+        EDGE,
+      ),
+  }
+  const area = innerRect(width, height, margins)
+
+  const x = band(labels, [area.y, area.y + area.height], {
+    paddingInner: layout.paddingInner ?? 0.3,
+    paddingOuter: layout.paddingOuter ?? 0.15,
+  })
+  const y = linear(domain, [area.x, area.x + area.width])
+  const yTicks = linearTicks(y, { count, format: tickFormat, locale })
+  const xTicks = showCategories
+    ? thinTicks(
+        bandTicks(x, (key: BandKey, i) => format(key, i)),
+        'left',
+        fontSize,
+      )
+    : []
+
+  const background: VNode[] = []
+  if (yOptions.grid !== false) background.push(grid({ direction: 'x', ticks: yTicks, area }))
+  if (xOptions.grid) background.push(grid({ direction: 'y', ticks: xTicks, area }))
+
+  const foreground: VNode[] = []
+  if (showCategories || xOptions.line) {
+    foreground.push(axis({ position: 'left', ticks: xTicks, area, line: xOptions.line === true }))
+  }
+  if (showValues) foreground.push(axis({ position: 'bottom', ticks: yTicks, area }))
+
+  return {
+    area,
+    labels,
+    x,
+    y,
+    horizontal: true,
+    xTicks,
+    yTicks,
+    background,
+    foreground,
+    clip: plotClip(ctx, area, overhang),
+  }
 }
 
 /** Attributes shared by every series group. */
@@ -293,7 +407,7 @@ export function categoryInteraction(
   anchor: (seriesIndex: number, index: number, value: number) => { x: number; y: number },
   markAt?: (x: number, y: number, index: number) => number | undefined,
 ): Interaction {
-  const { area, x, labels } = layout
+  const { area, x, labels, horizontal } = layout
   const { data } = options
   const formatLabel = options.x?.format ?? ((label: Label) => String(label))
   const formatValue = formatNumber(options.y?.format, ctx.locale)
@@ -302,12 +416,14 @@ export function categoryInteraction(
     const start = x.at(index)
     const center = start + x.bandwidth / 2
     const label = labels[index] as Label
+    // Where a missing value is anchored: the category center on its axis.
+    const empty = horizontal ? { x: area.x, y: center } : { x: center, y: null }
     const items: HitItem[] = []
     data.series.forEach((series, seriesIndex) => {
       if (ctx.hidden.has(seriesKey(series))) return
       const raw = series.values[index]
       const value = raw == null || !Number.isFinite(raw) ? null : raw
-      const point = value === null ? { x: center, y: null } : anchor(seriesIndex, index, value)
+      const point = value === null ? empty : anchor(seriesIndex, index, value)
       const item: HitItem = {
         name: series.name,
         seriesIndex,
@@ -319,8 +435,23 @@ export function categoryInteraction(
       if (series.color) item.color = series.color
       items.push(item)
     })
-    const hit: Hit = { index, label, title: formatLabel(label, index), x: center, area, items }
-    if (x.bandwidth > 0) hit.band = { x: start, width: x.bandwidth }
+    const title = formatLabel(label, index)
+    if (horizontal) {
+      const hit: Hit = {
+        index,
+        label,
+        title,
+        x: area.x + area.width / 2,
+        y: center,
+        axis: 'y',
+        area,
+        items,
+      }
+      hit.band = { x: area.x, y: start, width: area.width, height: x.bandwidth }
+      return hit
+    }
+    const hit: Hit = { index, label, title, x: center, area, items }
+    if (x.bandwidth > 0) hit.band = { x: start, y: area.y, width: x.bandwidth, height: area.height }
     return hit
   }
 
@@ -336,7 +467,7 @@ export function categoryInteraction(
       ) {
         return null
       }
-      const index = x.indexAt(px)
+      const index = x.indexAt(horizontal ? py : px)
       const hit = hitAt(index)
       const mark = markAt?.(px, py, index)
       if (mark !== undefined) hit.seriesIndex = mark

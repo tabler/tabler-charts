@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { barPath } from './bar.ts'
+import { barPath, hbarPath } from './bar.ts'
 
 describe('barPath()', () => {
   test('draws a square bar without radius', () => {
@@ -28,5 +28,24 @@ describe('barPath()', () => {
 
   test('rounds coordinates to two decimals', () => {
     expect(barPath(1 / 3, 10, 100.004, 40.126)).toBe('M0.33,100V40.13H10.33V100Z')
+  })
+})
+
+describe('hbarPath()', () => {
+  test('draws a square bar without radius', () => {
+    expect(hbarPath(10, 20, 0, 60)).toBe('M0,10H60V30H0Z')
+  })
+
+  test('rounds only the right end of bars growing right', () => {
+    expect(hbarPath(10, 20, 0, 60, 4)).toBe('M0,10H56A4,4,0,0,1,60,14V26A4,4,0,0,1,56,30H0Z')
+  })
+
+  test('rounds only the left end of bars growing left', () => {
+    expect(hbarPath(10, 20, 100, 40, 4)).toBe('M100,10H44A4,4,0,0,0,40,14V26A4,4,0,0,0,44,30H100Z')
+  })
+
+  test('clamps the radius to half the height and to the length', () => {
+    expect(hbarPath(0, 6, 0, 50, 10)).toContain('A3,3')
+    expect(hbarPath(0, 20, 0, 2, 10)).toContain('A2,2')
   })
 })

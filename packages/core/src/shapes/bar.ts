@@ -38,3 +38,39 @@ export function barPath(
     `V${b}Z`
   )
 }
+
+/**
+ * Path of a horizontal bar from `baseline` to `value` (both x in pixels),
+ * `y`…`y + height` tall. Only the data end is rounded, with `radius` clamped
+ * to half the height and to the bar length; the baseline end stays square.
+ * Works for bars growing right (positive values) and left (negative values).
+ */
+export function hbarPath(
+  y: number,
+  height: number,
+  baseline: number,
+  value: number,
+  radius = 0,
+): string {
+  const hgt = Math.max(0, height)
+  const length = Math.abs(value - baseline)
+  const r = Math.max(0, Math.min(radius, hgt / 2, length))
+  const y0 = round(y)
+  const y1 = round(y + hgt)
+  const b = round(baseline)
+  const v = round(value)
+
+  if (r === 0) return `M${b},${y0}H${v}V${y1}H${b}Z`
+
+  const right = value >= baseline
+  const edge = round(right ? value - r : value + r)
+  const sweep = right ? 1 : 0
+  const rr = round(r)
+  return (
+    `M${b},${y0}H${edge}` +
+    `A${rr},${rr},0,0,${sweep},${v},${round(y + r)}` +
+    `V${round(y + hgt - r)}` +
+    `A${rr},${rr},0,0,${sweep},${edge},${y1}` +
+    `H${b}Z`
+  )
+}

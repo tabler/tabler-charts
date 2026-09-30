@@ -29,9 +29,9 @@ export function hoverUnderlay(hit: Hit, crosshair = true): VNode {
       ? h('rect', {
           class: 'tc-hover-band',
           x: round(hit.band.x),
-          y: round(area.y),
+          y: round(hit.band.y),
           width: round(hit.band.width),
-          height: round(area.height),
+          height: round(hit.band.height),
         })
       : crosshair &&
           h('line', {

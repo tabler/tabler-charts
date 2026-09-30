@@ -204,6 +204,76 @@ describe('bar', () => {
     })
   })
 
+  describe('horizontal', () => {
+    const hData = {
+      labels: ['North', 'South', 'West'],
+      series: [
+        { name: '2025', values: [30, -10, 20] },
+        { name: '2026', values: [40, 15, 25] },
+      ],
+    }
+    const hNode = (config: Partial<ChartConfig<BarOptions>> = {}) =>
+      render({ data: hData, orientation: 'horizontal', ...config })
+    const zeroX = (node: ReturnType<typeof render>) =>
+      gridLineOffset(findByClass(node, 'tc-grid-line-zero')[0])
+
+    test('lays categories along y and grows bars right from zero', () => {
+      const node = hNode()
+      const [a, b] = barsOf(node, 'North').map((bar) => bounds(bar.attrs.d))
+      if (!a || !b) throw new Error('expected two bars')
+      expect(a.left).toBe(zeroX(node))
+      expect(a.bottom - a.top).toBeLessThanOrEqual(24)
+      // Grouped series sit one below the other with the 2px gap.
+      expect(b.top - a.bottom).toBeCloseTo(2)
+      expect(
+        barsOf(node).every((bar) => String(bar.attrs.class).includes('tc-bar-horizontal')),
+      ).toBe(true)
+    })
+
+    test('grows negative bars left and rounds only their data end', () => {
+      const node = hNode()
+      const [neg] = barsOf(node, 'South')
+      expect(neg?.attrs.class).toContain('tc-bar-negative')
+      expect(bounds(neg?.attrs.d).right).toBe(zeroX(node))
+      expect(String(neg?.attrs.d)).toMatch(/A4,4,0,0,0/)
+    })
+
+    test('puts category labels on the left and value labels at the bottom', () => {
+      const node = hNode()
+      const labelsOf = (cls: string) =>
+        findByClass(node, cls).flatMap((axis) => findByClass(axis, 'tc-tick-label'))
+      const left = labelsOf('tc-axis-left')
+      const bottom = labelsOf('tc-axis-bottom')
+      expect(left.map((t) => t.children[0])).toEqual(['North', 'South', 'West'])
+      expect(bottom.map((t) => t.children[0])).toContain('0')
+      expect(findByClass(node, 'tc-grid-x')).toHaveLength(1)
+      expect(findByClass(node, 'tc-grid-y')).toHaveLength(0)
+    })
+
+    test('stacks horizontally with gaps between segments', () => {
+      const node = hNode({ stacked: true })
+      const [a, b] = barsOf(node, 'West').map((bar) => bounds(bar.attrs.d))
+      expect(a?.top).toBe(b?.top)
+      expect((b?.left ?? 0) - (a?.right ?? 0)).toBeCloseTo(2)
+    })
+
+    test('hit tests along y and anchors at the bar end', () => {
+      let interaction: Interaction | undefined
+      buildChart({ ...base, data: hData, orientation: 'horizontal' }, size, 'h', (i) => {
+        interaction = i
+      })
+      const [a] = barsOf(hNode(), 'West').map((bar) => bounds(bar.attrs.d))
+      if (!interaction || !a) throw new Error('missing')
+      const hit = interaction.hitTest((a.left + a.right) / 2, (a.top + a.bottom) / 2)
+      expect(hit?.label).toBe('West')
+      expect(hit?.axis).toBe('y')
+      expect(hit?.seriesIndex).toBe(0)
+      expect(hit?.items[0]?.x).toBeCloseTo(a.right)
+      expect(hit?.band?.height).toBeGreaterThan(0)
+      expect(hit?.band?.width).toBe(hit?.area.width)
+    })
+  })
+
   test('renders empty data without errors', () => {
     expect(() => chartToString({ ...base, data: { series: [] } }, size)).not.toThrow()
     expect(() =>

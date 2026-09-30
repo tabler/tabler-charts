@@ -56,6 +56,7 @@ describe('style.css', () => {
       'tc-fade-start',
       'tc-fade-end',
       'tc-bar',
+      'tc-bar-horizontal',
       'tc-point',
       'tc-crosshair',
       'tc-hover-band',
@@ -93,7 +94,7 @@ describe('style.css', () => {
   })
 
   test('defines the entrance keyframes', () => {
-    for (const name of ['tc-reveal', 'tc-grow', 'tc-fade-in']) {
+    for (const name of ['tc-reveal', 'tc-grow', 'tc-grow-x', 'tc-fade-in']) {
       expect(css).toContain(`@keyframes ${name} {`)
     }
   })

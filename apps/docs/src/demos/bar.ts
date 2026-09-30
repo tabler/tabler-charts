@@ -54,6 +54,9 @@ export const barDemo: Demo = {
         stacked: value === 'grouped' ? false : value === 'percent' ? 'percent' : true,
       }),
     )
+    controls.select('Orientation', ['vertical', 'horizontal'] as const, 'vertical', (orientation) =>
+      chart.update({ orientation }),
+    )
     controls.select('Negative values', ['off', 'on'] as const, 'off', (value) => {
       negatives = value === 'on'
       refresh()

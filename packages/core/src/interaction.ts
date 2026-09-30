@@ -24,12 +24,16 @@ export interface Hit {
   label: string | number
   /** Label formatted for display (tooltips). */
   title: string
-  /** Anchor x of the category in chart pixels (for crosshairs and tooltips). */
+  /** Anchor x of the category in chart pixels (for crosshairs and tooltips); the plot center for horizontal bars. */
   x: number
   /** Plot area, in chart pixels. */
   area: Rect
-  /** The category's band along x, for band scales (bars). */
-  band?: { x: number; width: number }
+  /** Axis the categories run along; `'y'` for horizontal bars. Defaults to `'x'`. */
+  axis?: 'x' | 'y'
+  /** Center of the category along y, when categories run along y. */
+  y?: number
+  /** The category's band in chart pixels, for band scales (bars). */
+  band?: { x: number; y: number; width: number; height: number }
   /** Every series' value at this category. */
   items: HitItem[]
   /** Series of the mark directly under the pointer (e.g. a bar), if any. */

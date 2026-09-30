@@ -235,6 +235,12 @@
   }
 }
 
+@keyframes tc-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
 @keyframes tc-fade-in {
   from {
     opacity: 0;
@@ -268,6 +274,16 @@
 
 .tc-bar-negative {
   transform-origin: 50% 0;
+}
+
+/* Horizontal bars grow right from the baseline (left for negative values). */
+.tc-bar-horizontal {
+  transform-origin: 0 50%;
+  animation-name: tc-grow-x;
+}
+
+.tc-bar-horizontal.tc-bar-negative {
+  transform-origin: 100% 50%;
 }
 
 .tc-point {

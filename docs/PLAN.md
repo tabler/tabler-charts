@@ -164,7 +164,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 24a. `refactor(core): move tooltip, legend, table and keyboard into plugins` – `ChartPlugin` (hooks: beforeRender / layers / svgAttrs / afterRender / reservedHeight / destroy), wtyczki `highlight`, `tooltip`, `legend`, `dataTable`, `keyboard`; `@tabler/charts` = `Chart` z domyślnymi wtyczkami, `@tabler/charts/core` = goły `Chart`. Rozmiar: core + line 9,2 kB gzip, domyślny Chart + line 11,3 kB (zysk ~2 kB; dalsza optymalizacja w M5).
 
 ### M3 – Kolejne typy
-- [ ] 24. `feat(core): add stacked and horizontal bars`.
+- [x] 24. `feat(core): add stacked and horizontal bars` (+ dema) – `stackSeries()` (dodatnie w górę, ujemne w dół, tryb `'percent'`), `stacked` dla `bar` i `line`/`area`, `orientation: 'horizontal'` dla `bar`; 3 commity: stacked bars, stacked areas, horizontal bars.
 - [ ] 25. `feat(core): add arc generator and pie/donut chart`.
 - [ ] 26. `feat(core): add scatter chart`.
 - [ ] 27. `feat(core): add sparkline`.

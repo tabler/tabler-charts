@@ -81,7 +81,7 @@ describe('hover layers', () => {
   })
 
   test('draw a band and no dots for band charts', () => {
-    const banded = { ...hit, band: { x: 120, width: 40 } }
+    const banded = { ...hit, band: { x: 120, y: 10, width: 40, height: 180 } }
     expect(renderToString(hoverUnderlay(banded))).toContain(
       '<rect class="tc-hover-band" x="120" y="10" width="40" height="180"/>',
     )
