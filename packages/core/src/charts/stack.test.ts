@@ -40,17 +40,25 @@ describe('stackSeries()', () => {
     expect(ea?.[0]).toEqual({ y0: 0, y1: 0 })
   })
 
-  test('percent shares sum to exactly one', () => {
-    const [, , c] = stackSeries(
+  test('percent shares never sum past one', () => {
+    const awkward = [0.1, 0.2, 0.7, 1 / 3, 2 / 7, 0.123456789]
+    const stacks = stackSeries(
+      awkward.map((v, i) => ({ name: `s${i}`, values: [v] })),
+      1,
+      { percent: true },
+    )
+    const last = stacks[stacks.length - 1]?.[0]
+    expect(last?.y1).toBe(1)
+    for (const row of stacks) expect(row[0]?.y1).toBeLessThanOrEqual(1)
+    const [, neg] = stackSeries(
       [
-        { name: 'a', values: [0.1] },
-        { name: 'b', values: [0.2] },
-        { name: 'c', values: [0.7] },
+        { name: 'a', values: [-1 / 3] },
+        { name: 'b', values: [-2 / 3] },
       ],
       1,
       { percent: true },
     )
-    expect(c?.[0]?.y1).toBe(1)
+    expect(neg?.[0]?.y1).toBe(-1)
   })
 
   test('leaves hidden series out of the stack', () => {
