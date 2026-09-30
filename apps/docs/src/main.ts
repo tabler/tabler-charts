@@ -6,8 +6,9 @@ import { barDemo } from './demos/bar.ts'
 import { customType } from './demos/custom-type.ts'
 import { lineDemo } from './demos/line.ts'
 import { pieDemo } from './demos/pie.ts'
+import { scatterDemo } from './demos/scatter.ts'
 
-const demos: Demo[] = [lineDemo, areaDemo, barDemo, pieDemo, customType]
+const demos: Demo[] = [lineDemo, areaDemo, barDemo, pieDemo, scatterDemo, customType]
 
 // -- Theme switch -------------------------------------------------------------
 

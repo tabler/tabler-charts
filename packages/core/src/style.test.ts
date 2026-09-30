@@ -58,6 +58,7 @@ describe('style.css', () => {
       'tc-bar',
       'tc-bar-horizontal',
       'tc-point',
+      'tc-bubble',
       'tc-crosshair',
       'tc-slice',
       'tc-pie-track',

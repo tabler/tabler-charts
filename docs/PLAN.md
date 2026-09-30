@@ -166,7 +166,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 ### M3 – Kolejne typy
 - [x] 24. `feat(core): add stacked and horizontal bars` (+ dema) – `stackSeries()` (dodatnie w górę, ujemne w dół, tryb `'percent'`), `stacked` dla `bar` i `line`/`area`, `orientation: 'horizontal'` dla `bar`; 3 commity: stacked bars, stacked areas, horizontal bars.
 - [x] 25. `feat(core): add arc generator and pie/donut chart` (+ demo) – `arcPath()` zgodny z d3-shape (60k przypadków), odstęp 2 px o stałej szerokości, `pie` / `donut` z sumą w środku, wycinki w legendzie / tabeli / klawiaturze, tooltip z udziałem, aureola przy hover (`Hit.mark`), wejście `@tabler/charts/pie`.
-- [ ] 26. `feat(core): add scatter chart`.
+- [x] 26. `feat(core): add scatter chart` (+ demo) – dwie osie liczbowe (`domainOf()`), bąbelki proporcjonalne polem (`size`), najbliższy punkt w 2D (wyszukiwanie binarne po x), aureola przy hover, klawiatura po punktach, tabela punktów, wejście `@tabler/charts/scatter`.
 - [ ] 27. `feat(core): add sparkline`.
 - [ ] 28. `feat(core): add time and log scales`.
 - [ ] 29. `perf(core): add LTTB decimation module`.

@@ -34,11 +34,19 @@ export type {
   Series,
   ValueAxisOptions,
 } from './charts/cartesian.ts'
-export { categoryInteraction, seriesKey, seriesLegend, seriesTable } from './charts/cartesian.ts'
+export {
+  categoryInteraction,
+  domainOf,
+  seriesKey,
+  seriesLegend,
+  seriesTable,
+} from './charts/cartesian.ts'
 export type { LineOptions } from './charts/line.ts'
 export { line } from './charts/line.ts'
 export type { PieOptions, PieSlice } from './charts/pie.ts'
 export { donut, pie } from './charts/pie.ts'
+export type { ScatterOptions, ScatterPoint, ScatterSeries } from './charts/scatter.ts'
+export { scatter } from './charts/scatter.ts'
 export type { AxisOptions, AxisPosition, LinearTicksOptions, Tick } from './components/axis.ts'
 export { axis, axisSize, bandTicks, linearTicks, thinTicks } from './components/axis.ts'
 export type { GridOptions } from './components/grid.ts'

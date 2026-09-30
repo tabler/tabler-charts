@@ -157,6 +157,16 @@ export function valueDomain(
 ): [number, number] {
   const values =
     override ?? data.series.filter((s) => !hidden.has(seriesKey(s))).flatMap((s) => s.values)
+  return domainOf(values, options, zeroDefault, count)
+}
+
+/** A niced numeric domain for `values`, honouring zero, min, max and nice. */
+export function domainOf(
+  values: readonly (number | null | undefined)[],
+  options: ValueAxisOptions,
+  zeroDefault: boolean,
+  count: number,
+): [number, number] {
   let [lo, hi] = extent(values) ?? [0, 1]
   if (options.zero ?? zeroDefault) {
     lo = Math.min(lo, 0)

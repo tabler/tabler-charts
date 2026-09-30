@@ -86,6 +86,16 @@
         "default": "./dist/pie.cjs"
       }
     },
+    "./scatter": {
+      "import": {
+        "types": "./dist/scatter.d.ts",
+        "default": "./dist/scatter.js"
+      },
+      "require": {
+        "types": "./dist/scatter.d.cts",
+        "default": "./dist/scatter.cjs"
+      }
+    },
     "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },
