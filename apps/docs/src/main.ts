@@ -2,10 +2,11 @@ import '@tabler/charts/style.css'
 import './site.css'
 import { createControls, type Demo } from './demo.ts'
 import { areaDemo } from './demos/area.ts'
+import { barDemo } from './demos/bar.ts'
 import { customType } from './demos/custom-type.ts'
 import { lineDemo } from './demos/line.ts'
 
-const demos: Demo[] = [lineDemo, areaDemo, customType]
+const demos: Demo[] = [lineDemo, areaDemo, barDemo, customType]
 
 // -- Theme switch -------------------------------------------------------------
 

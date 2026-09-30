@@ -151,7 +151,7 @@ zielonym (`pnpm build && pnpm test` przechodzi). Koniec etapu = tag roboczy / kr
 - [x] 14. `feat(core): add base stylesheet with css variables` – paleta, dark mode, reduced motion; 8 kolorów zwalidowanych pod CVD (jasny i ciemny), tekst osi WCAG AA, eksport `@tabler/charts/style.css`. Uwaga: 3 jasne kolory mają < 3:1 na białym tle → tooltip (20) i tabela danych (23) są wymagane.
 - [x] 15. `feat(core): add line chart` (+ demo; przerzedzanie etykiet zachowuje ostatnią etykietę) – wspólny layout kartezjański w `charts/cartesian.ts` (domena Y, marginesy, clip), wejście `@tabler/charts/line`; `Chart` + `line` ≈ 7 kB gzip.
 - [x] 16. `feat(core): add area chart` (+ demo) – gradient przez jedną wspólną maskę (kolor z CSS serii, siła z `--tc-area-gradient-*`), obszary zawsze pod liniami, wejście `@tabler/charts/area`.
-- [ ] 17. `feat(core): add bar chart (grouped)`.
+- [x] 17. `feat(core): add bar chart (grouped)` (+ demo) – słupki ≤ 24 px, odstęp 2 px, zaokrąglony tylko koniec z danymi (`barPath()`), wartości ujemne w dół (`.tc-bar-negative`), wejście `@tabler/charts/bar`.
 - [x] 18. `docs: add playground app` – Vite, strona z line/area/bar, przełącznik light/dark. **Zrobione wcześniej (po kroku 14)**: playground na https://tabler-charts.vercel.app, importuje bibliotekę ze źródeł; od teraz każdy krok z nowym typem wykresu / funkcją dodaje swoje demo.
 
 ### M2 – Interakcje i a11y

@@ -56,6 +56,16 @@
         "default": "./dist/area.cjs"
       }
     },
+    "./bar": {
+      "import": {
+        "types": "./dist/bar.d.ts",
+        "default": "./dist/bar.js"
+      },
+      "require": {
+        "types": "./dist/bar.d.cts",
+        "default": "./dist/bar.cjs"
+      }
+    },
     "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },

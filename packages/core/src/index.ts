@@ -14,6 +14,8 @@ export type {
 export { buildChart, Chart, chartToString, resolveSize } from './chart.ts'
 export type { AreaOptions } from './charts/area.ts'
 export { area } from './charts/area.ts'
+export type { BarOptions } from './charts/bar.ts'
+export { bar } from './charts/bar.ts'
 export type {
   CartesianData,
   CartesianOptions,
@@ -49,6 +51,7 @@ export type { LinearScale, LinearScaleOptions } from './scales/linear.ts'
 export { linear } from './scales/linear.ts'
 export { niceDomain, tickIncrement, tickStep, ticks } from './scales/ticks.ts'
 export { cancel, flush, schedule } from './scheduler.ts'
+export { barPath } from './shapes/bar.ts'
 export type { Curve, PathOptions, Point } from './shapes/path.ts'
 export { areaPath, linePath } from './shapes/path.ts'
 export type {
