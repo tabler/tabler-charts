@@ -60,7 +60,7 @@ export const tablerDemo: Demo = {
   mount(el, controls) {
     const frame = document.createElement('iframe')
     frame.title = 'Tabler page with charts'
-    frame.style.cssText = 'width:100%;height:360px;border:0;border-radius:8px'
+    frame.style.cssText = 'width:100%;height:440px;border:0;border-radius:8px'
     frame.srcdoc = PAGE
     el.append(frame)
     frame.addEventListener('load', () => void init(frame.contentDocument as Document))

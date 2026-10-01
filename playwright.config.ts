@@ -1,0 +1,43 @@
+import { defineConfig, devices } from '@playwright/test'
+
+/**
+ * Visual regression tests: screenshots of the playground (built and served
+ * with `vite preview`) compared with committed baselines.
+ *
+ * Screenshots depend on the platform's fonts and rendering, so the baselines
+ * that count are the Linux ones, made in the Playwright Docker image (CI, see
+ * .github/workflows/visual.yml). Runs elsewhere keep their own, untracked
+ * baselines under their platform's folder.
+ */
+export default defineConfig({
+  testDir: 'tests/visual',
+  snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{arg}{ext}',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  use: {
+    ...devices['Desktop Chrome'],
+    baseURL: 'http://127.0.0.1:4173',
+    viewport: { width: 1280, height: 900 },
+    deviceScaleFactor: 1,
+    locale: 'en-US',
+    timezoneId: 'UTC',
+    colorScheme: 'light',
+  },
+  expect: {
+    toHaveScreenshot: {
+      // Entrance animations and transitions are finished before every shot.
+      animations: 'disabled',
+      caret: 'hide',
+      maxDiffPixelRatio: 0.002,
+    },
+  },
+  webServer: {
+    command:
+      'pnpm docs:build && pnpm --filter @tabler/charts-docs preview --port 4173 --strictPort --host 127.0.0.1',
+    url: 'http://127.0.0.1:4173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 180_000,
+  },
+  projects: [{ name: 'chromium' }],
+})

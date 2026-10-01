@@ -18,3 +18,8 @@ next-env.d.ts
 .nuxt/
 .output/
 .astro/
+# Visual tests: reports, and baselines other than the Linux ones CI compares against
+playwright-report/
+test-results/
+tests/visual/__screenshots__/*
+!tests/visual/__screenshots__/linux/

@@ -22,11 +22,14 @@
     "docs:dev": "pnpm --filter @tabler/charts-docs dev",
     "docs:build": "pnpm --filter @tabler/charts-docs build",
     "size": "node scripts/size.mjs",
-    "examples:build": "pnpm -r --filter \"./examples/**\" build"
+    "examples:build": "pnpm -r --filter \"./examples/**\" build",
+    "visual": "playwright test",
+    "visual:update": "playwright test --update-snapshots"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^2.5.14",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.19.0",
     "happy-dom": "^20.14.5",
     "lightningcss": "^1.33.0",
