@@ -46,13 +46,17 @@ async function settle(page: Page): Promise<void> {
 }
 
 /** Screenshot every element of `locator`, named by `name(index)`, collecting all failures. */
-async function shoot(locator: Locator, name: (index: number) => Promise<string>): Promise<void> {
+async function shoot(
+  locator: Locator,
+  name: (index: number) => Promise<string>,
+  mask: Locator[] = [],
+): Promise<void> {
   const count = await locator.count()
   expect(count).toBeGreaterThan(0)
   for (let i = 0; i < count; i++) {
     const element = locator.nth(i)
     await element.scrollIntoViewIfNeeded()
-    await expect.soft(element).toHaveScreenshot(`${await name(i)}.png`)
+    await expect.soft(element).toHaveScreenshot(`${await name(i)}.png`, { mask })
   }
 }
 
@@ -80,7 +84,10 @@ test('demos', async ({ page }) => {
   }
   await settle(page)
   const demos = page.locator('section.demo:not(#gallery)')
-  await shoot(demos, async (i) => `demo-${await demos.nth(i).getAttribute('id')}`)
+  // The decimation demo shows how long it took to render: different on every run.
+  await shoot(demos, async (i) => `demo-${await demos.nth(i).getAttribute('id')}`, [
+    page.locator('#decimate output'),
+  ])
 })
 
 test.describe('interaction', () => {
