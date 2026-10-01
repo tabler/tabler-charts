@@ -51,11 +51,13 @@ describe('@tabler/charts-vue', () => {
     expect(clip).toMatch(/^tc-[a-zA-Z0-9]+-clip$/)
   })
 
-  test('hydrates without warnings and takes the server svg over in place', async () => {
+  test('hydrates without warnings, reusing the server svg nodes', async () => {
     const root = () => h(LineChart, { data: data(), width: 400, height: 200, locale: 'en-US' })
     host = document.createElement('div')
     host.innerHTML = await renderToString(createSSRApp(root))
     document.body.append(host)
+    const svg = host.querySelector('svg')
+    const line = host.querySelector('.tc-series-1 .tc-line')
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     app = createSSRApp(root)
@@ -65,6 +67,9 @@ describe('@tabler/charts-vue', () => {
     expect(error).not.toHaveBeenCalled()
     warn.mockRestore()
     error.mockRestore()
+    // The very same nodes: hydrated, not re-created, so entrance animations do not run again.
+    expect(host.querySelector('svg')).toBe(svg)
+    expect(host.querySelector('.tc-series-1 .tc-line')).toBe(line)
     expect(host.querySelectorAll('svg.tc-chart')).toHaveLength(1)
     expect(host.querySelector('.tc-legend')).not.toBeNull()
   })

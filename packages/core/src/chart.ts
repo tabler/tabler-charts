@@ -522,12 +522,16 @@ export class Chart<O extends object = object> {
       const extra = plugin.svgAttrs?.(config)
       if (extra) attrs = { ...attrs, ...extra }
     }
+    const adopted = this.#adopt
     render(
       this.element,
       composeChart(config, size, this.id, cache.content, under, over, attrs),
-      this.#adopt,
+      adopted,
     )
     this.#adopt = null
+    // The server markup was hydrated in place: snap it to the real size and
+    // data instead of morphing (the server could not measure the container).
+    if (adopted) this.#markResizing()
 
     for (const plugin of this.#plugins)
       plugin.afterRender?.({ config, legend, hidden, size, stale })

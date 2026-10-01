@@ -231,3 +231,65 @@ describe('render() keyed children', () => {
     expect(rects().map((r) => r.getAttribute('data-k'))).toEqual(['2', '1', '1'])
   })
 })
+
+describe('render() hydrating existing markup', () => {
+  /** Server markup in a fresh container, and its root element. */
+  function server(markup: string): [HTMLElement, Element] {
+    const box = document.createElement('div')
+    box.innerHTML = markup
+    return [box, box.firstElementChild as Element]
+  }
+
+  test('reuses matching nodes and patches their attributes and text', () => {
+    const [box, root] = server(
+      '<svg class="tc-chart" viewBox="0 0 10 10" data-extra="x"><g class="a"><text>old</text></g></svg>',
+    )
+    const g = root.querySelector('g')
+    const text = root.querySelector('text')?.firstChild
+    const out = render(
+      box,
+      h(
+        'svg',
+        { class: 'tc-chart', viewBox: '0 0 20 20' },
+        h('g', { class: 'b' }, h('text', null, 'new')),
+      ),
+      root,
+    )
+    expect(out).toBe(root)
+    expect(root.querySelector('g')).toBe(g)
+    expect(root.querySelector('text')?.firstChild).toBe(text)
+    expect(box.innerHTML).toBe(
+      '<svg class="tc-chart" viewBox="0 0 20 20"><g class="b"><text>new</text></g></svg>',
+    )
+  })
+
+  test('creates what does not match in place and removes leftovers', () => {
+    const [box, root] = server(
+      '<svg><rect></rect><circle></circle><line></line><path></path></svg>',
+    )
+    const rect = root.querySelector('rect')
+    render(box, h('svg', null, h('rect', { x: 1 }), h('g', null), h('line', null)), root)
+    // rect kept, circle → new g, line kept, path removed.
+    expect(root.querySelector('rect')).toBe(rect)
+    expect(Array.from(root.children).map((c) => c.localName)).toEqual(['rect', 'g', 'line'])
+    expect(root.querySelector('g')?.namespaceURI).toBe(SVG_NS)
+  })
+
+  test('skips comments and whitespace between elements', () => {
+    const [box, root] = server('<div> <!-- server --> <span>a</span>\n</div>')
+    const span = root.querySelector('span')
+    render(box, h('div', null, h('span', null, 'b')), root)
+    expect(root.querySelector('span')).toBe(span)
+    expect(box.innerHTML).toBe('<div><span>b</span></div>')
+  })
+
+  test('hydrated nodes are patched by key afterwards', () => {
+    const [box, root] = server('<svg><g class="s1"></g><g class="s2"></g></svg>')
+    const tree = (order: string[]) =>
+      h('svg', null, ...order.map((k) => h('g', { key: k, class: k })))
+    render(box, tree(['s1', 's2']), root)
+    const [s1, s2] = Array.from(root.children)
+    render(box, tree(['s2', 's1']))
+    expect(Array.from(root.children)).toEqual([s2, s1])
+  })
+})

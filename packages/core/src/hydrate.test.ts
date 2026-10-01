@@ -49,6 +49,58 @@ afterEach(() => {
 })
 
 describe('hydrating server-rendered markup', () => {
+  test('hydrates the server svg, legend and table in place instead of re-creating them', () => {
+    el = document.createElement('div')
+    el.innerHTML = serverMarkup()
+    document.body.appendChild(el)
+    const svg = el.querySelector('svg')
+    const line = el.querySelector('.tc-series-1 .tc-line')
+    const tick = el.querySelector('.tc-axis-x .tc-tick-label')?.firstChild
+    const legendButton = el.querySelector('.tc-legend-item')
+    const tableCell = el.querySelector('.tc-table td')
+    chart = new Chart(el, config)
+    // The very same nodes, down to the text of a tick label.
+    expect(el.querySelector('svg')).toBe(svg)
+    expect(el.querySelector('.tc-series-1 .tc-line')).toBe(line)
+    expect(el.querySelector('.tc-axis-x .tc-tick-label')?.firstChild).toBe(tick)
+    expect(el.querySelector('.tc-legend-item')).toBe(legendButton)
+    expect(el.querySelector('.tc-table td')).toBe(tableCell)
+    // Transitions are off while the hydrated markup snaps to the client layout.
+    expect(svg?.hasAttribute('data-resizing')).toBe(true)
+  })
+
+  test('patches what differs from the server markup, ending up as a fresh render', () => {
+    /** The chart svg as a string, without the transient resize flag. */
+    const markup = (host: Element) =>
+      (host.querySelector('svg')?.outerHTML ?? '').replace(' data-resizing=""', '')
+
+    // Rendered on the server at another size, with other data and one series fewer.
+    el = document.createElement('div')
+    const other = {
+      ...config,
+      data: { labels: ['a', 'b'], series: [{ name: 'A', values: [5, 1] }] },
+    }
+    el.innerHTML = chartToString(other as ChartConfig<object>, { width: 600, height: 300 })
+    document.body.appendChild(el)
+    const svg = el.querySelector('svg')
+    chart = new Chart(el, config)
+    expect(el.querySelector('svg')).toBe(svg)
+    expect(svg?.getAttribute('viewBox')).toBe('0 0 300 150')
+
+    const fresh = document.createElement('div')
+    document.body.appendChild(fresh)
+    const reference = new Chart(fresh, config)
+    expect(markup(el)).toBe(markup(fresh))
+    reference.destroy()
+    fresh.remove()
+
+    // Later updates patch the hydrated nodes like any others (series are keyed).
+    const first = el.querySelector('.tc-series-1')
+    chart.update({ data: { ...(config as unknown as { data: object }).data } } as never)
+    flush()
+    expect(el.querySelector('.tc-series-1')).toBe(first)
+  })
+
   test('replaces the svg, legend and table instead of duplicating them', () => {
     el = document.createElement('div')
     el.innerHTML = serverMarkup()

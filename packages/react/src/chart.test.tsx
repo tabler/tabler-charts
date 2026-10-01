@@ -47,11 +47,13 @@ describe('@tabler/charts-react', () => {
     expect(clip).toMatch(/^tc-[a-zA-Z0-9]+-clip$/)
   })
 
-  test('hydrates without warnings and takes the server svg over in place', () => {
+  test('hydrates without warnings, reusing the server svg nodes', () => {
     const tree = <LineChart data={data} width={400} height={200} locale="en-US" />
     host = document.createElement('div')
     host.innerHTML = renderToString(tree)
     document.body.append(host)
+    const svg = host.querySelector('svg')
+    const line = host.querySelector('.tc-series-1 .tc-line')
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
     act(() => {
       root = hydrateRoot(host, tree)
@@ -59,10 +61,10 @@ describe('@tabler/charts-react', () => {
     flush()
     expect(errors).not.toHaveBeenCalled()
     errors.mockRestore()
-    // The server svg is replaced in place (same task, so nothing flashes), never duplicated;
-    // the chart then adds its legend and data table next to it.
+    // The very same nodes: hydrated, not re-created, so entrance animations do not run again.
+    expect(host.querySelector('svg')).toBe(svg)
+    expect(host.querySelector('.tc-series-1 .tc-line')).toBe(line)
     expect(host.querySelectorAll('svg.tc-chart')).toHaveLength(1)
-    expect(host.querySelector('svg')?.getAttribute('aria-label')).toBeNull()
     expect(host.querySelector('.tc-legend')).not.toBeNull()
   })
 
