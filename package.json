@@ -2,7 +2,7 @@
   "name": "tabler-charts-monorepo",
   "private": true,
   "type": "module",
-  "description": "Zero-dependency SVG charts styled with CSS \u2014 core, React, Vue, Bootstrap and Web Component.",
+  "description": "Zero-dependency SVG charts styled with CSS — core, React, Vue, Bootstrap and Web Component.",
   "license": "MIT",
   "packageManager": "pnpm@12.4.2",
   "engines": {
@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.14",
     "@playwright/test": "^1.63.0",
     "@types/node": "^24.19.0",

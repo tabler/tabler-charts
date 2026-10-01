@@ -192,6 +192,10 @@ Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexC
 ### Dalsze funkcje
 - [x] 47. `feat(core): add annotations` – `annotations` w line / area / bar (także poziomych) / candlestick: linia przy wartości (`y: 99.9`), pasmo wartości (`y: [40, 60]`), linia przy kategorii lub dacie na osi czasu (`x: 'Jun'`), pasmo kategorii (`x: [a, b]`); etykieta (`label`, `position`), kolor (`--tc-annotation-color`), klasa; pasma pod seriami, linie i etykiety nad nimi (pod osiami); wartości adnotacji wchodzą do domeny osi, adnotacje poza stałym zakresem są pomijane; przełącznik w demie line i 2 kafelki w galerii.
 
+### Jakość
+- [x] 48. `test(core): check node identity in the DOM fuzzer` – niezmienniki: hover / leave / klawisz nie zmieniają węzłów ani atrybutów treści, przełączenie serii nie odtwarza innych, aktualizacja nie montuje svg od nowa; `FUZZ_ITERATIONS` / `FUZZ_STEPS` / `FUZZ_SEED`. Znalazł błąd: warstwy svg bez kluczy (pasmo adnotacji przed listą serii odtwarzało wszystkie serie) → `fix(core): key the chart layers`.
+- [x] 49. `test: add an axe accessibility audit` – axe-core (WCAG 2.2 AA) na całym playgroundzie w obu motywach i w stanach interaktywnych (tooltip, widoczna tabela, fokus, ukryta seria), w workflow Visual. Znalazł: brak nazwy dostępnej wykresu bez `title` → domyślna nazwa z typu i serii; wykres w shadow DOM ignorował ciemny motyw przodka → `:host-context` (Chromium).
+
 ### M5 – Wydanie
 - [x] 37. `test: add playwright visual regression tests` – Playwright (Chromium) na zbudowanym playgroundzie (`vite preview`): każdy kafelek galerii w trybie jasnym i ciemnym, każde demo (losowe dane z ziarnem, zamrożony zegar), stany interakcji (tooltip i crosshair, pasmo słupka, aureola wycinka, fokus z klawiatury, ukryta seria); wzorce dla Linuksa z obrazu Playwright w CI (`.github/workflows/visual.yml`), lokalne wzorce innych platform poza repo; 2 commity: testy + workflow, potem wzorce.
 - [x] 38. `chore: add size budget check` – `pnpm size` (rolldown + gzip typowych importów, budżety w `scripts/size.mjs`), w CI. **Zrobione wcześniej**, w fazie optymalizacji po M3.
