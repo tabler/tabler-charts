@@ -1,4 +1,5 @@
 import type { annotationLayers, annotationValues } from './charts/annotations.ts'
+import type { dateLabels } from './charts/dates.ts'
 import type { LinearScale, LinearScaleOptions } from './scales/linear.ts'
 import type { time, timePointScale } from './scales/time.ts'
 import type { areaPath, linePath, Point } from './shapes/path.ts'
@@ -12,6 +13,8 @@ import type { areaPath, linePath, Point } from './shapes/path.ts'
 export interface Features {
   /** Time scale (and the point scale over it) behind `x: { type: 'time' }`. */
   time?: { scale: typeof time; points: typeof timePointScale }
+  /** Date labels behind `x: { type: 'time' }` (also registered by `@tabler/charts/candlestick`). */
+  dates?: typeof dateLabels
   /** Log scale behind `scale: 'log'`. */
   log?: (
     domain: readonly [number, number],
@@ -38,7 +41,7 @@ export function feature<K extends keyof Features>(name: K): NonNullable<Features
   const found = features[name]
   if (!found) {
     throw new Error(
-      `@tabler/charts: "${name}" is not registered. Import "@tabler/charts/${name}" (or "@tabler/charts" for everything).`,
+      `@tabler/charts: "${name}" is not registered. Import "@tabler/charts/${name === 'dates' ? 'time' : name}" (or "@tabler/charts" for everything).`,
     )
   }
   return found

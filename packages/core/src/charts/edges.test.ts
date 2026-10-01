@@ -5,12 +5,12 @@
  */
 import { describe, expect, test } from 'vitest'
 import '../annotations.ts'
+import { candlestick } from '../candlestick.ts'
 import { buildChart, type ChartConfig } from '../chart.ts'
 import { estimateTextWidth } from '../layout.ts'
 import { findByClass, findByTag, tickLabelExtent } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { bar } from './bar.ts'
-import { candlestick } from './candlestick.ts'
 import { heatmap } from './heatmap.ts'
 import { scatter } from './scatter.ts'
 

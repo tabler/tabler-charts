@@ -2,7 +2,7 @@ import type { DataTable, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { type Features, feature } from '../features.ts'
-import { formatDate, formatNumber, type NumberFormat } from '../format.ts'
+import { formatNumber, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import {
   estimateTextWidth,
@@ -95,7 +95,8 @@ export interface CategoryAxisOptions {
   /**
    * `'time'` treats labels as dates or timestamps: line and area charts place
    * points at their real distance in time, with calendar-aware ticks.
-   * Labels must be in ascending order. Defaults to `'category'`.
+   * Labels must be in ascending order. Needs `@tabler/charts/time` (included
+   * in `@tabler/charts`; candlesticks label dates without it). Defaults to `'category'`.
    */
   type?: 'category' | 'time'
   /** Align time ticks to UTC instead of local time (use it for SSR). */
@@ -200,23 +201,7 @@ export function labelFormatter(
 ): (label: Label, index: number) => string {
   if (options.x?.format) return options.x.format
   if (!isTimeAxis(options)) return (label) => String(label)
-  const labels = resolveLabels(options.data)
-  const first = labels[0]
-  const last = labels[labels.length - 1]
-  const span = first !== undefined && last !== undefined ? Math.abs(toMs(last) - toMs(first)) : 0
-  // Show the time of day when the whole series spans less than a few days.
-  const withTime = span > 0 && span < 3 * 24 * 60 * 60 * 1000
-  const fmt = formatDate(
-    {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      ...(withTime ? { hour: 'numeric', minute: '2-digit' } : {}),
-      ...(options.x?.utc ? { timeZone: 'UTC' } : {}),
-    },
-    ctx.locale,
-  )
-  return (label) => (Number.isFinite(toMs(label)) ? fmt(toMs(label)) : String(label))
+  return feature('dates')(resolveLabels(options.data), options.x?.utc, ctx.locale)
 }
 
 /** A label as a timestamp: dates, numbers, or parseable strings (ISO); `NaN` otherwise. */

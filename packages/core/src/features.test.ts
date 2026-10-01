@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig } from './chart.ts'
+import { bar } from './charts/bar.ts'
 import { line } from './charts/line.ts'
 import { feature, features, register } from './features.ts'
 
@@ -7,6 +8,7 @@ describe('optional features', () => {
   test('explain what to import when missing', () => {
     const saved = { ...features }
     delete features.time
+    delete features.dates
     delete features.log
     delete features.decimate
     try {
@@ -14,6 +16,10 @@ describe('optional features', () => {
       const data = { labels: [1, 2, 3], series: [{ name: 'A', values: [1, 2, 3] }] }
       expect(() =>
         buildChart({ type: line, data, x: { type: 'time' } } as ChartConfig<object>, size),
+      ).toThrow(/Import "@tabler\/charts\/time"/)
+      // Dated categories (bars, candles) need the date labels from the same module.
+      expect(() =>
+        buildChart({ type: bar, data, x: { type: 'time' } } as ChartConfig<object>, size),
       ).toThrow(/Import "@tabler\/charts\/time"/)
       expect(() =>
         buildChart({ type: line, data, y: { scale: 'log' } } as ChartConfig<object>, size),

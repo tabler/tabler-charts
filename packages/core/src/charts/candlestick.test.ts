@@ -2,8 +2,9 @@ import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import '../log.ts'
+import { candlestick } from '../candlestick.ts'
 import { findByClass } from '../test-utils.ts'
-import { type CandlestickOptions, candlestick } from './candlestick.ts'
+import type { CandlestickOptions } from './candlestick.ts'
 
 const size = { width: 400, height: 200 }
 const base: ChartConfig<CandlestickOptions> = {
