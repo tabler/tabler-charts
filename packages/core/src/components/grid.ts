@@ -17,7 +17,7 @@ export function grid(options: GridOptions): VNode {
   const { direction, ticks, area } = options
   return h(
     'g',
-    { class: ['tc-grid', `tc-grid-${direction}`], 'aria-hidden': 'true' },
+    { key: `grid-${direction}`, class: ['tc-grid', `tc-grid-${direction}`], 'aria-hidden': 'true' },
     ticks.map((tick) => {
       const p = Math.round(tick.position * 100) / 100
       return h('line', {

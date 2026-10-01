@@ -175,7 +175,11 @@ export function annotationLayers(
   })
 
   return {
-    under: bands.length ? h('g', { class: 'tc-annotations', 'aria-hidden': 'true' }, bands) : null,
-    over: lines.length ? h('g', { class: 'tc-annotations', 'aria-hidden': 'true' }, lines) : null,
+    under: bands.length
+      ? h('g', { key: 'annotations-under', class: 'tc-annotations', 'aria-hidden': 'true' }, bands)
+      : null,
+    over: lines.length
+      ? h('g', { key: 'annotations-over', class: 'tc-annotations', 'aria-hidden': 'true' }, lines)
+      : null,
   }
 }

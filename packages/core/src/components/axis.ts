@@ -145,6 +145,8 @@ export function axis(options: AxisOptions): VNode {
   return h(
     'g',
     {
+      // Keyed, so an axis keeps its nodes when layers around it come and go.
+      key: `axis-${position}`,
       class: ['tc-axis', horizontal ? 'tc-axis-x' : 'tc-axis-y', `tc-axis-${position}`],
       'aria-hidden': 'true',
     },

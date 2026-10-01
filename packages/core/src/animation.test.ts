@@ -4,6 +4,7 @@ import { Chart, type ChartConfig } from './chart.ts'
 import { Chart as DefaultChart } from './chart-default.ts'
 import { bar } from './charts/bar.ts'
 import { line } from './charts/line.ts'
+import './annotations.ts'
 import { flush } from './scheduler.ts'
 
 /**
@@ -90,6 +91,36 @@ describe('marks keep their nodes across data updates', () => {
     expect(el.querySelector('.tc-series-list')).toBe(before.list)
     expect(el.querySelector('.tc-grid')).toBe(before.grid)
     expect(el.querySelector('.tc-line')).toBe(before.line)
+  })
+
+  test('layers coming and going (an annotation band, an x grid) never recreate the series', () => {
+    chart = new DefaultChart(el, {
+      type: line,
+      width: 400,
+      height: 200,
+      data: data(1),
+    } as ChartConfig<object>)
+    const before = {
+      list: el.querySelector('.tc-series-list'),
+      line: el.querySelector('.tc-line'),
+      axis: el.querySelector('.tc-axis-y'),
+    }
+    // A band layer appears in front of the series list (bands sit under the series).
+    chart.update({ annotations: [{ y: [20, 30], label: 'Band' }] } as never)
+    flush()
+    expect(el.querySelector('.tc-annotation-band')).not.toBeNull()
+    expect(el.querySelector('.tc-series-list')).toBe(before.list)
+    expect(el.querySelector('.tc-line')).toBe(before.line)
+    expect(el.querySelector('.tc-axis-y')).toBe(before.axis)
+    // So does a grid along x, and both can go again.
+    chart.update({ x: { grid: true } } as never)
+    flush()
+    expect(el.querySelector('.tc-grid-x')).not.toBeNull()
+    chart.update({ x: { grid: false }, annotations: [] } as never)
+    flush()
+    expect(el.querySelector('.tc-series-list')).toBe(before.list)
+    expect(el.querySelector('.tc-line')).toBe(before.line)
+    expect(el.querySelector('.tc-axis-y')).toBe(before.axis)
   })
 
   test('ticks that stay on the axis', () => {

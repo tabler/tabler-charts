@@ -263,7 +263,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
       ),
     ),
     background,
-    h('g', { class: 'tc-series-list', 'clip-path': `url(#${clipId})` }, groups),
+    h('g', { key: 'series', class: 'tc-series-list', 'clip-path': `url(#${clipId})` }, groups),
     showY && axis({ position: 'left', ticks: yTicks, area }),
     showX && axis({ position: 'bottom', ticks: xTicks, area }),
   ]

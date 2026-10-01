@@ -192,9 +192,11 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   })
 
   return [
-    h('defs', null, layout.clip.def, gradient && fadeMask(fadeId)),
+    h('defs', { key: 'defs' }, layout.clip.def, gradient && fadeMask(fadeId)),
     layout.background,
-    h('g', { class: 'tc-series-list', 'clip-path': layout.clip.url }, areas, lines),
+    // Layers are keyed: an annotation band or a grid that comes and goes must not
+    // shift the series list onto another node (that would recreate every series).
+    h('g', { key: 'series', class: 'tc-series-list', 'clip-path': layout.clip.url }, areas, lines),
     layout.foreground,
   ]
 }

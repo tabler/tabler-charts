@@ -149,9 +149,13 @@ export const candlestick: ChartType<CandlestickOptions> = {
     })
 
     return [
-      h('defs', null, layout.clip.def),
+      h('defs', { key: 'defs' }, layout.clip.def),
       layout.background,
-      h('g', { class: 'tc-series-list tc-candles', 'clip-path': layout.clip.url }, candles),
+      h(
+        'g',
+        { key: 'series', class: 'tc-series-list tc-candles', 'clip-path': layout.clip.url },
+        candles,
+      ),
       layout.foreground,
     ]
   },
