@@ -31,6 +31,13 @@ export function shadowStyles() {
   )
   css = swap(css, ':where(:root:not([data-theme="light"]))', ':host(:not([data-theme="light"]))')
   css = swap(css, ':where([data-theme="dark"]) {', ':host([data-theme="dark"]) {')
+  // Where :host-context() works (Chromium), a dark theme set on an ancestor applies
+  // too. It gets its own rule: in a selector list, browsers without it would drop
+  // the whole rule. The element's own data-theme still comes after and wins.
+  const start = css.indexOf(':host([data-theme="dark"]) {')
+  const end = css.indexOf('}', start) + 1
+  const dark = css.slice(start, end)
+  css = `${css.slice(0, start)}${dark.replace(':host([data-theme="dark"])', ':host-context([data-theme="dark"])')}\n\n${css.slice(start)}`
   // Custom elements are inline by default.
   return minify(`:host{display:block}${css}`)
 }

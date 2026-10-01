@@ -229,6 +229,11 @@ describe('<tabler-chart>', () => {
         expect(shadowStyles).toContain(selector)
       }
       expect(shadowStyles).not.toContain(':root')
+      // A dark ancestor (Chromium), in a rule of its own so other browsers keep the rest.
+      expect(shadowStyles).toContain(':host-context([data-theme="dark"]){--tc-color-1:')
+      expect(shadowStyles.indexOf(':host-context(')).toBeLessThan(
+        shadowStyles.indexOf(':host([data-theme=dark])'),
+      )
     })
   })
 })
