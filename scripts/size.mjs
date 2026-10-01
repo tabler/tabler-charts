@@ -22,7 +22,11 @@ const CASES = [
     `export { Chart } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     11.25,
   ],
-  ['core + bar', `export { Chart } from '${DIST}core.js'; export { bar } from '${DIST}bar.js'`, 11],
+  [
+    'core + bar',
+    `export { Chart } from '${DIST}core.js'; export { bar } from '${DIST}bar.js'`,
+    11.25,
+  ],
   [
     'core + pie',
     `export { Chart } from '${DIST}core.js'; export { pie } from '${DIST}pie.js'`,
@@ -31,7 +35,7 @@ const CASES = [
   [
     'core + gauge',
     `export { Chart } from '${DIST}core.js'; export { gauge } from '${DIST}gauge.js'`,
-    7.5,
+    7.75,
   ],
   [
     'core + heatmap',
@@ -46,13 +50,13 @@ const CASES = [
   [
     'core + line + tooltip + legend',
     `export { Chart, tooltip, highlight, legend } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    12.5,
+    12.75,
   ],
   ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 16.5],
   [
     'SSR: chartToString + line',
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    8.5,
+    8.75,
   ],
   [
     'elements/core + line',
@@ -60,8 +64,8 @@ const CASES = [
     12.5,
   ],
   ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 27.5],
-  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 17.5, react],
-  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 17.5, vue],
+  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 17.75, react],
+  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 17.75, vue],
   ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 27.25],
   ['everything', `export * from '${DIST}index.js'`, 27.25],
 ]

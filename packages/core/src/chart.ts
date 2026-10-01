@@ -188,6 +188,23 @@ export function resolveLegend<O extends object>(config: ChartConfig<O>): Resolve
   return { items, show, position }
 }
 
+/**
+ * The chart's accessible name: its `title`, or else the chart type and its
+ * legend entries ("Line chart: Visitors, Sign-ups"), since an image without
+ * a name is announced as nothing at all. Set `title` for a name in the
+ * page's language.
+ */
+export function chartLabel(config: ChartConfig<object>): string {
+  if (config.title) return config.title
+  const kind = config.type.name
+  const name =
+    kind === 'sparkline' ? 'Sparkline' : `${kind.charAt(0).toUpperCase()}${kind.slice(1)} chart`
+  const names = (config.type.legend?.(config) ?? []).map((item) => item.name).filter(Boolean)
+  if (!names.length) return name
+  const shown = names.slice(0, 6).join(', ')
+  return `${name}: ${names.length > 6 ? `${shown}, …` : shown}`
+}
+
 /** Wrap chart content (and hover layers) in the accessible root `<svg>`. */
 function composeChart(
   config: ChartConfig<object>,
@@ -214,7 +231,7 @@ function composeChart(
       height,
       role: 'img',
       // An svg <title> would also show as a native tooltip, so the name is an attribute.
-      'aria-label': config.title,
+      'aria-label': chartLabel(config),
       'aria-describedby': descId,
       ...extraAttrs,
     },
