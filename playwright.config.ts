@@ -19,7 +19,9 @@ export default defineConfig({
   use: {
     ...devices['Desktop Chrome'],
     baseURL: 'http://127.0.0.1:4173',
-    viewport: { width: 1280, height: 900 },
+    // 1024 px wide: the gallery's two columns land on whole pixels, so a card
+    // renders the same in either column.
+    viewport: { width: 1024, height: 900 },
     deviceScaleFactor: 1,
     locale: 'en-US',
     timezoneId: 'UTC',

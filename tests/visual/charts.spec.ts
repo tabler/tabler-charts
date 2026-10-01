@@ -16,11 +16,19 @@ const slug = (text: string) =>
 async function open(page: Page, hash: string, theme: Theme = 'light'): Promise<void> {
   await page.clock.setFixedTime(NOW)
   await page.addInitScript((mode) => {
-    // The demos draw random data: make it the same on every run.
+    // The demos draw random data: make it the same on every run, and seed it
+    // per demo (the page calls __tcSeed before mounting each one), so a change
+    // in one demo never shifts the data of the next ones.
     let seed = 42
     Math.random = () => {
       seed = (seed * 16807) % 2147483647
       return (seed - 1) / 2147483646
+    }
+    const w = window as unknown as { __tcSeed: (id: string) => void }
+    w.__tcSeed = (id) => {
+      seed = 1
+      for (let i = 0; i < id.length; i++) seed = (seed * 31 + id.charCodeAt(i)) % 2147483646
+      seed += 1
     }
     localStorage.setItem('tc-docs-theme', mode)
   }, theme)
@@ -53,7 +61,9 @@ for (const theme of ['light', 'dark'] as const) {
     await open(page, '#gallery', theme)
     const items = page.locator('#gallery .gallery-item')
     expect(await items.count()).toBeGreaterThan(30)
-    await shoot(items, async (i) => {
+    // The chart of each card (not the card, whose height follows its row in the grid).
+    const charts = page.locator('#gallery figure.gallery-item > div, #gallery .gallery-item.tiles')
+    await shoot(charts, async (i) => {
       const caption = items.nth(i).locator('figcaption strong')
       // Every card has a title, except the row of sparkline tiles.
       const title = (await caption.count()) ? await caption.textContent() : 'sparkline tiles'

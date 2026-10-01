@@ -35,8 +35,16 @@ interface Item {
   span?: 1 | 2
 }
 
-// Deterministic data, so the gallery looks the same on every load.
+// Deterministic data, so the gallery looks the same on every load. Each card
+// draws from its own seed (made from its title), so adding, removing or
+// moving a card never changes the data of the others.
 let seed = 7
+/** Build a card's config with the random sequence seeded by `name`. */
+const seeded = <T>(name: string, build: () => T): T => {
+  seed = 2166136261
+  for (let i = 0; i < name.length; i++) seed = Math.imul(seed ^ name.charCodeAt(i), 16777619) >>> 0
+  return build()
+}
 const rnd = () => {
   seed = (seed * 1664525 + 1013904223) % 4294967296
   return seed / 4294967296
@@ -59,7 +67,7 @@ const days = (n: number, from = Date.UTC(2026, 6, 1)) =>
 const common = { locale: 'en-US', aspectRatio: 1.9 } as const
 
 const ITEMS: Item[] = [
-  {
+  seeded('Revenue vs. costs', () => ({
     title: 'Revenue vs. costs',
     note: 'Two series, currency axis, last-value dots.',
     config: {
@@ -75,8 +83,8 @@ const ITEMS: Item[] = [
       points: 'last',
       y: { format: { style: 'currency', currency: 'USD', notation: 'compact' } },
     },
-  },
-  {
+  })),
+  seeded('This week vs. last', () => ({
     title: 'This week vs. last',
     note: 'The comparison series is dashed and thinner (series.dash / series.width), y.max fixed.',
     config: {
@@ -93,8 +101,8 @@ const ITEMS: Item[] = [
       points: 'none',
       y: { max: 3000, format: { notation: 'compact' } },
     },
-  },
-  {
+  })),
+  seeded('Temperature', () => ({
     title: 'Temperature',
     note: 'Negative values, linear curve, every point marked, °C format.',
     config: {
@@ -113,8 +121,8 @@ const ITEMS: Item[] = [
       points: 'all',
       y: { format: (v: number) => `${v}°`, zero: true },
     },
-  },
-  {
+  })),
+  seeded('Missing data', () => ({
     title: 'Missing data',
     note: 'Gaps where the sensor was offline; step curve.',
     config: {
@@ -134,8 +142,8 @@ const ITEMS: Item[] = [
       y: { min: 90, max: 100, format: (v: number) => `${v}%` },
       tooltip: { format: (hit: Hit) => `${hit.title}: ${hit.items[0]?.text ?? '–'}` },
     },
-  },
-  {
+  })),
+  seeded('Exponential growth', () => ({
     title: 'Exponential growth',
     note: 'Log scale keeps early values readable.',
     config: {
@@ -153,8 +161,8 @@ const ITEMS: Item[] = [
       y: { scale: 'log', format: { notation: 'compact' } },
       x: { format: (l: Label, i: number) => (i % 6 === 0 ? String(l) : '') },
     },
-  },
-  {
+  })),
+  seeded('Nine series', () => ({
     title: 'Nine series',
     note: 'Eight palette slots, then the neutral "other" color; legend at the bottom.',
     config: {
@@ -171,8 +179,8 @@ const ITEMS: Item[] = [
       legend: { position: 'bottom' },
     },
     span: 2,
-  },
-  {
+  })),
+  seeded('Stacked areas', () => ({
     title: 'Stacked areas',
     note: 'Traffic by channel, solid fills, percent axis format off.',
     config: {
@@ -191,8 +199,8 @@ const ITEMS: Item[] = [
       stacked: true,
       y: { format: { notation: 'compact' } },
     },
-  },
-  {
+  })),
+  seeded('100% stacked', () => ({
     title: '100% stacked',
     note: 'Market share per quarter, percent axis.',
     config: {
@@ -223,8 +231,8 @@ const ITEMS: Item[] = [
       stacked: 'percent',
       curve: 'linear',
     },
-  },
-  {
+  })),
+  seeded('Single series area', () => ({
     title: 'Single series area',
     note: 'No legend for one series; gradient fill; dots on every point.',
     config: {
@@ -237,8 +245,8 @@ const ITEMS: Item[] = [
       points: 'all',
       y: { zero: true },
     },
-  },
-  {
+  })),
+  seeded('Grouped bars', () => ({
     title: 'Grouped bars',
     note: 'Three years side by side, compact currency.',
     config: {
@@ -255,8 +263,8 @@ const ITEMS: Item[] = [
       y: { format: { style: 'currency', currency: 'EUR', notation: 'compact' } },
       locale: 'de-DE',
     },
-  },
-  {
+  })),
+  seeded('Spend and leads', () => ({
     title: 'Spend and leads',
     note: 'Two bar series with two line series on the same axis (series.type).',
     config: {
@@ -272,8 +280,8 @@ const ITEMS: Item[] = [
         ],
       },
     },
-  },
-  {
+  })),
+  seeded('Mentions', () => ({
     title: 'Mentions',
     note: 'Stacked bars with a total line over them; the line is not part of the stack.',
     config: {
@@ -290,8 +298,8 @@ const ITEMS: Item[] = [
       },
       stacked: true,
     },
-  },
-  {
+  })),
+  seeded('Latency vs. SLO', () => ({
     title: 'Latency vs. SLO',
     note: 'Annotations: an SLO line on the value axis and an incident on the time axis.',
     config: {
@@ -320,8 +328,8 @@ const ITEMS: Item[] = [
         },
       ],
     },
-  },
-  {
+  })),
+  seeded('Quota and season', () => ({
     title: 'Quota and season',
     note: 'A quota line across bars and the holiday season as a band of categories.',
     config: {
@@ -341,8 +349,8 @@ const ITEMS: Item[] = [
         { y: 80, label: 'Quota', position: 'start' },
       ],
     },
-  },
-  {
+  })),
+  seeded('Profit and loss', () => ({
     title: 'Profit and loss',
     note: 'Negative bars grow down, square corners, thin bars.',
     config: {
@@ -357,8 +365,8 @@ const ITEMS: Item[] = [
       y: { format: { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 } },
       locale: 'pl-PL',
     },
-  },
-  {
+  })),
+  seeded('Horizontal ranking', () => ({
     title: 'Horizontal ranking',
     note: 'Long category labels on the left, sorted values.',
     config: {
@@ -381,8 +389,8 @@ const ITEMS: Item[] = [
       y: { format: { notation: 'compact' } },
       x: { grid: true },
     },
-  },
-  {
+  })),
+  seeded('Stacked horizontal', () => ({
     title: 'Stacked horizontal',
     note: 'Survey answers per question, 100% stacked, custom colors.',
     config: {
@@ -401,8 +409,8 @@ const ITEMS: Item[] = [
       stacked: 'percent',
       maxBarWidth: 18,
     },
-  },
-  {
+  })),
+  seeded('Sales by region', () => ({
     title: 'Sales by region',
     note: 'Donut with a custom center label and a hidden slice.',
     config: {
@@ -419,8 +427,8 @@ const ITEMS: Item[] = [
       center: { value: '11.0K', label: 'orders' },
       format: { notation: 'compact' },
     },
-  },
-  {
+  })),
+  seeded('Crypto price', () => ({
     title: 'Crypto price',
     note: 'Candlestick with a time axis and compact currency, like the crypto dashboard card.',
     config: {
@@ -445,8 +453,8 @@ const ITEMS: Item[] = [
       y: { format: { style: 'currency', currency: 'USD', notation: 'compact' } },
     },
     span: 2,
-  },
-  {
+  })),
+  seeded('Weekly activity', () => ({
     title: 'Weekly activity',
     note: 'A contribution-style heatmap: days by weeks, green, a missing week.',
     config: {
@@ -463,8 +471,8 @@ const ITEMS: Item[] = [
       },
     },
     style: { '--tc-heat-color': '#2fb344' },
-  },
-  {
+  })),
+  seeded('Uptime SLA', () => ({
     title: 'Uptime SLA',
     note: 'Ranges: each band of values in its own color, named in the legend and the tooltip.',
     config: {
@@ -490,8 +498,8 @@ const ITEMS: Item[] = [
       ],
       format: { maximumFractionDigits: 2 },
     },
-  },
-  {
+  })),
+  seeded('Temperature anomaly', () => ({
     title: 'Temperature anomaly',
     note: 'A diverging scale: blue below normal, neutral at mid: 0, red above.',
     config: {
@@ -510,8 +518,8 @@ const ITEMS: Item[] = [
       max: 2.5,
       format: { signDisplay: 'exceptZero', style: 'unit', unit: 'celsius' },
     },
-  },
-  {
+  })),
+  seeded('Channels by week', () => ({
     title: 'Channels by week',
     note: 'colorBy: series — every row shades towards its own palette color; the legend hides rows.',
     config: {
@@ -526,8 +534,8 @@ const ITEMS: Item[] = [
       },
       colorBy: 'series',
     },
-  },
-  {
+  })),
+  seeded('Response times', () => ({
     title: 'Response times',
     note: 'Heatmap with a fixed range (min 0, max 800 ms) and no gap.',
     config: {
@@ -547,8 +555,8 @@ const ITEMS: Item[] = [
       format: { style: 'unit', unit: 'millisecond' },
     },
     style: { '--tc-heat-color': '#d63939' },
-  },
-  {
+  })),
+  seeded('Gauge', () => ({
     title: 'Gauge',
     note: 'A single value with its share and name in the middle; round caps by default.',
     config: {
@@ -559,8 +567,8 @@ const ITEMS: Item[] = [
       format: { notation: 'compact' },
     },
     style: { '--tc-color-1': '#2fb344' },
-  },
-  {
+  })),
+  seeded('Dial', () => ({
     title: 'Dial',
     note: 'startAngle -135 and angle 270 leave the bottom open, like a speedometer.',
     config: {
@@ -574,8 +582,8 @@ const ITEMS: Item[] = [
       center: { value: '410 GB', label: 'of 500 GB' },
     },
     style: { '--tc-color-1': '#f59f00' },
-  },
-  {
+  })),
+  seeded('Nested rings', () => ({
     title: 'Nested rings',
     note: 'Three campaigns as concentric rings; the legend toggles each one.',
     config: {
@@ -590,8 +598,8 @@ const ITEMS: Item[] = [
       thickness: 10,
       center: false,
     },
-  },
-  {
+  })),
+  seeded('Thin ring', () => ({
     title: 'Thin ring',
     note: 'innerRadius 0.85, no gap, no rounded corners, single value vs. rest.',
     config: {
@@ -608,8 +616,8 @@ const ITEMS: Item[] = [
       center: { value: '73%', label: 'disk used' },
       legend: false,
     },
-  },
-  {
+  })),
+  seeded('Pie, many slices', () => ({
     title: 'Pie, many slices',
     note: 'Eight slices with a 3px gap, starting at 90°.',
     config: {
@@ -625,8 +633,8 @@ const ITEMS: Item[] = [
       gap: 3,
       startAngle: 90,
     },
-  },
-  {
+  })),
+  seeded('Bubbles', () => ({
     title: 'Bubbles',
     note: 'GDP vs. life expectancy, area-proportional bubbles, log x.',
     config: {
@@ -667,8 +675,8 @@ const ITEMS: Item[] = [
       size: { min: 6, max: 34 },
     },
     span: 2,
-  },
-  {
+  })),
+  seeded('Correlation', () => ({
     title: 'Correlation',
     note: 'Two dense point clouds, dots only.',
     config: {
@@ -690,8 +698,8 @@ const ITEMS: Item[] = [
       x: { format: { maximumFractionDigits: 0 } },
       y: { format: { maximumFractionDigits: 0 } },
     },
-  },
-  {
+  })),
+  seeded('Minimal', () => ({
     title: 'Minimal',
     note: 'No axes, no grid, no legend, no tooltip: just the marks.',
     config: {
@@ -711,8 +719,8 @@ const ITEMS: Item[] = [
       crosshair: false,
       padding: 4,
     },
-  },
-  {
+  })),
+  seeded('Styled with CSS', () => ({
     title: 'Styled with CSS',
     note: 'Dashed second series, thick stroke and custom palette via --tc-* variables.',
     config: {
@@ -729,8 +737,8 @@ const ITEMS: Item[] = [
     },
     style: { '--tc-color-1': '#0ca678', '--tc-color-2': '#0ca678', '--tc-stroke-width': '3px' },
     class: 'gallery-styled',
-  },
-  {
+  })),
+  seeded('Dark card', () => ({
     title: 'Dark card',
     note: 'A [data-theme="dark"] subtree inside the light page.',
     config: {
@@ -746,8 +754,8 @@ const ITEMS: Item[] = [
       stacked: true,
     },
     class: 'gallery-dark',
-  },
-  {
+  })),
+  seeded('Polish locale', () => ({
     title: 'Polish locale',
     note: 'pl-PL numbers and dates on a time axis.',
     config: {
@@ -763,8 +771,8 @@ const ITEMS: Item[] = [
       points: 'none',
       decimate: 45,
     },
-  },
-  {
+  })),
+  seeded('Hourly', () => ({
     title: 'Hourly',
     note: '48 hours of requests; hourly ticks show the date at midnight.',
     config: {
@@ -785,8 +793,8 @@ const ITEMS: Item[] = [
       curve: 'monotone',
       fill: 'solid',
     },
-  },
-  {
+  })),
+  seeded('Static', () => ({
     title: 'Static',
     note: 'animate: false, custom tooltip footer with the sum.',
     config: {
@@ -816,28 +824,31 @@ const ITEMS: Item[] = [
           ),
       },
     },
-  },
+  })),
 ]
 
-const SPARKS: { name: string; value: string; config: Record<string, unknown> }[] = [
-  { name: 'Revenue', value: '$48.2K', config: { data: walk(20, 40, 10), variant: 'area' } },
-  {
-    name: 'Bounce rate',
-    value: '31%',
-    config: { data: walk(20, 30, 8), variant: 'line', markers: 'minmax' },
-  },
-  { name: 'Errors', value: '12', config: { data: walk(20, 8, 6), variant: 'bar' } },
-  {
-    name: 'Deploys',
-    value: '9 / 12',
-    config: { data: [1, 1, -1, 1, 0, 1, -1, 1, 1, 1, 0, -1, 1, 1, 1, 1], variant: 'tristate' },
-  },
-  {
-    name: 'Latency',
-    value: '184 ms',
-    config: { data: walk(20, 180, 40), variant: 'line', curve: 'step' },
-  },
-]
+const SPARKS: { name: string; value: string; config: Record<string, unknown> }[] = seeded(
+  'sparkline tiles',
+  () => [
+    { name: 'Revenue', value: '$48.2K', config: { data: walk(20, 40, 10), variant: 'area' } },
+    {
+      name: 'Bounce rate',
+      value: '31%',
+      config: { data: walk(20, 30, 8), variant: 'line', markers: 'minmax' },
+    },
+    { name: 'Errors', value: '12', config: { data: walk(20, 8, 6), variant: 'bar' } },
+    {
+      name: 'Deploys',
+      value: '9 / 12',
+      config: { data: [1, 1, -1, 1, 0, 1, -1, 1, 1, 1, 0, -1, 1, 1, 1, 1], variant: 'tristate' },
+    },
+    {
+      name: 'Latency',
+      value: '184 ms',
+      config: { data: walk(20, 180, 40), variant: 'line', curve: 'step' },
+    },
+  ],
+)
 
 export const galleryDemo: Demo = {
   id: 'gallery',

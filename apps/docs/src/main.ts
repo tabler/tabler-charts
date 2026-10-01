@@ -92,6 +92,8 @@ for (const demo of demos) {
 
   card.append(title, description, chart, controls)
   container.append(card)
+  // A test hook: visual tests seed the random data of each demo by its id.
+  ;(window as { __tcSeed?: (id: string) => void }).__tcSeed?.(demo.id)
   demo.mount(chart, createControls(controls))
   if (!controls.childElementCount) controls.remove()
 }
