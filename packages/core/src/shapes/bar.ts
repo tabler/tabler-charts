@@ -8,6 +8,8 @@ const round = (value: number): number => {
  * `x`…`x + width` wide. Only the data end is rounded, with `radius` clamped
  * to half the width and to the bar height; the baseline end stays square.
  * Works for bars growing up (value above baseline) and down (negative values).
+ * Square corners are zero-radius arcs, so every bar path has the same
+ * commands and CSS can transition `d` between rounded and square (stacking).
  */
 export function barPath(
   x: number,
@@ -23,8 +25,6 @@ export function barPath(
   const x1 = round(x + w)
   const b = round(baseline)
   const v = round(value)
-
-  if (r === 0) return `M${x0},${b}V${v}H${x1}V${b}Z`
 
   const up = value <= baseline
   const edge = round(up ? value + r : value - r)
@@ -59,8 +59,6 @@ export function hbarPath(
   const y1 = round(y + hgt)
   const b = round(baseline)
   const v = round(value)
-
-  if (r === 0) return `M${b},${y0}H${v}V${y1}H${b}Z`
 
   const right = value >= baseline
   const edge = round(right ? value - r : value + r)

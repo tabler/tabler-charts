@@ -91,7 +91,16 @@ describe('bar', () => {
   test('rounds the data end with the given radius', () => {
     const d = (config: Partial<BarOptions>) => barsOf(render(config))[0]?.attrs.d
     expect(d({})).toContain('A4,4')
-    expect(d({ radius: 0 })).not.toContain('A')
+    expect(d({ radius: 0 })).toContain('A0,0')
+  })
+
+  test('every bar path has the same commands, so switching layouts animates', () => {
+    const commands = (config: Partial<BarOptions>) =>
+      barsOf(render(config)).map((b) => String(b.attrs.d).replace(/[^A-Z]/g, ''))
+    const grouped = commands({})
+    expect(
+      new Set([...grouped, ...commands({ stacked: true }), ...commands({ radius: 0 })]),
+    ).toEqual(new Set([grouped[0]]))
   })
 
   test('grows negative bars down from zero and marks them', () => {
@@ -143,19 +152,13 @@ describe('bar', () => {
     })
 
     test('rounds only the outermost segment of each sign', () => {
+      // Square corners are zero-radius arcs.
+      const rounded = (seg?: { d: string }) => !seg?.d.includes('A0,0')
       const [a, b, c] = q(stackedNode(), 'Q1')
-      expect([a?.d.includes('A'), b?.d.includes('A'), c?.d.includes('A')]).toEqual([
-        false,
-        false,
-        true,
-      ])
+      expect([rounded(a), rounded(b), rounded(c)]).toEqual([false, false, true])
       // Q2: B is the only positive (rounded), C the outermost negative (rounded), A in between.
       const [na, nb, nc] = q(stackedNode(), 'Q2')
-      expect([na?.d.includes('A'), nb?.d.includes('A'), nc?.d.includes('A')]).toEqual([
-        false,
-        true,
-        true,
-      ])
+      expect([rounded(na), rounded(nb), rounded(nc)]).toEqual([false, true, true])
     })
 
     test('stacks negative values down from zero', () => {
