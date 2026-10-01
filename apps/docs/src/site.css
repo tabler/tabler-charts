@@ -184,6 +184,26 @@ code {
   min-width: 0;
 }
 
+.export-preview {
+  margin: 16px 0 0;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+
+.export-preview img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: repeating-conic-gradient(#0000000d 0 25%, transparent 0 50%) 0 0 / 16px 16px;
+}
+
+.export-preview figcaption {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .demo-controls {
   display: flex;
   flex-wrap: wrap;
