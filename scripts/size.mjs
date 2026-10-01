@@ -52,7 +52,7 @@ const CASES = [
     `export { Chart, tooltip, highlight, legend } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     12.75,
   ],
-  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 16.75],
+  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 17.0],
   [
     'SSR: chartToString + line',
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,

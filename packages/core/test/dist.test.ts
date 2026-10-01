@@ -40,10 +40,11 @@ describe('built package', () => {
     const log = await import('../dist/log.js')
     const decimate = await import('../dist/decimate.js')
     expect(core.features.time?.scale).toBe(time.time)
-    expect(core.features.log).toBe(log.log)
+    expect(core.features.log?.scale).toBe(log.log)
     expect(core.features.decimate).toBe(decimate.lttbIndices)
     expect(core.features.line?.linePath).toBe(core.linePath)
     expect(core.features.annotations).toBeDefined()
+    expect(core.features.dates).toBeDefined()
   })
 
   test('every chart type renders from the built entries', async () => {

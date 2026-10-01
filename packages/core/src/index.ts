@@ -6,6 +6,7 @@
 
 import { annotationLayers, annotationValues } from './charts/annotations.ts'
 import { dateLabels } from './charts/dates.ts'
+import { logDomain, logTicks } from './charts/log-axis.ts'
 import { register } from './features.ts'
 import { log } from './scales/log.ts'
 import { time, timePointScale } from './scales/time.ts'
@@ -16,7 +17,7 @@ import { areaPath, linePath } from './shapes/path.ts'
 register({
   time: { scale: time, points: timePointScale },
   dates: dateLabels,
-  log,
+  log: { scale: log, domain: logDomain, ticks: logTicks },
   decimate: lttbIndices,
   line: { linePath, areaPath },
   annotations: { layers: annotationLayers, values: annotationValues },

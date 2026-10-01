@@ -214,7 +214,7 @@ export function valueScale(
   range: [number, number],
   options: ValueAxisOptions,
 ): LinearScale {
-  return options.scale === 'log' ? feature('log')(domain, range) : linear(domain, range)
+  return options.scale === 'log' ? feature('log').scale(domain, range) : linear(domain, range)
 }
 
 /** Ticks of a value scale with labels; log scales format each power as is. */
@@ -225,9 +225,9 @@ export function valueTicks(
   format: NumberFormat | undefined,
   locale: RenderContext['locale'],
 ): Tick[] {
-  if (options.scale !== 'log') return linearTicks(scale, { count, format, locale })
-  const fmt = formatNumber(format, locale)
-  return scale.ticks(count).map((value) => ({ value, position: scale(value), label: fmt(value) }))
+  return options.scale === 'log'
+    ? feature('log').ticks(scale, count, format, locale)
+    : linearTicks(scale, { count, format, locale })
 }
 
 /** Y domain from the data and axis options. */
@@ -253,20 +253,7 @@ export function domainOf(
   zeroDefault: boolean,
   count: number,
 ): [number, number] {
-  if (options.scale === 'log') {
-    // Only positive values can be shown; nice to whole powers of ten.
-    const positive = values.filter((v): v is number => v != null && v > 0 && Number.isFinite(v))
-    let [lo, hi] = extent(positive) ?? [1, 10]
-    if (options.min !== undefined && options.min > 0) lo = options.min
-    if (options.max !== undefined && options.max > 0) hi = options.max
-    if (lo === hi) hi = lo * 10
-    if (options.nice !== false) {
-      const niced = feature('log')([lo, hi], [0, 1]).nice().domain
-      if (options.min === undefined) lo = niced[0]
-      if (options.max === undefined) hi = niced[1]
-    }
-    return [lo, hi]
-  }
+  if (options.scale === 'log') return feature('log').domain(values, options)
   let [lo, hi] = extent(values) ?? [0, 1]
   if (options.zero ?? zeroDefault) {
     lo = Math.min(lo, 0)

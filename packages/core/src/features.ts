@@ -1,6 +1,7 @@
 import type { annotationLayers, annotationValues } from './charts/annotations.ts'
 import type { dateLabels } from './charts/dates.ts'
-import type { LinearScale, LinearScaleOptions } from './scales/linear.ts'
+import type { logDomain, logTicks } from './charts/log-axis.ts'
+import type { log } from './scales/log.ts'
 import type { time, timePointScale } from './scales/time.ts'
 import type { areaPath, linePath, Point } from './shapes/path.ts'
 
@@ -15,12 +16,8 @@ export interface Features {
   time?: { scale: typeof time; points: typeof timePointScale }
   /** Date labels behind `x: { type: 'time' }` (also registered by `@tabler/charts/candlestick`). */
   dates?: typeof dateLabels
-  /** Log scale behind `scale: 'log'`. */
-  log?: (
-    domain: readonly [number, number],
-    range: readonly [number, number],
-    options?: LinearScaleOptions,
-  ) => LinearScale
+  /** Log scale and axis behind `scale: 'log'`. */
+  log?: { scale: typeof log; domain: typeof logDomain; ticks: typeof logTicks }
   /** Downsampling behind `decimate: N`: indices of the points to keep. */
   decimate?: (points: readonly Point[], threshold: number) => number[]
   /** Line and area paths behind `series.type: 'line' | 'area'` in bar charts. */
