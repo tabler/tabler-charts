@@ -38,7 +38,10 @@
     "./src/decimate.ts",
     "./dist/annotations.js",
     "./dist/annotations.cjs",
-    "./src/annotations.ts"
+    "./src/annotations.ts",
+    "./dist/candlestick.js",
+    "./dist/candlestick.cjs",
+    "./src/candlestick.ts"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
