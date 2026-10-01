@@ -48,6 +48,15 @@ describe('built package', () => {
     expect(core.features.hydrate).toBeDefined()
   })
 
+  test('the export entry ships the export functions', async () => {
+    const exported = await import('../dist/export.js')
+    const all = await import('../dist/index.js')
+    for (const name of ['exportSVG', 'exportImage', 'downloadChart'] as const) {
+      expect(exported[name]).toBeTypeOf('function')
+      expect(all[name]).toBe(exported[name])
+    }
+  })
+
   test('every chart type renders from the built entries', async () => {
     const { chartToString } = await import('../dist/core.js')
     const { line } = await import('../dist/line.js')

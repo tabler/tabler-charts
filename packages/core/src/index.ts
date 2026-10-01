@@ -27,6 +27,8 @@ register({
 
 export { Chart } from './chart-default.ts'
 export * from './core.ts'
+export type { DownloadOptions, ExportOptions, ExportTarget, ImageOptions } from './export.ts'
+export { downloadChart, exportImage, exportSVG } from './export.ts'
 export type { LogScaleOptions } from './scales/log.ts'
 export type { TimeScale, TimeScaleOptions, TimeValue } from './scales/time.ts'
 export { log, lttb, lttbIndices, time, timePointScale }
