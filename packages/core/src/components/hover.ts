@@ -36,13 +36,24 @@ export function hoverUnderlay(hit: Hit, crosshair = true): VNode {
             height: round(hit.band.height),
           })
         : crosshair &&
-          h('line', {
-            class: 'tc-crosshair',
-            x1: round(hit.x),
-            x2: round(hit.x),
-            y1: round(area.y),
-            y2: round(area.y + area.height),
-          }),
+          h(
+            'line',
+            hit.guide
+              ? {
+                  class: 'tc-crosshair',
+                  x1: round(hit.guide.x1),
+                  x2: round(hit.guide.x2),
+                  y1: round(hit.guide.y1),
+                  y2: round(hit.guide.y2),
+                }
+              : {
+                  class: 'tc-crosshair',
+                  x1: round(hit.x),
+                  x2: round(hit.x),
+                  y1: round(area.y),
+                  y2: round(area.y + area.height),
+                },
+          ),
   )
 }
 

@@ -13,6 +13,7 @@ import {
   type Label,
   line,
   pie,
+  radar,
   scatter,
   sparkline,
 } from '@tabler/charts'
@@ -597,6 +598,42 @@ const ITEMS: Item[] = [
       ],
       thickness: 10,
       center: false,
+    },
+  })),
+  seeded('Radar', () => ({
+    title: 'Radar',
+    note: 'Two series over six measures, filled, with polygon rings and a fixed max of 100.',
+    config: {
+      type: radar,
+      ...common,
+      aspectRatio: 1.6,
+      data: {
+        labels: ['Speed', 'Range', 'Comfort', 'Safety', 'Price', 'Design'],
+        series: ['2025', '2026'].map((name) => ({
+          name,
+          values: Array.from({ length: 6 }, () => Math.round(35 + rnd() * 65)),
+        })),
+      },
+      r: { max: 100 },
+    },
+  })),
+  seeded('Radar, circles', () => ({
+    title: 'Radar, circles',
+    note: "grid: 'circle', no fill and a dot on every value; the outline alone carries each series.",
+    config: {
+      type: radar,
+      ...common,
+      aspectRatio: 1.6,
+      data: {
+        labels: ['Uptime', 'Latency', 'Errors', 'Throughput', 'Cost'],
+        series: ['API', 'Web', 'Jobs'].map((name) => ({
+          name,
+          values: Array.from({ length: 5 }, () => Math.round(20 + rnd() * 80)),
+        })),
+      },
+      grid: 'circle',
+      fill: false,
+      points: true,
     },
   })),
   seeded('Thin ring', () => ({

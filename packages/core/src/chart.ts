@@ -407,6 +407,7 @@ export class Chart<O extends object = object> {
     if (!source || !hit) return undefined
     if (source.kind === 'pointer') return { x: source.x, y: source.y }
     const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
+    if (hit.guide && item?.y != null) return { x: item.x, y: item.y }
     if (hit.axis === 'y') return { x: item?.x ?? hit.x, y: hit.y ?? hit.area.y }
     return { x: hit.x, y: item?.y ?? hit.area.y + hit.area.height / 2 }
   }

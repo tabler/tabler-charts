@@ -11,6 +11,7 @@ export default defineConfig({
     'src/bar.ts',
     'src/pie.ts',
     'src/gauge.ts',
+    'src/radar.ts',
     'src/heatmap.ts',
     'src/candlestick.ts',
     'src/annotations.ts',

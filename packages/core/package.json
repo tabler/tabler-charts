@@ -120,6 +120,16 @@
         "default": "./dist/gauge.cjs"
       }
     },
+    "./radar": {
+      "import": {
+        "types": "./dist/radar.d.ts",
+        "default": "./dist/radar.js"
+      },
+      "require": {
+        "types": "./dist/radar.d.cts",
+        "default": "./dist/radar.cjs"
+      }
+    },
     "./candlestick": {
       "import": {
         "types": "./dist/candlestick.d.ts",

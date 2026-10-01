@@ -56,6 +56,7 @@ describe('built package', () => {
     const { pie, donut } = await import('../dist/pie.js')
     const { scatter } = await import('../dist/scatter.js')
     const { gauge } = await import('../dist/gauge.js')
+    const { radar } = await import('../dist/radar.js')
     const { heatmap } = await import('../dist/heatmap.js')
     const { candlestick } = await import('../dist/candlestick.js')
     const { sparkline } = await import('../dist/sparkline.js')
@@ -72,6 +73,7 @@ describe('built package', () => {
     ).toContain('tc-point')
     expect(chartToString({ type: sparkline, data: [1, 2] }, size)).toContain('tc-sparkline')
     expect(chartToString({ type: gauge, data: 42 }, size)).toContain('tc-gauge-arc')
+    expect(chartToString({ type: radar, data }, size)).toContain('tc-radar-spoke')
     expect(chartToString({ type: heatmap, data }, size)).toContain('tc-cell')
     expect(
       chartToString(

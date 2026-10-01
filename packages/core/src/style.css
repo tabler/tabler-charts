@@ -167,7 +167,9 @@
 .tc-axis-line,
 .tc-tick-line,
 .tc-crosshair,
-.tc-sparkline-zero {
+.tc-sparkline-zero,
+.tc-radar-ring,
+.tc-radar-spoke {
   stroke: var(--tc-baseline-color);
   stroke-width: var(--tc-grid-width);
   shape-rendering: crispEdges;
@@ -175,7 +177,9 @@
 }
 
 .tc-grid-line,
-.tc-sparkline-zero {
+.tc-sparkline-zero,
+.tc-radar-ring,
+.tc-radar-spoke {
   stroke: var(--tc-grid-color);
 }
 
@@ -237,6 +241,14 @@
   fill: var(--tc-text-muted);
 }
 
+/* Radar rings and spokes are grid lines that also run diagonally (no crisp edges). */
+.tc-radar-ring,
+.tc-radar-spoke,
+.tc-chart-radar .tc-crosshair {
+  fill: none;
+  shape-rendering: auto;
+}
+
 /* Gradient areas are faded by a shared mask; the fill itself stays opaque. */
 .tc-area-gradient {
   fill-opacity: 1;
@@ -296,11 +308,16 @@
   fill-opacity: 0.1;
 }
 
-/* A surface-colored outline keeps the label readable over lines and grid. */
+/* A surface-colored outline keeps labels readable over lines and grid
+   (annotations, radar ring values). */
 .tc-annotation-label {
   fill: var(--tc-annotation-color);
-  font-size: 0.92em;
   font-weight: 500;
+}
+
+.tc-annotation-label,
+.tc-radar-value {
+  font-size: 0.92em;
   paint-order: stroke;
   stroke: var(--tc-surface);
   stroke-width: 3px;
@@ -354,7 +371,8 @@
 .tc-slice,
 .tc-gauge-arc,
 .tc-gauge-track,
-.tc-candle-wick {
+.tc-candle-wick,
+.tc-radar-ring {
   transition: d var(--tc-duration) var(--tc-easing);
 }
 
@@ -464,7 +482,7 @@
   transition: transform var(--tc-duration) var(--tc-easing);
 }
 
-/* Pies and gauges scale in from their center. */
+/* Pies, gauges and radar series scale in from their center. */
 @keyframes tc-pie-in {
   from {
     opacity: 0;
@@ -473,7 +491,8 @@
 }
 
 .tc-pie-slices,
-.tc-gauge-rings {
+.tc-gauge-rings,
+.tc-radar-series {
   animation: tc-pie-in calc(var(--tc-duration) * 1.5) var(--tc-easing);
 }
 
@@ -722,7 +741,9 @@
   .tc-tick-label {
     fill: CanvasText;
   }
-  .tc-grid-line {
+  .tc-grid-line,
+  .tc-radar-ring,
+  .tc-radar-spoke {
     stroke: GrayText;
   }
   .tc-grid-line-zero,

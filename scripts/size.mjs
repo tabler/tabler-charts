@@ -38,6 +38,11 @@ const CASES = [
     7.5,
   ],
   [
+    'core + radar',
+    `export { Chart } from '${DIST}core.js'; export { radar } from '${DIST}radar.js'`,
+    8.0,
+  ],
+  [
     'core + heatmap',
     `export { Chart } from '${DIST}core.js'; export { heatmap } from '${DIST}heatmap.js'`,
     8.0,
@@ -67,7 +72,7 @@ const CASES = [
   ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.0, react],
   ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 18.0, vue],
   ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 27.5],
-  ['everything', `export * from '${DIST}index.js'`, 27.75],
+  ['everything', `export * from '${DIST}index.js'`, 29.0],
 ]
 
 let failed = false
@@ -100,8 +105,8 @@ console.log(
 )
 // The CDN scripts as shipped: library, styles and adapter, already minified.
 for (const [name, file, budget] of [
-  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 31.75],
-  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 32.0],
+  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 33.25],
+  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 33.25],
   ['bootstrap.css', `${BOOTSTRAP}bootstrap.css`, 0.6],
   ['tabler.css', `${BOOTSTRAP}tabler.css`, 0.6],
 ]) {

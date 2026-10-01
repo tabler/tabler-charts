@@ -9,6 +9,7 @@ import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
 import { donut, pie } from './charts/pie.ts'
+import { radar } from './charts/radar.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
 import './annotations.ts'
@@ -100,6 +101,7 @@ function randomConfig(): ChartConfig<object> {
     'gauge',
     'heatmap',
     'candlestick',
+    'radar',
   ])
   if (kind === 'candlestick') {
     return {
@@ -118,6 +120,17 @@ function randomConfig(): ChartConfig<object> {
       }),
       x: { type: timeLabels && rnd() < 0.7 ? 'time' : 'category', utc: true },
       y: { scale: maybe(0.2, 'log' as const) },
+    } as ChartConfig<object>
+  }
+  if (kind === 'radar') {
+    return {
+      type: radar,
+      ...base,
+      data: { labels: labels.map(String), series: series(n, len) },
+      grid: maybe(0.3, 'circle' as const),
+      fill: maybe(0.3, false),
+      points: maybe(0.3, true),
+      r: { min: maybe(0.2, -20), max: maybe(0.2, 50) },
     } as ChartConfig<object>
   }
   if (kind === 'heatmap') {

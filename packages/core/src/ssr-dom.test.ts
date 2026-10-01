@@ -16,6 +16,7 @@ import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
 import { donut, pie } from './charts/pie.ts'
+import { radar } from './charts/radar.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
 import { Chart, type ChartConfig, chartToString } from './core.ts'
@@ -62,6 +63,7 @@ function config(): ChartConfig<object> {
     'gauge',
     'heatmap',
     'candlestick',
+    'radar',
   ])
   const cart = {
     data: { labels, series: series(pick([1, 2, 3]), len) },
@@ -110,6 +112,14 @@ function config(): ChartConfig<object> {
       } as never
     case 'gauge':
       return { type: gauge, ...common, data: rnd() * 120 } as never
+    case 'radar':
+      return {
+        type: radar,
+        ...common,
+        data: { labels: labels.map(String), series: series(pick([1, 2, 3]), len) },
+        grid: rnd() < 0.3 ? 'circle' : undefined,
+        points: rnd() < 0.3,
+      } as never
     case 'heatmap':
       return {
         type: heatmap,

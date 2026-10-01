@@ -39,6 +39,11 @@ export interface Hit {
   /** Series of the mark directly under the pointer (e.g. a bar), if any. */
   seriesIndex?: number
   /**
+   * The crosshair segment, when it is not vertical across the plot (a radar
+   * spoke). Tooltips from the keyboard then anchor on the value itself.
+   */
+  guide?: { x1: number; y1: number; x2: number; y2: number }
+  /**
    * A shape to highlight instead of a crosshair or band (e.g. a halo around a
    * pie slice): path data `d`, drawn translated by `x` / `y`.
    */
