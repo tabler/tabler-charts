@@ -292,6 +292,57 @@ const ITEMS: Item[] = [
     },
   },
   {
+    title: 'Latency vs. SLO',
+    note: 'Annotations: an SLO line on the value axis and an incident on the time axis.',
+    config: {
+      type: line,
+      ...common,
+      data: {
+        labels: Array.from({ length: 24 }, (_, h) => Date.UTC(2026, 8, 30, h)),
+        series: [
+          {
+            name: 'p95 latency',
+            values: Array.from({ length: 24 }, (_, h) =>
+              Math.round(160 + rnd() * 60 + (h >= 14 && h <= 16 ? 180 : 0)),
+            ),
+          },
+        ],
+      },
+      x: { type: 'time', utc: true },
+      y: { format: { style: 'unit', unit: 'millisecond' } },
+      area: true,
+      annotations: [
+        { y: 300, label: 'SLO 300 ms', color: 'var(--tc-color-8)' },
+        {
+          x: [Date.UTC(2026, 8, 30, 14), Date.UTC(2026, 8, 30, 16)],
+          label: 'Incident',
+          color: 'var(--tc-color-8)',
+        },
+      ],
+    },
+  },
+  {
+    title: 'Quota and season',
+    note: 'A quota line across bars and the holiday season as a band of categories.',
+    config: {
+      type: bar,
+      ...common,
+      data: {
+        labels: MONTHS,
+        series: [
+          {
+            name: 'Orders',
+            values: MONTHS.map((_, i) => Math.round(40 + rnd() * 30 + (i >= 9 ? 35 : 0))),
+          },
+        ],
+      },
+      annotations: [
+        { x: ['Oct', 'Dec'], label: 'Holiday season' },
+        { y: 80, label: 'Quota', position: 'start' },
+      ],
+    },
+  },
+  {
     title: 'Profit and loss',
     note: 'Negative bars grow down, square corners, thin bars.',
     config: {

@@ -3,6 +3,8 @@
  * that installs the built-in plugins (tooltip, legend, keyboard, …) and
  * every optional feature registered (time and log axes, decimation).
  */
+
+import { annotationLayers, annotationValues } from './charts/annotations.ts'
 import { register } from './features.ts'
 import { log } from './scales/log.ts'
 import { time, timePointScale } from './scales/time.ts'
@@ -15,6 +17,7 @@ register({
   log,
   decimate: lttbIndices,
   line: { linePath, areaPath },
+  annotations: { layers: annotationLayers, values: annotationValues },
 })
 
 export { Chart } from './chart-default.ts'

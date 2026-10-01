@@ -2,6 +2,7 @@ import type { ChartType } from '../chart.ts'
 import type { Hit, Interaction } from '../interaction.ts'
 import type { InsetsInput } from '../layout.ts'
 import { h } from '../vnode.ts'
+import type { Annotation } from './annotations.ts'
 import {
   type CartesianData,
   type CartesianOptions,
@@ -37,6 +38,8 @@ export interface CandlestickOptions {
   radius?: number
   x?: CategoryAxisOptions
   y?: ValueAxisOptions
+  /** Reference lines and bands, e.g. a price target or a trading halt. */
+  annotations?: readonly Annotation[]
 }
 
 const round = (value: number): number => Math.round(value * 100) / 100
@@ -65,6 +68,7 @@ function asCartesian(options: CandlestickOptions): CartesianOptions {
   if (options.x) out.x = options.x
   if (options.y) out.y = options.y
   if (options.padding !== undefined) out.padding = options.padding
+  if (options.annotations) out.annotations = options.annotations
   return out
 }
 

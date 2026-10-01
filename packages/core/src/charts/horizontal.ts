@@ -12,6 +12,7 @@ import {
   type Label,
   labelFormatter,
   labelKey,
+  notesFeature,
   plotClip,
   resolveLabels,
   TICK_SPACING_X,
@@ -38,7 +39,15 @@ export function horizontalLayout(
   const labels = resolveLabels(options.data)
   const format = labelFormatter(options, ctx)
   const count = yOptions.ticks ?? Math.max(2, Math.round(width / TICK_SPACING_X))
-  const domain = valueDomain(options.data, yOptions, layout.zero, count, ctx.hidden, layout.values)
+  const domain = valueDomain(
+    options.data,
+    yOptions,
+    layout.zero,
+    count,
+    ctx.hidden,
+    layout.values,
+    notesFeature(options)?.values(options.annotations),
+  )
   const tickFormat = layout.tickFormat ?? yOptions.format
   const showValues = yOptions.show !== false
   const showCategories = xOptions.show !== false && labels.length > 0
@@ -93,7 +102,19 @@ export function horizontalLayout(
   if (yOptions.grid !== false) background.push(grid({ direction: 'x', ticks: yTicks, area }))
   if (xOptions.grid) background.push(grid({ direction: 'y', ticks: xTicks, area }))
 
+  // Annotations: the value axis runs along x here, categories along y.
+  const notes = notesFeature(options)?.layers(options.annotations, {
+    area,
+    horizontal: true,
+    fontSize,
+    value: y,
+    band: x,
+    keys: labels.map(labelKey),
+  })
+  if (notes?.under) background.push(notes.under)
+
   const foreground: VNode[] = []
+  if (notes?.over) foreground.push(notes.over)
   if (showCategories || xOptions.line) {
     foreground.push(axis({ position: 'left', ticks: xTicks, area, line: xOptions.line === true }))
   }

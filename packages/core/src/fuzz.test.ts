@@ -11,6 +11,7 @@ import { line } from './charts/line.ts'
 import { donut, pie } from './charts/pie.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
+import './annotations.ts'
 import './decimate.ts'
 import './line.ts'
 import './log.ts'
@@ -196,6 +197,23 @@ function randomConfig(): ChartConfig<object> {
     curve: pick(['linear', 'monotone', 'step']),
     points: pick(['none', 'last', 'all']),
     decimate: maybe(0.2, 3),
+    annotations: maybe(
+      0.3,
+      Array.from({ length: pick([1, 2, 3]) }, () =>
+        pick([
+          { y: value() ?? 0, label: maybe(0.5, 'Target') },
+          { y: [value() ?? 0, value() ?? 1] as [number, number], label: maybe(0.5, 'Band') },
+          { x: labels.length ? pick<string | number>(labels) : 'none', label: maybe(0.5, 'Event') },
+          {
+            x: [labels[0] ?? 'a', labels[labels.length - 1] ?? 'b'] as [
+              string | number,
+              string | number,
+            ],
+            color: maybe(0.5, '#f00'),
+          },
+        ]),
+      ),
+    ),
   } as ChartConfig<object>
 }
 

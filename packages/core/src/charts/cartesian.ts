@@ -1,7 +1,7 @@
 import type { DataTable, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
-import { feature } from '../features.ts'
+import { type Features, feature } from '../features.ts'
 import { formatDate, formatNumber, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import {
@@ -17,6 +17,7 @@ import { extent } from '../scales/extent.ts'
 import { type LinearScale, linear } from '../scales/linear.ts'
 import { niceDomain } from '../scales/ticks.ts'
 import { type ClassValue, h, type VNode } from '../vnode.ts'
+import type { Annotation } from './annotations.ts'
 
 /** Category label on the x axis. */
 export type Label = string | number | Date
@@ -105,6 +106,8 @@ export interface CartesianOptions {
   data: CartesianData
   y?: ValueAxisOptions
   x?: CategoryAxisOptions
+  /** Reference lines and bands: targets, normal ranges, events and periods. */
+  annotations?: readonly Annotation[]
   /** Extra space around the plot area, in pixels. */
   padding?: InsetsInput
 }
@@ -250,10 +253,12 @@ export function valueDomain(
   count: number,
   hidden: ReadonlySet<string> = new Set(),
   override?: readonly (number | null | undefined)[],
+  extra: readonly number[] = [],
 ): [number, number] {
+  // (extra: values to include besides the data, e.g. annotation targets)
   const values =
     override ?? data.series.filter((s) => !hidden.has(seriesKey(s))).flatMap((s) => s.values)
-  return domainOf(values, options, zeroDefault, count)
+  return domainOf(extra.length ? [...values, ...extra] : values, options, zeroDefault, count)
 }
 
 /** A niced numeric domain for `values`, honouring zero, min, max and nice. */
@@ -302,6 +307,13 @@ export function domainOf(
   return [lo, hi]
 }
 
+/** The annotations feature, when the chart has annotations (it then must be registered). */
+export function notesFeature(
+  options: CartesianOptions,
+): NonNullable<Features['annotations']> | undefined {
+  return options.annotations?.length ? feature('annotations') : undefined
+}
+
 /** Compute scales, ticks, grid and axes shared by line, area and bar charts. */
 export function cartesianLayout(
   options: CartesianOptions,
@@ -321,7 +333,15 @@ export function cartesianLayout(
   const timed = isTimeAxis(options) && layout.scale === 'point'
 
   const count = yOptions.ticks ?? Math.max(2, Math.round(height / TICK_SPACING))
-  const domain = valueDomain(data, yOptions, layout.zero, count, ctx.hidden, layout.values)
+  const domain = valueDomain(
+    data,
+    yOptions,
+    layout.zero,
+    count,
+    ctx.hidden,
+    layout.values,
+    notesFeature(options)?.values(options.annotations),
+  )
   const tickFormat = layout.tickFormat ?? yOptions.format
   const probeY = valueTicks(
     valueScale(domain, [1, 0], yOptions),
@@ -396,7 +416,20 @@ export function cartesianLayout(
   if (yOptions.grid !== false) background.push(grid({ direction: 'y', ticks: yTicks, area }))
   if (xOptions.grid) background.push(grid({ direction: 'x', ticks: xTicks, area }))
 
+  // Annotations: bands under the series, lines above them (and below the axes).
+  const notes = notesFeature(options)?.layers(options.annotations, {
+    area,
+    horizontal: false,
+    fontSize,
+    value: y,
+    band: x,
+    keys,
+    time: timeScale?.time,
+  })
+  if (notes?.under) background.push(notes.under)
+
   const foreground: VNode[] = []
+  if (notes?.over) foreground.push(notes.over)
   if (showY) foreground.push(axis({ position: 'left', ticks: yTicks, area }))
   if (showX || xOptions.line) {
     foreground.push(axis({ position: 'bottom', ticks: xTicks, area, line: xOptions.line === true }))

@@ -12,7 +12,7 @@
     "ssr"
   ],
   "license": "MIT",
-  "author": "Paweł Kuna",
+  "author": "Pawe\u0142 Kuna",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codecalm/tabler-charts.git",
@@ -35,7 +35,10 @@
     "./src/line.ts",
     "./src/time.ts",
     "./src/log.ts",
-    "./src/decimate.ts"
+    "./src/decimate.ts",
+    "./dist/annotations.js",
+    "./dist/annotations.cjs",
+    "./src/annotations.ts"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -159,6 +162,16 @@
       "require": {
         "types": "./dist/decimate.d.cts",
         "default": "./dist/decimate.cjs"
+      }
+    },
+    "./annotations": {
+      "import": {
+        "types": "./dist/annotations.d.ts",
+        "default": "./dist/annotations.js"
+      },
+      "require": {
+        "types": "./dist/annotations.d.cts",
+        "default": "./dist/annotations.cjs"
       }
     },
     "./time": {

@@ -278,6 +278,39 @@
     cy var(--tc-duration) var(--tc-easing);
 }
 
+/* Annotations: reference lines and bands, in a muted color unless given one. */
+.tc-annotation {
+  --tc-annotation-color: var(--tc-text-muted);
+}
+
+.tc-annotation-line {
+  stroke: var(--tc-annotation-color);
+  stroke-width: 1px;
+  stroke-dasharray: 4 3;
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
+}
+
+.tc-annotation-band {
+  fill: var(--tc-annotation-color);
+  fill-opacity: 0.1;
+}
+
+/* A surface-colored outline keeps the label readable over lines and grid. */
+.tc-annotation-label {
+  fill: var(--tc-annotation-color);
+  font-size: 0.92em;
+  font-weight: 500;
+  paint-order: stroke;
+  stroke: var(--tc-surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.tc-annotations {
+  pointer-events: none;
+}
+
 /* -- Motion ----------------------------------------------------------------- */
 
 /*

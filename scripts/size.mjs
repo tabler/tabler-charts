@@ -20,13 +20,13 @@ const CASES = [
   [
     'core + line',
     `export { Chart } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    11,
+    11.25,
   ],
   ['core + bar', `export { Chart } from '${DIST}core.js'; export { bar } from '${DIST}bar.js'`, 11],
   [
     'core + pie',
     `export { Chart } from '${DIST}core.js'; export { pie } from '${DIST}pie.js'`,
-    7.25,
+    7.5,
   ],
   [
     'core + gauge',
@@ -41,14 +41,14 @@ const CASES = [
   [
     'core + candlestick',
     `export { Chart } from '${DIST}core.js'; export { candlestick } from '${DIST}candlestick.js'`,
-    9.5,
+    9.75,
   ],
   [
     'core + line + tooltip + legend',
     `export { Chart, tooltip, highlight, legend } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     12.5,
   ],
-  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 15.5],
+  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 16.5],
   [
     'SSR: chartToString + line',
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
@@ -57,13 +57,13 @@ const CASES = [
   [
     'elements/core + line',
     `export { defineChartElement } from '${ELEMENTS}core.js'; export { line } from '${DIST}line.js'`,
-    12.25,
+    12.5,
   ],
-  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 26],
-  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 16.75, react],
-  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 16.75, vue],
-  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 26.25],
-  ['everything', `export * from '${DIST}index.js'`, 25.75],
+  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 27.5],
+  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 17.5, react],
+  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 17.5, vue],
+  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 27.25],
+  ['everything', `export * from '${DIST}index.js'`, 27.25],
 ]
 
 let failed = false
@@ -93,8 +93,8 @@ const cssOk = css <= 2.75
 failed ||= !cssOk
 // The CDN scripts as shipped: library, styles and adapter, already minified.
 for (const [name, file, budget] of [
-  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 30],
-  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 30],
+  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 31.5],
+  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 31.5],
   ['bootstrap.css', `${BOOTSTRAP}bootstrap.css`, 0.6],
   ['tabler.css', `${BOOTSTRAP}tabler.css`, 0.6],
 ]) {

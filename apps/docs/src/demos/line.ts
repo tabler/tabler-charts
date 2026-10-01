@@ -60,6 +60,21 @@ export const lineDemo: Demo = {
     controls.select('Fill', ['off', 'on'] as const, 'off', (fill) =>
       chart.update({ area: fill === 'on' }),
     )
+    controls.select('Annotations', ['none', 'target', 'range', 'events'] as const, 'none', (kind) =>
+      chart.update({
+        annotations:
+          kind === 'target'
+            ? [{ y: 5000, label: 'Target 5K', color: 'var(--tc-color-3)' }]
+            : kind === 'range'
+              ? [{ y: [1500, 2500], label: 'Sign-up goal' }]
+              : kind === 'events'
+                ? [
+                    { x: 'Mar', label: 'Launch' },
+                    { x: ['Jun', 'Aug'], label: 'Summer sale', color: 'var(--tc-color-4)' },
+                  ]
+                : undefined,
+      }),
+    )
     controls.select('Sign-ups', ['solid', 'dashed'] as const, 'solid', (style) => {
       dashed = style === 'dashed'
       chart.setData({ labels: LABELS, series: randomSeries() })

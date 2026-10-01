@@ -1,10 +1,11 @@
+import type { annotationLayers, annotationValues } from './charts/annotations.ts'
 import type { LinearScale, LinearScaleOptions } from './scales/linear.ts'
 import type { time, timePointScale } from './scales/time.ts'
 import type { areaPath, linePath, Point } from './shapes/path.ts'
 
 /**
  * Optional features that chart types look up at render time. Each lives in
- * its own module (`@tabler/charts/time`, `/log`, `/decimate`, `/line`) and registers
+ * its own module (`@tabler/charts/time`, `/log`, `/decimate`, `/line`, `/annotations`) and registers
  * itself when imported; `@tabler/charts` registers all of them, while
  * `@tabler/charts/core` starts empty so unused code never ships.
  */
@@ -21,6 +22,8 @@ export interface Features {
   decimate?: (points: readonly Point[], threshold: number) => number[]
   /** Line and area paths behind `series.type: 'line' | 'area'` in bar charts. */
   line?: { linePath: typeof linePath; areaPath: typeof areaPath }
+  /** Reference lines and bands behind `annotations` in cartesian charts. */
+  annotations?: { layers: typeof annotationLayers; values: typeof annotationValues }
 }
 
 export const features: Features = {}

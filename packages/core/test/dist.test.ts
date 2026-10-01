@@ -43,6 +43,7 @@ describe('built package', () => {
     expect(core.features.log).toBe(log.log)
     expect(core.features.decimate).toBe(decimate.lttbIndices)
     expect(core.features.line?.linePath).toBe(core.linePath)
+    expect(core.features.annotations).toBeDefined()
   })
 
   test('every chart type renders from the built entries', async () => {

@@ -22,6 +22,7 @@ export {
   resolveLegend,
   resolveSize,
 } from './chart.ts'
+export type { Annotation } from './charts/annotations.ts'
 export type { AreaOptions } from './charts/area.ts'
 export { area } from './charts/area.ts'
 export type { BarOptions } from './charts/bar.ts'
