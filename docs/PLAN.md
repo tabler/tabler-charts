@@ -192,7 +192,7 @@ Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexC
 ### M5 – Wydanie
 - [x] 37. `test: add playwright visual regression tests` – Playwright (Chromium) na zbudowanym playgroundzie (`vite preview`): każdy kafelek galerii w trybie jasnym i ciemnym, każde demo (losowe dane z ziarnem, zamrożony zegar), stany interakcji (tooltip i crosshair, pasmo słupka, aureola wycinka, fokus z klawiatury, ukryta seria); wzorce dla Linuksa z obrazu Playwright w CI (`.github/workflows/visual.yml`), lokalne wzorce innych platform poza repo; 2 commity: testy + workflow, potem wzorce.
 - [x] 38. `chore: add size budget check` – `pnpm size` (rolldown + gzip typowych importów, budżety w `scripts/size.mjs`), w CI. **Zrobione wcześniej**, w fazie optymalizacji po M3.
-- [ ] 39. `docs: write documentation site`.
+- [ ] 39. `docs: write documentation site`. **Na samym końcu** (decyzja z 2026-10-01): po wszystkich innych krokach, gdy API się ustabilizuje.
 - [ ] 40. `chore: add changesets and release 0.1.0`. **Wstrzymane** (decyzja z 2026-10-01): na razie bez wydania – bez changesets, podbijania wersji, `npm publish` i tagów; pakiety zostają na `0.0.0`.
 
 ## Weryfikacja
