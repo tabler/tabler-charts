@@ -6,6 +6,9 @@ name: Visual
 # intended visual change: they are uploaded as the `visual-baselines` artifact
 # to commit.
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
     inputs:
       update-snapshots:
