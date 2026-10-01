@@ -358,18 +358,27 @@
 /* Heatmap cells: one hue from the empty shade (--tc-heat-empty) to the full
    color (--tc-heat-color) by --tc-heat, the value's share set per cell. */
 .tc-cell {
-  fill: var(--tc-heat-color, var(--tc-color-1));
+  fill: var(--tc-cell-fill, var(--tc-heat-color, var(--tc-color-1)));
   transition: fill var(--tc-duration) var(--tc-easing);
 }
 
+/* Ranges and color scales set the color of each cell in --tc-cell-fill. */
 @supports (color: color-mix(in oklab, red 50%, blue)) {
   .tc-cell {
-    fill: color-mix(
-      in oklab,
-      var(--tc-heat-color, var(--tc-color-1)) var(--tc-heat, 100%),
-      var(--tc-heat-empty, var(--tc-grid-color))
+    fill: var(
+      --tc-cell-fill,
+      color-mix(
+        in oklab,
+        var(--tc-heat-color, var(--tc-color-1)) var(--tc-heat, 100%),
+        var(--tc-heat-empty, var(--tc-grid-color))
+      )
     );
   }
+}
+
+/* Colored by series: every row shades towards its palette color. */
+.tc-heatmap-row.tc-series {
+  --tc-heat-color: var(--tc-series-color);
 }
 
 .tc-cell-empty {

@@ -414,6 +414,69 @@ const ITEMS: Item[] = [
     style: { '--tc-heat-color': '#2fb344' },
   },
   {
+    title: 'Uptime SLA',
+    note: 'Ranges: each band of values in its own color, named in the legend and the tooltip.',
+    config: {
+      type: heatmap,
+      ...common,
+      data: {
+        labels: Array.from({ length: 12 }, (_, i) => `W${i + 1}`),
+        series: ['API', 'Web', 'Search', 'Billing'].map((name) => ({
+          name,
+          values: Array.from({ length: 12 }, () => {
+            // Mostly met, some weeks just below, an occasional outage.
+            const r = rnd()
+            const v =
+              r < 0.08 ? 98.2 + rnd() * 0.8 : r < 0.25 ? 99.4 + rnd() * 0.45 : 99.9 + rnd() * 0.1
+            return Math.round(v * 100) / 100
+          }),
+        })),
+      },
+      ranges: [
+        { to: 99, color: '#d63939', name: 'Below 99%' },
+        { from: 99, to: 99.9, color: '#f59f00', name: '99–99.9%' },
+        { from: 99.9, color: '#2fb344', name: 'Met (99.9%+)' },
+      ],
+      format: { maximumFractionDigits: 2 },
+    },
+  },
+  {
+    title: 'Temperature anomaly',
+    note: 'A diverging scale: blue below normal, neutral at mid: 0, red above.',
+    config: {
+      type: heatmap,
+      ...common,
+      data: {
+        labels: MONTHS,
+        series: ['2022', '2023', '2024', '2025', '2026'].map((name, y) => ({
+          name,
+          values: MONTHS.map(() => Math.round(((rnd() - 0.55) * 4 + y * 0.35) * 10) / 10),
+        })),
+      },
+      colors: ['var(--tc-color-1)', 'var(--tc-grid-color)', 'var(--tc-color-8)'],
+      mid: 0,
+      min: -2.5,
+      max: 2.5,
+      format: { signDisplay: 'exceptZero', style: 'unit', unit: 'celsius' },
+    },
+  },
+  {
+    title: 'Channels by week',
+    note: 'colorBy: series — every row shades towards its own palette color; the legend hides rows.',
+    config: {
+      type: heatmap,
+      ...common,
+      data: {
+        labels: Array.from({ length: 10 }, (_, i) => `W${i + 1}`),
+        series: ['Direct', 'Search', 'Social', 'Email'].map((name) => ({
+          name,
+          values: Array.from({ length: 10 }, () => Math.round(rnd() * 100)),
+        })),
+      },
+      colorBy: 'series',
+    },
+  },
+  {
     title: 'Response times',
     note: 'Heatmap with a fixed range (min 0, max 800 ms) and no gap.',
     config: {

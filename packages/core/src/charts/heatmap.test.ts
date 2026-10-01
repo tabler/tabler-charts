@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { findByClass } from '../test-utils.ts'
+import { h } from '../vnode.ts'
 import { type HeatmapOptions, heatmap } from './heatmap.ts'
 
 const size = { width: 300, height: 120 }
@@ -113,6 +114,112 @@ describe('heatmap', () => {
       const svg = chartToString({ ...base, data }, size)
       expect(svg).not.toContain('NaN')
     }
+  })
+
+  describe('ranges', () => {
+    const ranges = [
+      { to: 3, color: '#d63939', name: 'Low' },
+      { from: 3, to: 8, color: '#f59f00', name: 'Mid' },
+      { from: 8, color: '#2fb344', name: 'High' },
+    ]
+
+    test('paints each cell in the color of its range', () => {
+      // Values: 0, 5, 10 / 2, –, 8 → Low, Mid, High / Low, empty, High.
+      expect(heat(render({ ranges }))).toEqual([
+        '--tc-cell-fill:#d63939',
+        '--tc-cell-fill:#f59f00',
+        '--tc-cell-fill:#2fb344',
+        '--tc-cell-fill:#d63939',
+        null,
+        '--tc-cell-fill:#2fb344',
+      ])
+    })
+
+    test('lists the ranges in the legend, and a hidden range draws empty cells', () => {
+      expect(heatmap.legend?.({ ...base, ranges })).toEqual([
+        { key: 'Low', name: 'Low', index: 0, color: '#d63939' },
+        { key: 'Mid', name: 'Mid', index: 1, color: '#f59f00' },
+        { key: 'High', name: 'High', index: 2, color: '#2fb344' },
+      ])
+      const unnamed = heatmap.legend?.({ ...base, ranges: ranges.map(({ name: _, ...r }) => r) })
+      expect(unnamed?.map((i) => i.name)).toEqual(['< 3', '3–8', '≥ 8'])
+      expect(findByClass(render({ ranges }), 'tc-cell-empty')).toHaveLength(1)
+      // Hiding "High" from the legend empties its two cells (plus the missing one).
+      const content = heatmap.render(
+        { ...base, ranges },
+        { ...ctx(), hidden: new Set(['High']) },
+      ) as never
+      const cells = findByClass(h('g', null, content), 'tc-cell')
+      expect(cells.filter((c) => String(c.attrs.class).includes('tc-cell-empty'))).toHaveLength(3)
+    })
+
+    test('the tooltip names the range of each value', () => {
+      const hit = interactionOf({ ranges }).hitIndex(2, 0)
+      expect(hit?.items.map((i) => i.text)).toEqual(['10 · High', '8 · High'])
+      expect(hit?.items[0]?.color).toBe('#2fb344')
+    })
+  })
+
+  describe('colors', () => {
+    test('interpolates through the stops in oklab, from min to max', () => {
+      const styles = heat(render({ colors: ['#0000ff', '#ffffff', '#ff0000'] }))
+      // 0 → first stop, 5 → middle stop, 10 → last stop; 2 is 40% into the first segment.
+      expect(styles[0]).toBe('--tc-cell-fill:#0000ff')
+      expect(styles[1]).toBe('--tc-cell-fill:#ffffff')
+      expect(styles[2]).toBe('--tc-cell-fill:#ff0000')
+      expect(styles[3]).toBe('--tc-cell-fill:color-mix(in oklab,#ffffff 40%,#0000ff)')
+      expect(heatmap.legend?.({ ...base, colors: ['#000', '#fff'] })).toEqual([])
+    })
+
+    test('mid places the middle color on a value, for diverging data', () => {
+      const data = {
+        labels: ['a', 'b', 'c', 'd'],
+        series: [{ name: 'Δ', values: [-2, 0, 1, 8] }],
+      }
+      const styles = heat(render({ data, colors: ['blue', 'gray', 'red'], mid: 0 }))
+      expect(styles[0]).toBe('--tc-cell-fill:blue')
+      expect(styles[1]).toBe('--tc-cell-fill:gray')
+      // 1 is an eighth of the way from 0 to 8: 12.5% into the upper half.
+      expect(styles[2]).toBe('--tc-cell-fill:color-mix(in oklab,red 12.5%,gray)')
+      expect(styles[3]).toBe('--tc-cell-fill:red')
+    })
+  })
+
+  describe('colorBy: series', () => {
+    test('gives every row its palette slot and lists the rows in the legend', () => {
+      const node = render({ colorBy: 'series' })
+      const rows = findByClass(node, 'tc-heatmap-row')
+      expect(rows.map((r) => r.attrs.class)).toEqual([
+        'tc-heatmap-row tc-series tc-series-1',
+        'tc-heatmap-row tc-series tc-series-2',
+      ])
+      // Still one shade per value, now towards each row's color.
+      expect(heat(node)[2]).toBe('--tc-heat:100%')
+      expect(heatmap.legend?.({ ...base, colorBy: 'series' })?.map((i) => i.key)).toEqual([
+        'Mon',
+        'Tue',
+      ])
+      const hit = interactionOf({ colorBy: 'series' }).hitIndex(2, 1)
+      expect(hit?.items[1]?.color).toContain('var(--tc-color-2) 81.6%')
+    })
+
+    test('a row hidden from the legend leaves the grid, keeping the others in their slot', () => {
+      const node = buildChart(
+        {
+          ...base,
+          colorBy: 'series',
+          data: {
+            ...base.data,
+            series: base.data.series.map((s, i) => (i === 0 ? { ...s, hidden: true } : s)),
+          },
+        },
+        size,
+        'h',
+      )
+      const rows = findByClass(node, 'tc-heatmap-row')
+      expect(rows.map((r) => r.key)).toEqual(['Tue'])
+      expect(rows[0]?.attrs.class).toContain('tc-series-2')
+    })
   })
 })
 
