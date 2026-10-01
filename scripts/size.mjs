@@ -20,7 +20,7 @@ const CASES = [
   [
     'core + line',
     `export { Chart } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    11.25,
+    11.5,
   ],
   [
     'core + bar',
@@ -40,7 +40,7 @@ const CASES = [
   [
     'core + heatmap',
     `export { Chart } from '${DIST}core.js'; export { heatmap } from '${DIST}heatmap.js'`,
-    8,
+    8.25,
   ],
   [
     'core + candlestick',
@@ -52,7 +52,7 @@ const CASES = [
     `export { Chart, tooltip, highlight, legend } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
     12.75,
   ],
-  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 16.5],
+  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 16.75],
   [
     'SSR: chartToString + line',
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
@@ -61,13 +61,13 @@ const CASES = [
   [
     'elements/core + line',
     `export { defineChartElement } from '${ELEMENTS}core.js'; export { line } from '${DIST}line.js'`,
-    12.5,
+    12.75,
   ],
-  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 27.5],
-  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 17.75, react],
-  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 17.75, vue],
-  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 27.25],
-  ['everything', `export * from '${DIST}index.js'`, 27.25],
+  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 27.75],
+  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.0, react],
+  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 18.0, vue],
+  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 27.5],
+  ['everything', `export * from '${DIST}index.js'`, 27.5],
 ]
 
 let failed = false
@@ -97,8 +97,8 @@ const cssOk = css <= 2.75
 failed ||= !cssOk
 // The CDN scripts as shipped: library, styles and adapter, already minified.
 for (const [name, file, budget] of [
-  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 31.5],
-  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 31.5],
+  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 31.75],
+  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 31.75],
   ['bootstrap.css', `${BOOTSTRAP}bootstrap.css`, 0.6],
   ['tabler.css', `${BOOTSTRAP}tabler.css`, 0.6],
 ]) {

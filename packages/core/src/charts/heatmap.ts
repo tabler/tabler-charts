@@ -2,7 +2,7 @@ import type { ChartType, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, thinTicks } from '../components/axis.ts'
 import { formatNumber, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
-import { type InsetsInput, innerRect, insets } from '../layout.ts'
+import { estimateTextWidth, type InsetsInput, innerRect, insets } from '../layout.ts'
 import { band } from '../scales/band.ts'
 import { extent } from '../scales/extent.ts'
 import { h } from '../vnode.ts'
@@ -179,9 +179,18 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
   const rowTicks = rows.map((s, i) => ({ value: i, position: 0, label: s.name }))
   const left = showY ? axisSize('left', rowTicks, fontSize) : 0
   const bottom = showX ? axisSize('bottom', [{ value: 0, position: 0, label: 'M' }], fontSize) : 0
+  // The last column label is centered on its column: what is wider than half a
+  // column needs room on the right.
+  const lastLabel = showX
+    ? estimateTextWidth(
+        formatLabel(labels[labels.length - 1] as Label, labels.length - 1),
+        fontSize,
+      )
+    : 0
+  const halfColumn = (width - pad.left - pad.right - left) / Math.max(1, labels.length) / 2
   const area = innerRect(width, height, {
     top: pad.top,
-    right: pad.right,
+    right: pad.right + Math.max(0, Math.ceil(lastLabel / 2 - halfColumn)),
     bottom: pad.bottom + bottom,
     left: pad.left + left,
   })

@@ -1,3 +1,4 @@
+import { estimateTextWidth } from './layout.ts'
 import type { Child, VNode } from './vnode.ts'
 
 /** Every node in `node`'s tree whose class list contains `cls`. */
@@ -21,4 +22,26 @@ export function findByTag(node: Child, tag: string, out: VNode[] = []): VNode[] 
 export function gridLineOffset(node: VNode | undefined): number {
   const match = String(node?.attrs.style ?? '').match(/translate[XY]\((-?[\d.]+)px\)/)
   return match ? Number(match[1]) : Number.NaN
+}
+
+/**
+ * Horizontal extent [left, right] of the centered tick labels of an axis
+ * (`tc-axis-bottom`), from each tick's translate and the estimated text width.
+ */
+export function tickLabelExtent(
+  node: VNode,
+  axisClass = 'tc-axis-bottom',
+  fontSize = 12,
+): [number, number] {
+  const axis = findByClass(node, axisClass)[0]
+  let left = Number.POSITIVE_INFINITY
+  let right = Number.NEGATIVE_INFINITY
+  for (const tick of axis ? findByClass(axis, 'tc-tick') : []) {
+    const x = Number(String(tick.attrs.style).match(/translate\((-?[\d.]+)px/)?.[1])
+    const label = findByClass(tick, 'tc-tick-label')[0]?.children.join('') ?? ''
+    const half = estimateTextWidth(label, fontSize) / 2
+    left = Math.min(left, x - half)
+    right = Math.max(right, x + half)
+  }
+  return [left, right]
 }

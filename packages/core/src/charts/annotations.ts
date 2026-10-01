@@ -1,4 +1,4 @@
-import type { Rect } from '../layout.ts'
+import { estimateTextWidth, type Rect } from '../layout.ts'
 import type { BandKey, BandScale } from '../scales/band.ts'
 import { type ClassValue, h, type VNode } from '../vnode.ts'
 import { labelKey, toMs } from './cartesian.ts'
@@ -89,6 +89,10 @@ export function annotationLayers(
   const y1 = area.y + area.height
   const inside = (p: number, lo: number, hi: number) => p >= lo - 0.5 && p <= hi + 0.5
   const pad = 4
+  /** Boxes of the labels placed so far, so later ones can step aside. */
+  const placed: [number, number, number, number][] = []
+  const clear = (box: [number, number, number, number]) =>
+    placed.every(([l, t, r, b]) => box[2] <= l || box[0] >= r || box[3] <= t || box[1] >= b)
 
   annotations.forEach((a, index) => {
     const key = a.id ?? index
@@ -128,25 +132,44 @@ export function annotationLayers(
     const a0 = Math.max(lo, min)
     const a1 = Math.min(hi, max)
 
-    const label =
-      a.label &&
-      h(
+    // Label: candidate spots in order of preference, inside the plot area; the
+    // first that does not cover an earlier label wins (or the first one).
+    let label: VNode | false | undefined
+    if (a.label) {
+      const w = estimateTextWidth(a.label, fontSize * 0.92)
+      const line = a1 - a0 <= 0.5
+      // [left edge, baseline] of each spot.
+      const spots: [number, number][] = []
+      if (vertical) {
+        // Beside a line or at the start of a band; on the other side if it would run out.
+        const after = a0 + pad
+        const x = after + w <= x1 ? after : line ? a0 - pad - w : Math.max(x0, a1 - pad - w)
+        const top = end ? y0 + fontSize : y1 - pad
+        const step = (end ? 1 : -1) * fontSize * 1.2
+        for (let k = 0; k < 3; k++) spots.push([Math.max(x0 + pad, x), top + k * step])
+      } else {
+        // At the preferred end above or below, then at the other end.
+        const near = end ? x1 - pad - w : x0 + pad
+        const far = end ? x0 + pad : x1 - pad - w
+        for (const x of [near, far]) {
+          if (line) spots.push([x, a0 - pad], [x, a0 + fontSize])
+          else spots.push([x, a0 + fontSize], [x, a1 - pad])
+        }
+      }
+      const box = ([x, y]: [number, number]): [number, number, number, number] => [
+        x,
+        y - fontSize,
+        x + w,
+        y + fontSize * 0.25,
+      ]
+      const spot = spots.find((s) => clear(box(s))) ?? (spots[0] as [number, number])
+      placed.push(box(spot))
+      label = h(
         'text',
-        vertical
-          ? {
-              class: 'tc-annotation-label',
-              x: round(a0 + pad),
-              y: round(end ? y0 + fontSize : y1 - pad),
-              'text-anchor': 'start',
-            }
-          : {
-              class: 'tc-annotation-label',
-              x: round(end ? x1 - pad : x0 + pad),
-              y: round(a0 === a1 ? a0 - pad : a0 + fontSize),
-              'text-anchor': end ? 'end' : 'start',
-            },
+        { class: 'tc-annotation-label', x: round(spot[0]), y: round(spot[1]) },
         a.label,
       )
+    }
 
     if (a1 - a0 > 0.5) {
       // A band below the series; its label goes with the lines, above them.

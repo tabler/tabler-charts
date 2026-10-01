@@ -373,20 +373,27 @@ export function cartesianLayout(
   const firstLabel = showX ? estimateTextWidth(edgeLabels[0] ?? '', fontSize) : 0
   const lastLabel = showX ? estimateTextWidth(edgeLabels[edgeLabels.length - 1] ?? '', fontSize) : 0
   const edgeX = layout.scale === 'point'
+  // On bands a label is centered half a step from the edge: only what is wider
+  // than that needs margin (long labels on narrow bands, e.g. dates on candles).
+  // The step depends on the margins, so they are worked out twice.
+  const valueAxis = showY ? axisSize('left', probeY, fontSize) : 0
+  const side = (halfStep: number) => {
+    const overflow = (label: number) =>
+      edgeX ? Math.ceil(label / 2) : Math.max(0, Math.ceil(label / 2 - halfStep))
+    return {
+      right: pad.right + Math.max(overflow(lastLabel), overhang, EDGE),
+      left: pad.left + Math.max(valueAxis, overflow(firstLabel), overhang, showY ? 0 : EDGE),
+    }
+  }
+  const steps = Math.max(1, labels.length) * 2
+  let sides = side((width - pad.left - pad.right - valueAxis) / steps)
+  if (!edgeX) sides = side((width - sides.left - sides.right) / steps)
   const margins = {
     top: pad.top + Math.max(showY ? halfLine : 0, overhang, EDGE / 2),
-    right: pad.right + Math.max(edgeX ? Math.ceil(lastLabel / 2) : 0, overhang, EDGE),
     bottom:
       pad.bottom +
       Math.max(showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : 0, overhang, EDGE / 2),
-    left:
-      pad.left +
-      Math.max(
-        showY ? axisSize('left', probeY, fontSize) : 0,
-        edgeX ? Math.ceil(firstLabel / 2) : 0,
-        overhang,
-        showY ? 0 : EDGE,
-      ),
+    ...sides,
   }
   const area = innerRect(width, height, margins)
 

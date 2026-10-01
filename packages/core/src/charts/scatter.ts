@@ -221,7 +221,9 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   if (xOptions.grid) background.push(grid({ direction: 'x', ticks: xTicks, area }))
 
   const clipId = `${ctx.id}-clip`
-  const bleed = overhang + 1
+  // Dots may reach a little past the plot edges; bubbles are cut at them (like
+  // Chart.js), as a big one there would cover the axis labels.
+  const bleed = sizes.length ? 1 : overhang + 1
   const groups = options.data.series.map(
     (series, seriesIndex) =>
       !ctx.hidden.has(seriesKey(series)) &&
