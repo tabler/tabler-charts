@@ -20,27 +20,27 @@ const CASES = [
   [
     'core + line',
     `export { Chart } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    11.5,
+    11.0,
   ],
   [
     'core + bar',
     `export { Chart } from '${DIST}core.js'; export { bar } from '${DIST}bar.js'`,
-    11.25,
+    11.0,
   ],
   [
     'core + pie',
     `export { Chart } from '${DIST}core.js'; export { pie } from '${DIST}pie.js'`,
-    7.5,
+    7.25,
   ],
   [
     'core + gauge',
     `export { Chart } from '${DIST}core.js'; export { gauge } from '${DIST}gauge.js'`,
-    7.75,
+    7.5,
   ],
   [
     'core + heatmap',
     `export { Chart } from '${DIST}core.js'; export { heatmap } from '${DIST}heatmap.js'`,
-    8.25,
+    8.0,
   ],
   [
     'core + candlestick',
@@ -50,18 +50,18 @@ const CASES = [
   [
     'core + line + tooltip + legend',
     `export { Chart, tooltip, highlight, legend } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    12.75,
+    12.5,
   ],
   ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 17.0],
   [
     'SSR: chartToString + line',
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    8.75,
+    8.5,
   ],
   [
     'elements/core + line',
     `export { defineChartElement } from '${ELEMENTS}core.js'; export { line } from '${DIST}line.js'`,
-    12.75,
+    12.25,
   ],
   ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 27.75],
   ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.0, react],
