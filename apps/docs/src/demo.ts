@@ -80,3 +80,19 @@ export function createControls(root: HTMLElement): DemoControls {
     },
   }
 }
+
+/**
+ * Keep an iframe as tall as its content, whatever fonts and charts make of
+ * it. The content is the page's first element, measured to its bottom edge:
+ * the body itself may grow with the frame (min-height: 100vh), which would
+ * never settle.
+ */
+export function fitFrame(frame: HTMLIFrameElement, margin = 16): void {
+  const content = frame.contentDocument?.body.firstElementChild
+  if (!content) return
+  const fit = () => {
+    frame.style.height = `${Math.ceil(content.getBoundingClientRect().bottom + margin)}px`
+  }
+  new ResizeObserver(fit).observe(content)
+  fit()
+}

@@ -4,7 +4,7 @@ import tablerCss from '@tabler/core/dist/css/tabler.min.css?raw'
 import tablerThemesCss from '@tabler/core/dist/css/tabler-themes.min.css?raw'
 import presetCss from '../../../../packages/bootstrap/scss/_tabler.scss?inline'
 import chartsCss from '../../../../packages/core/src/style.css?raw'
-import type { Demo } from '../demo.ts'
+import { type Demo, fitFrame } from '../demo.ts'
 
 const DAYS = Array.from({ length: 14 }, (_, i) => `Sep ${i + 17}`)
 const walk = (start: number) => {
@@ -60,10 +60,13 @@ export const tablerDemo: Demo = {
   mount(el, controls) {
     const frame = document.createElement('iframe')
     frame.title = 'Tabler page with charts'
-    frame.style.cssText = 'width:100%;height:440px;border:0;border-radius:8px'
+    frame.style.cssText = 'width:100%;height:360px;border:0;border-radius:8px'
     frame.srcdoc = PAGE
     el.append(frame)
-    frame.addEventListener('load', () => void init(frame.contentDocument as Document))
+    frame.addEventListener('load', () => {
+      void init(frame.contentDocument as Document)
+      fitFrame(frame)
+    })
 
     // Controls are created now (the page drops an empty controls row after mount).
     const root = () => (frame.contentDocument as Document).documentElement

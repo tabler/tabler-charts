@@ -3,7 +3,7 @@ import { getChart, init } from '@tabler/charts-bootstrap'
 import bootstrapCss from 'bootstrap/dist/css/bootstrap.min.css?raw'
 import mappingCss from '../../../../packages/bootstrap/scss/_charts.scss?inline'
 import chartsCss from '../../../../packages/core/src/style.css?raw'
-import type { Demo } from '../demo.ts'
+import { type Demo, fitFrame } from '../demo.ts'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -38,12 +38,15 @@ export const bootstrapDemo: Demo = {
   mount(el, controls) {
     const frame = document.createElement('iframe')
     frame.title = 'Bootstrap page with charts'
-    frame.style.cssText = 'width:100%;height:340px;border:0;border-radius:8px'
+    frame.style.cssText = 'width:100%;height:360px;border:0;border-radius:8px'
     frame.srcdoc = PAGE
     el.append(frame)
 
     // The data API: the charts are declared in the iframe's HTML.
-    frame.addEventListener('load', () => void init(frame.contentDocument as Document))
+    frame.addEventListener('load', () => {
+      void init(frame.contentDocument as Document)
+      fitFrame(frame)
+    })
 
     // Controls are created now (the page drops an empty controls row after mount)
     // and reach into the iframe when used.
