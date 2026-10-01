@@ -124,7 +124,7 @@ new Chart('#el', {
 3. **M3 – Więcej typów:** pie/donut, scatter, sparkline, stacked/horizontal bar, time scale.
 4. **M4 – Adaptery:** Web Component (najpierw – najcieńsza warstwa, testuje API `Chart`),
    potem React, Vue, Bootstrap/Tabler (CSS + data-API) + przykłady SSR (Next, Nuxt, Astro).
-5. **M5 – Dopracowanie:** docs, testy wizualne, budżet rozmiaru, publikacja 0.1.0 na npm.
+5. **M5 – Dopracowanie:** docs, testy wizualne, budżet rozmiaru, publikacja 0.1.0 na npm (publikacja wstrzymana, zob. krok 40).
 6. **Później:** radar, heatmap, gauge, combo, zoom/brush, eksport PNG, pluginy.
 
 ## Kroki i commity
@@ -193,7 +193,7 @@ Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexC
 - [ ] 37. `test: add playwright visual regression tests`.
 - [x] 38. `chore: add size budget check` – `pnpm size` (rolldown + gzip typowych importów, budżety w `scripts/size.mjs`), w CI. **Zrobione wcześniej**, w fazie optymalizacji po M3.
 - [ ] 39. `docs: write documentation site`.
-- [ ] 40. `chore: add changesets and release 0.1.0`.
+- [ ] 40. `chore: add changesets and release 0.1.0`. **Wstrzymane** (decyzja z 2026-10-01): na razie bez wydania – bez changesets, podbijania wersji, `npm publish` i tagów; pakiety zostają na `0.0.0`.
 
 ## Weryfikacja
 - `pnpm test` – testy jednostkowe skal, ścieżek i snapshoty SVG.
