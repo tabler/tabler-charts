@@ -41,7 +41,10 @@
     "./src/annotations.ts",
     "./dist/candlestick.js",
     "./dist/candlestick.cjs",
-    "./src/candlestick.ts"
+    "./src/candlestick.ts",
+    "./dist/hydrate.js",
+    "./dist/hydrate.cjs",
+    "./src/hydrate.ts"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -175,6 +178,16 @@
       "require": {
         "types": "./dist/annotations.d.cts",
         "default": "./dist/annotations.cjs"
+      }
+    },
+    "./hydrate": {
+      "import": {
+        "types": "./dist/hydrate.d.ts",
+        "default": "./dist/hydrate.js"
+      },
+      "require": {
+        "types": "./dist/hydrate.d.cts",
+        "default": "./dist/hydrate.cjs"
       }
     },
     "./time": {

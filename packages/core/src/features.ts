@@ -1,6 +1,7 @@
 import type { annotationLayers, annotationValues } from './charts/annotations.ts'
 import type { dateLabels } from './charts/dates.ts'
 import type { logDomain, logTicks } from './charts/log-axis.ts'
+import type { hydrate } from './render/hydrate.ts'
 import type { log } from './scales/log.ts'
 import type { time, timePointScale } from './scales/time.ts'
 import type { areaPath, linePath, Point } from './shapes/path.ts'
@@ -20,6 +21,11 @@ export interface Features {
   log?: { scale: typeof log; domain: typeof logDomain; ticks: typeof logTicks }
   /** Downsampling behind `decimate: N`: indices of the points to keep. */
   decimate?: (points: readonly Point[], threshold: number) => number[]
+  /**
+   * Taking over server-rendered markup node by node (without it, the server
+   * svg is replaced on the first render).
+   */
+  hydrate?: typeof hydrate
   /** Line and area paths behind `series.type: 'line' | 'area'` in bar charts. */
   line?: { linePath: typeof linePath; areaPath: typeof areaPath }
   /** Reference lines and bands behind `annotations` in cartesian charts. */

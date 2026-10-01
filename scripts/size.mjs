@@ -67,7 +67,7 @@ const CASES = [
   ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.0, react],
   ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 18.0, vue],
   ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 27.5],
-  ['everything', `export * from '${DIST}index.js'`, 27.5],
+  ['everything', `export * from '${DIST}index.js'`, 27.75],
 ]
 
 let failed = false
@@ -98,7 +98,7 @@ failed ||= !cssOk
 // The CDN scripts as shipped: library, styles and adapter, already minified.
 for (const [name, file, budget] of [
   ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 31.75],
-  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 31.75],
+  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 32.0],
   ['bootstrap.css', `${BOOTSTRAP}bootstrap.css`, 0.6],
   ['tabler.css', `${BOOTSTRAP}tabler.css`, 0.6],
 ]) {

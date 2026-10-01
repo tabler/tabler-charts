@@ -14,6 +14,7 @@ export default defineConfig({
     'src/heatmap.ts',
     'src/candlestick.ts',
     'src/annotations.ts',
+    'src/hydrate.ts',
     'src/scatter.ts',
     'src/sparkline.ts',
     'src/decimate.ts',

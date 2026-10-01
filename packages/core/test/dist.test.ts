@@ -45,6 +45,7 @@ describe('built package', () => {
     expect(core.features.line?.linePath).toBe(core.linePath)
     expect(core.features.annotations).toBeDefined()
     expect(core.features.dates).toBeDefined()
+    expect(core.features.hydrate).toBeDefined()
   })
 
   test('every chart type renders from the built entries', async () => {

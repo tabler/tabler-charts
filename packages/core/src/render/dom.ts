@@ -1,11 +1,12 @@
+import { features } from '../features.ts'
 import type { Attrs, Child, VNode } from '../vnode.ts'
 import { isValidAttr, isValidTag } from './attrs.ts'
 
-const SVG_NS = 'http://www.w3.org/2000/svg'
+export const SVG_NS = 'http://www.w3.org/2000/svg'
 const HTML_NS = 'http://www.w3.org/1999/xhtml'
 
 /** VNode each rendered DOM node was last patched with. */
-const rendered = /* @__PURE__ */ new WeakMap<Node, Child>()
+export const rendered: WeakMap<Node, Child> = /* @__PURE__ */ new WeakMap<Node, Child>()
 
 /** Root element rendered into each container. */
 const roots = /* @__PURE__ */ new WeakMap<Element, Element>()
@@ -20,9 +21,10 @@ const roots = /* @__PURE__ */ new WeakMap<Element, Element>()
  * The rendered root is appended to `container`; other content of the
  * container is left untouched. On the first call, `replace` names an element
  * already in the container (e.g. server-rendered markup) for the root: when
- * it has the root's tag, its nodes are hydrated (reused and patched to the
- * tree, so nothing is re-created and entrance animations do not run again);
- * otherwise the root takes its place.
+ * it has the root's tag and `@tabler/charts/hydrate` is loaded (it is part
+ * of `@tabler/charts`), its nodes are hydrated: reused and patched to the
+ * tree, so nothing is re-created and entrance animations do not run again.
+ * Otherwise the root takes its place.
  */
 export function render(
   container: Element,
@@ -45,8 +47,7 @@ export function render(
     return prev
   }
 
-  if (prev && !rendered.has(prev) && matches(prev, vnode, namespaceFor(container, vnode.tag))) {
-    hydrateElement(prev, vnode)
+  if (prev && features.hydrate?.(prev, vnode, namespaceFor(container, vnode.tag))) {
     roots.set(container, prev)
     return prev
   }
@@ -64,11 +65,11 @@ function namespaceFor(parent: Element, tag: string): string {
   return HTML_NS
 }
 
-function childNamespace(el: Element): string {
+export function childNamespace(el: Element): string {
   return el.namespaceURI === SVG_NS && el.localName !== 'foreignObject' ? SVG_NS : HTML_NS
 }
 
-function createNode(child: Child, ns: string, doc: Document): Node | null {
+export function createNode(child: Child, ns: string, doc: Document): Node | null {
   if (typeof child === 'string') {
     const text = doc.createTextNode(child)
     rendered.set(text, child)
@@ -91,64 +92,6 @@ function createElement(vnode: VNode, ns: string, doc: Document): Element {
   }
   rendered.set(el, vnode)
   return el
-}
-
-/** Whether existing DOM `node` can stand for `vnode` in namespace `ns`. */
-function matches(node: Node, vnode: VNode, ns: string): node is Element {
-  return (
-    node.nodeType === 1 &&
-    (node as Element).localName === vnode.tag &&
-    (node as Element).namespaceURI === ns
-  )
-}
-
-/**
- * Claim server-rendered DOM for a tree: the element takes the vnode's
- * attributes (extra ones are removed), and its children are matched by
- * position: text with text, elements with the same tag (hydrated in turn).
- * Anything that does not match is created in place, leftovers are removed.
- * Afterwards the nodes are tracked like freshly rendered ones.
- */
-function hydrateElement(el: Element, vnode: VNode): void {
-  // The server attributes are the previous state to patch from.
-  const current: Attrs = {}
-  for (const name of el.getAttributeNames()) current[name] = el.getAttribute(name) as string
-  patchAttrs(el, current, vnode.attrs)
-
-  // Comments never stand for anything, and neither does text where the tree has none
-  // (whitespace between elements). Text only ever sits in leaf elements here.
-  const texts = vnode.children.some((child) => typeof child === 'string')
-  for (const node of Array.from(el.childNodes)) {
-    if (node.nodeType === 8 || (!texts && node.nodeType === 3)) el.removeChild(node)
-  }
-
-  const ns = childNamespace(el)
-  let node: Node | null = el.firstChild
-  for (const child of vnode.children) {
-    const next: Node | null = node ? node.nextSibling : null
-    if (
-      typeof child === 'string'
-        ? node?.nodeType === 3
-        : node && matches(node, child, child.tag === 'svg' ? SVG_NS : ns)
-    ) {
-      if (typeof child === 'string') {
-        if ((node as Text).data !== child) (node as Text).data = child
-        rendered.set(node as Node, child)
-      } else {
-        hydrateElement(node as Element, child)
-      }
-      node = next
-    } else {
-      const created = createNode(child, ns, el.ownerDocument)
-      if (created) el.insertBefore(created, node)
-    }
-  }
-  while (node) {
-    const extra: Node = node
-    node = node.nextSibling
-    el.removeChild(extra)
-  }
-  rendered.set(el, vnode)
 }
 
 function canPatch(node: Node, next: Child): boolean {
@@ -177,7 +120,7 @@ function patchElement(el: Element, next: VNode): void {
   rendered.set(el, next)
 }
 
-function patchAttrs(el: Element, prev: Attrs, next: Attrs): void {
+export function patchAttrs(el: Element, prev: Attrs, next: Attrs): void {
   for (const name in next) {
     const value = next[name] as string | number
     if (prev[name] !== value && isValidAttr(name)) el.setAttribute(name, String(value))

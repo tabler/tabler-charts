@@ -1,5 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, test } from 'vitest'
+import { features } from '../features.ts'
+import '../hydrate.ts'
 import { h, type VNode } from '../vnode.ts'
 import { render } from './dom.ts'
 import { renderToString } from './string.ts'
@@ -239,6 +241,19 @@ describe('render() hydrating existing markup', () => {
     box.innerHTML = markup
     return [box, box.firstElementChild as Element]
   }
+
+  test('without the hydrate feature, the server markup is replaced', () => {
+    const saved = features.hydrate
+    delete features.hydrate
+    try {
+      const [box, root] = server('<svg class="tc-chart"><g class="a"></g></svg>')
+      const out = render(box, h('svg', { class: 'tc-chart' }, h('g', { class: 'b' })), root)
+      expect(out).not.toBe(root)
+      expect(box.innerHTML).toBe('<svg class="tc-chart"><g class="b"></g></svg>')
+    } finally {
+      features.hydrate = saved
+    }
+  })
 
   test('reuses matching nodes and patches their attributes and text', () => {
     const [box, root] = server(
