@@ -2,13 +2,14 @@ name: Visual
 
 # Screenshots of the playground compared with the committed Linux baselines,
 # in the Playwright image so fonts and rendering match from run to run.
-# Run it by hand with "update snapshots" to create missing baselines: they are
-# uploaded as the `visual-baselines` artifact to commit.
+# Run it by hand with "update snapshots" to (re)create every baseline after an
+# intended visual change: they are uploaded as the `visual-baselines` artifact
+# to commit.
 on:
   workflow_dispatch:
     inputs:
       update-snapshots:
-        description: Create missing baselines and upload them
+        description: Recreate every baseline and upload them
         type: boolean
         default: false
 
@@ -39,7 +40,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Visual tests
-        run: pnpm visual ${{ inputs.update-snapshots && '--update-snapshots=missing' || '' }}
+        run: pnpm visual ${{ inputs.update-snapshots && '--update-snapshots=all' || '' }}
 
       - name: Upload the report
         if: failure()
@@ -52,7 +53,7 @@ jobs:
           retention-days: 14
 
       - name: Upload new baselines
-        if: inputs.update-snapshots
+        if: always() && inputs.update-snapshots
         uses: actions/upload-artifact@v7
         with:
           name: visual-baselines

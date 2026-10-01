@@ -6,8 +6,9 @@ import { defineConfig, devices } from '@playwright/test'
  *
  * Screenshots depend on the platform's fonts and rendering, so the baselines
  * that count are the Linux ones, made in the Playwright Docker image (CI, see
- * .github/workflows/visual.yml). Runs elsewhere keep their own, untracked
- * baselines under their platform's folder.
+ * .github/workflows/visual.yml, run by hand with "update snapshots" after an
+ * intended change). Runs elsewhere keep their own, untracked baselines under
+ * their platform's folder.
  */
 export default defineConfig({
   testDir: 'tests/visual',
