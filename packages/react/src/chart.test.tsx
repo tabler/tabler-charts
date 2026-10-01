@@ -4,7 +4,7 @@ import { act, createRef, useState } from 'react'
 import { createRoot, hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest'
-import { BarChart, LineChart, TablerChart, useChart } from './index.ts'
+import { BarChart, LineChart, RadarChart, TablerChart, useChart } from './index.ts'
 
 beforeAll(() => {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
@@ -45,6 +45,12 @@ describe('@tabler/charts-react', () => {
     // React ids contain colons or other marks; the chart ids stay plain.
     const clip = html.match(/clipPath id="([^"]+)"/)?.[1] ?? ''
     expect(clip).toMatch(/^tc-[a-zA-Z0-9]+-clip$/)
+  })
+
+  test('renders every chart type, e.g. RadarChart', () => {
+    const html = renderToString(<RadarChart data={data} width={400} height={300} locale="en-US" />)
+    expect(html).toContain('tc-chart-radar')
+    expect(html.match(/tc-radar-spoke/g)).toHaveLength(3)
   })
 
   test('hydrates without warnings, reusing the server svg nodes', () => {

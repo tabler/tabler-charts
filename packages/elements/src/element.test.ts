@@ -45,6 +45,14 @@ describe('<tabler-chart>', () => {
     expect(el.chart?.config.type).toBe(line)
   })
 
+  test('knows every built-in type, e.g. radar', async () => {
+    const el = await mount(
+      `<tabler-chart type="radar" width="400" height="300"><script type="application/json">${JSON.stringify(data)}</script></tabler-chart>`,
+    )
+    expect(el.querySelector(':scope > svg.tc-chart-radar')).not.toBeNull()
+    expect(el.querySelectorAll('.tc-radar-spoke').length).toBeGreaterThan(0)
+  })
+
   test('the data property wins over the script and updates the chart', async () => {
     const el = await mount(
       `<tabler-chart type="bar" width="400" height="200"><script type="application/json">${JSON.stringify(data)}</script></tabler-chart>`,

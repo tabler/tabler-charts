@@ -40,6 +40,13 @@ describe('data API', () => {
     expect(document.querySelectorAll('#b .tc-slice')).toHaveLength(2)
   })
 
+  test('knows every built-in type, e.g. radar', async () => {
+    document.body.innerHTML = `<div data-tc-chart="radar" data-tc-width="400" data-tc-data='${JSON.stringify(data)}'></div>`
+    await init()
+    expect(document.querySelector('svg.tc-chart-radar')).not.toBeNull()
+    expect(document.querySelectorAll('.tc-radar-spoke')).toHaveLength(3)
+  })
+
   test('init() is idempotent and returns the existing charts', async () => {
     document.body.innerHTML = `<div data-tc-chart="line" data-tc-width="300" data-tc-data='${JSON.stringify(data)}'></div>`
     const [first] = await init()

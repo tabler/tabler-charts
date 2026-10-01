@@ -28,6 +28,7 @@ import {
   heatmap,
   line,
   pie,
+  radar,
   scatter,
   sparkline,
 } from '@tabler/charts'
@@ -48,6 +49,7 @@ export const types: Readonly<Record<string, ChartType<never>>> = {
   gauge,
   heatmap,
   candlestick,
+  radar,
 } as Record<string, ChartType<never>>
 
 export interface FullDefineOptions extends DefineOptions {

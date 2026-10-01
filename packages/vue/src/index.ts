@@ -30,6 +30,8 @@ import {
   line,
   type PieOptions,
   pie,
+  type RadarOptions,
+  radar,
   type ScatterOptions,
   type SparklineOptions,
   scatter,
@@ -74,4 +76,8 @@ export const HeatmapChart: ChartComponent<HeatmapOptions> = /* @__PURE__ */ char
 export const CandlestickChart: ChartComponent<CandlestickOptions> = /* @__PURE__ */ chartComponent(
   candlestick,
   'CandlestickChart',
+)
+export const RadarChart: ChartComponent<RadarOptions> = /* @__PURE__ */ chartComponent(
+  radar,
+  'RadarChart',
 )

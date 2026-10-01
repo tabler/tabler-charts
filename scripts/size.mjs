@@ -68,10 +68,10 @@ const CASES = [
     `export { defineChartElement } from '${ELEMENTS}core.js'; export { line } from '${DIST}line.js'`,
     12.25,
   ],
-  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 27.75],
+  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 29.25],
   ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.0, react],
   ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 18.0, vue],
-  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 27.5],
+  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 29.0],
   ['everything', `export * from '${DIST}index.js'`, 29.0],
 ]
 
