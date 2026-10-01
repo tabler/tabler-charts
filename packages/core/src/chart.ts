@@ -542,7 +542,16 @@ export class Chart<O extends object = object> {
     const adopted = this.#adopt
     render(
       this.element,
-      composeChart(config, size, this.id, cache.content, under, over, attrs),
+      // Hover layers only while something is highlighted (an empty list would still render).
+      composeChart(
+        config,
+        size,
+        this.id,
+        cache.content,
+        under.length ? under : undefined,
+        over.length ? over : undefined,
+        attrs,
+      ),
       adopted,
     )
     this.#adopt = null
