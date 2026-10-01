@@ -22,12 +22,13 @@ import './time.ts'
  * Randomized DOM-level test: mount charts with random configs, then apply
  * random sequences of updates, hovers, legend toggles and type switches,
  * checking the DOM stays consistent after every step. Seeded, so failures
- * reproduce; bump ITERATIONS locally to dig deeper.
+ * reproduce. Dig deeper locally with FUZZ_ITERATIONS, FUZZ_STEPS and FUZZ_SEED
+ * (e.g. `FUZZ_ITERATIONS=2000 pnpm vitest run fuzz`).
  */
-const ITERATIONS = 60
-const STEPS = 12
+const ITERATIONS = Number(process.env.FUZZ_ITERATIONS ?? 60)
+const STEPS = Number(process.env.FUZZ_STEPS ?? 12)
 
-let seed = 20260930
+let seed = Number(process.env.FUZZ_SEED ?? 20260930)
 const rnd = () => {
   seed = (seed * 1664525 + 1013904223) % 4294967296
   return seed / 4294967296
@@ -245,8 +246,33 @@ function check(el: HTMLElement, chart: Chart<object>, step: string): void {
   }
 }
 
+/** The chart's content: every element of the svg outside the hover layers, with its attributes. */
+function contentOf(el: HTMLElement): { nodes: Element[]; attrs: string[] } {
+  const svg = el.querySelector(':scope > svg.tc-chart')
+  const nodes = svg
+    ? Array.from(svg.querySelectorAll('*')).filter((n) => !n.closest('.tc-hover-layer'))
+    : []
+  const attrs = nodes.map((n) =>
+    n
+      .getAttributeNames()
+      .map((name) => `${name}=${n.getAttribute(name)}`)
+      .join(' '),
+  )
+  return { nodes, attrs }
+}
+
+/** Series groups by name. */
+const seriesNodes = (el: HTMLElement) =>
+  new Map(
+    Array.from(el.querySelectorAll<SVGGElement>('.tc-series-list .tc-series[data-series]')).map(
+      (g) => [g.dataset.series as string, g] as const,
+    ),
+  )
+
 describe('randomized DOM sessions', () => {
-  test(`survive ${ITERATIONS} sessions of ${STEPS} steps`, () => {
+  test(`survive ${ITERATIONS} sessions of ${STEPS} steps`, {
+    timeout: ITERATIONS * STEPS * 10,
+  }, () => {
     for (let i = 0; i < ITERATIONS; i++) {
       const el = document.createElement('div')
       document.body.appendChild(el)
@@ -259,6 +285,10 @@ describe('randomized DOM sessions', () => {
           ({ left: 0, top: 0, width: config.width, height: config.height }) as DOMRect
         check(el, chart, `session ${i} mount`)
         for (let s = 0; s < STEPS; s++) {
+          // Identity invariants: what must survive each kind of step untouched.
+          const rootBefore = el.querySelector(':scope > svg.tc-chart')
+          const contentBefore = contentOf(el)
+          const seriesBefore = seriesNodes(el)
           const action = pick([
             'update',
             'hover',
@@ -274,11 +304,13 @@ describe('randomized DOM sessions', () => {
               config = randomConfigLike(config.type)
               chart.update(config)
               break
-            case 'data':
-              chart.update({
-                data: (randomConfigLike(config.type) as unknown as { data: unknown }).data,
-              } as never)
+            case 'data': {
+              // Keep `config` in step with the chart, so failures report the data in use.
+              const { data } = randomConfigLike(config.type) as unknown as { data: unknown }
+              config = { ...config, data } as ChartConfig<object>
+              chart.update({ data } as never)
               break
+            }
             case 'hover':
               svg().dispatchEvent(
                 new PointerEvent('pointermove', {
@@ -326,7 +358,44 @@ describe('randomized DOM sessions', () => {
               break
           }
           flush()
-          check(el, chart, `session ${i} step ${s} (${action})`)
+          const c = config as unknown as Record<string, unknown>
+          const step = `session ${i} step ${s} (${action}, ${config.type.name} ${JSON.stringify({
+            stacked: c.stacked,
+            orientation: c.orientation,
+            area: c.area,
+            decimate: c.decimate,
+            series: (
+              c.data as { series?: { name: string; type?: string; hidden?: boolean }[] }
+            )?.series?.map((x) => [x.name, x.type, x.hidden]),
+          })})`
+          check(el, chart, step)
+          if (action === 'hover' || action === 'leave' || action === 'key') {
+            // Highlighting draws in the hover layers only: the content keeps its nodes
+            // and attributes (recreating them restarts animations, the "blinking" bug).
+            const after = contentOf(el)
+            expect(after.nodes.length, `${step}: content node count`).toBe(
+              contentBefore.nodes.length,
+            )
+            const moved = after.nodes.findIndex((n, k) => n !== contentBefore.nodes[k])
+            expect(moved, `${step}: content node ${moved} replaced`).toBe(-1)
+            const changed = after.attrs.findIndex((a, k) => a !== contentBefore.attrs[k])
+            expect(
+              changed === -1 ? '' : `${contentBefore.attrs[changed]} → ${after.attrs[changed]}`,
+              `${step}: content attributes changed`,
+            ).toBe('')
+          }
+          if (action === 'toggle') {
+            // The other series keep their nodes when one is shown or hidden.
+            for (const [name, node] of seriesNodes(el)) {
+              const before = seriesBefore.get(name)
+              if (before) expect(node === before, `${step}: series "${name}" recreated`).toBe(true)
+            }
+          }
+          if (action !== 'retype' || cartesianTypes.includes(config.type)) {
+            // Updates patch the chart in place: the root svg is never mounted again.
+            const root = el.querySelector(':scope > svg.tc-chart')
+            if (rootBefore && root) expect(root === rootBefore, `${step}: svg remounted`).toBe(true)
+          }
         }
       } finally {
         chart?.destroy()
