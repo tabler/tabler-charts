@@ -45,8 +45,22 @@ const NARROW = /* @__PURE__ */ new Set('()[]{}-/frt')
 const ROUND = /* @__PURE__ */ new Set('CDGHNOQU')
 const WIDE = /* @__PURE__ */ new Set('%@MWmw')
 
+/**
+ * Full-width characters, a whole em each: Hangul, CJK and kana, compatibility
+ * ideographs, fullwidth forms and pictographs (emoji).
+ */
+const isWide = (code: number): boolean =>
+  code >= 0x1100 &&
+  (code <= 0x115f ||
+    (code >= 0x2e80 && code <= 0xa4cf) ||
+    (code >= 0xac00 && code <= 0xd7a3) ||
+    (code >= 0xf900 && code <= 0xfaff) ||
+    (code >= 0xff00 && code <= 0xff60) ||
+    code >= 0x1f300)
+
 function charWidth(char: string): number {
   if (char >= '0' && char <= '9') return char === '1' ? 0.45 : 0.63
+  if (isWide(char.codePointAt(0) as number)) return 1
   if (THIN.has(char)) return 0.27
   if (NARROW.has(char)) return 0.38
   if (WIDE.has(char)) return 0.88

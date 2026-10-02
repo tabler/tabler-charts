@@ -37,6 +37,10 @@ describe('estimateTextWidth()', () => {
   test('treats narrow and wide characters differently', () => {
     expect(estimateTextWidth('iiii', 12)).toBeLessThan(estimateTextWidth('aaaa', 12))
     expect(estimateTextWidth('MMMM', 12)).toBeGreaterThan(estimateTextWidth('AAAA', 12))
+    // Full-width characters take a whole em: CJK, Hangul, emoji.
+    expect(estimateTextWidth('十二月', 12)).toBe(36)
+    expect(estimateTextWidth('한국', 10)).toBe(20)
+    expect(estimateTextWidth('🍎', 12)).toBe(12)
   })
 
   test('is in a realistic range for UI fonts', () => {
