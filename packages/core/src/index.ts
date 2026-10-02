@@ -7,6 +7,7 @@
 import { annotationLayers, annotationValues } from './charts/annotations.ts'
 import { dateLabels } from './charts/dates.ts'
 import { logDomain, logTicks } from './charts/log-axis.ts'
+import { timeAxis } from './charts/time-axis.ts'
 import { register } from './features.ts'
 import { hydrate } from './render/hydrate.ts'
 import { log } from './scales/log.ts'
@@ -16,7 +17,7 @@ import { areaPath, linePath } from './shapes/path.ts'
 
 // Registered here, in the entry itself, so no bundler can shake it away.
 register({
-  time: { scale: time, points: timePointScale },
+  time: { scale: time, points: timePointScale, axis: timeAxis },
   dates: dateLabels,
   log: { scale: log, domain: logDomain, ticks: logTicks },
   decimate: lttbIndices,

@@ -286,6 +286,18 @@ export function notesFeature(
   return options.annotations?.length ? feature('annotations') : undefined
 }
 
+/**
+ * The category axis of a cartesian layout: the labels at its edges (for the
+ * margins), its scale over a pixel range, and its ticks on that scale.
+ */
+export interface CategoryAxis {
+  edges: readonly string[]
+  scale(range: [number, number]): BandScale
+  ticks(scale: BandScale): Tick[]
+  /** Pixel position of a date, on time axes (after `scale()`). */
+  readonly time?: ((date: Date) => number) | undefined
+}
+
 /** Compute scales, ticks, grid and axes shared by line, area and bar charts. */
 export function cartesianLayout(
   options: CartesianOptions,
@@ -323,21 +335,25 @@ export function cartesianLayout(
     locale,
   )
   const countX = Math.max(2, Math.round(width / TICK_SPACING_X))
-  // Time ticks come from the scale; their labels are what sits at the edges.
   const keys = labels.map(labelKey)
-  const timePoints = timed
-    ? (range: [number, number]) =>
-        feature('time').points(labels.map(toMs), keys, range, xOptions.utc === true)
-    : undefined
-  const probeTime = timePoints ? timePoints([0, 1]).time : undefined
-  const timeFormat = probeTime
-    ? xOptions.format
-      ? (d: Date) => (xOptions.format as (l: Label, i: number) => string)(d, -1)
-      : probeTime.tickFormat(countX, locale)
-    : undefined
-  const edgeLabels = probeTime
-    ? probeTime.ticks(countX).map((d) => (timeFormat as (d: Date) => string)(d))
-    : [format(labels[0] as Label, 0), format(labels[labels.length - 1] as Label, labels.length - 1)]
+  // Time axes (from the time module) place points by date, with calendar ticks.
+  const xAxis: CategoryAxis = timed
+    ? feature('time').axis(labels, keys, xOptions, countX, locale)
+    : {
+        edges: [
+          format(labels[0] as Label, 0),
+          format(labels[labels.length - 1] as Label, labels.length - 1),
+        ],
+        scale: (range) =>
+          layout.scale === 'point'
+            ? point(keys, range)
+            : band(keys, range, {
+                paddingInner: layout.paddingInner ?? 0.3,
+                paddingOuter: layout.paddingOuter ?? 0.15,
+              }),
+        ticks: (scale) => bandTicks(scale, (_: BandKey, i) => format(labels[i] as Label, i)),
+      }
+  const edgeLabels = xAxis.edges
 
   // Margins: labels outside the plot, half a line above the top tick,
   // half of the first/last x label for point scales.
@@ -369,27 +385,11 @@ export function cartesianLayout(
   }
   const area = innerRect(width, height, margins)
 
-  const xRange: [number, number] = [area.x, area.x + area.width]
-  const timeScale = timePoints ? timePoints(xRange) : undefined
-  const x = timeScale
-    ? timeScale.scale
-    : layout.scale === 'point'
-      ? point(keys, xRange)
-      : band(keys, xRange, {
-          paddingInner: layout.paddingInner ?? 0.3,
-          paddingOuter: layout.paddingOuter ?? 0.15,
-        })
+  const x = xAxis.scale([area.x, area.x + area.width])
   const y = valueScale(domain, [area.y + area.height, area.y], yOptions)
 
   const yTicks = valueTicks(y, yOptions, count, tickFormat, locale)
-  const rawXTicks: Tick[] = timeScale
-    ? timeScale.time.ticks(countX).map((d) => ({
-        value: d.getTime(),
-        position: timeScale.time(d),
-        label: (timeFormat as (d: Date) => string)(d),
-      }))
-    : bandTicks(x, (_: BandKey, i) => format(labels[i] as Label, i))
-  const xTicks = showX ? thinTicks(rawXTicks, 'bottom', fontSize) : []
+  const xTicks = showX ? thinTicks(xAxis.ticks(x), 'bottom', fontSize) : []
 
   const background: VNode[] = []
   if (yOptions.grid !== false) background.push(grid({ direction: 'y', ticks: yTicks, area }))
@@ -403,7 +403,7 @@ export function cartesianLayout(
     value: y,
     band: x,
     keys,
-    time: timeScale?.time,
+    time: xAxis.time,
   })
   if (notes?.under) background.push(notes.under)
 

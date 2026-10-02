@@ -1,6 +1,7 @@
 import type { annotationLayers, annotationValues } from './charts/annotations.ts'
 import type { dateLabels } from './charts/dates.ts'
 import type { logDomain, logTicks } from './charts/log-axis.ts'
+import type { timeAxis } from './charts/time-axis.ts'
 import type { hydrate } from './render/hydrate.ts'
 import type { log } from './scales/log.ts'
 import type { time, timePointScale } from './scales/time.ts'
@@ -14,7 +15,7 @@ import type { areaPath, linePath, Point } from './shapes/path.ts'
  */
 export interface Features {
   /** Time scale (and the point scale over it) behind `x: { type: 'time' }`. */
-  time?: { scale: typeof time; points: typeof timePointScale }
+  time?: { scale: typeof time; points: typeof timePointScale; axis: typeof timeAxis }
   /** Date labels behind `x: { type: 'time' }` (also registered by `@tabler/charts/candlestick`). */
   dates?: typeof dateLabels
   /** Log scale and axis behind `scale: 'log'`. */
