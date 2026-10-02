@@ -336,6 +336,12 @@ export class Chart<O extends object = object> {
   readonly #toggled = new Map<string, boolean>()
   /** Server-rendered svg to take over on the first render, if any. */
   #adopt: Element | null
+  /**
+   * The measured `--tc-font-size`, and whether to read it again. Reading it
+   * forces the browser to restyle the page, so new data alone reuses it.
+   */
+  #font: number | undefined
+  #fontStale = true
 
   constructor(
     target: Element | string,
@@ -356,6 +362,7 @@ export class Chart<O extends object = object> {
         width !== this.#measured.width || (followsHeight && height !== this.#measured.height)
       this.#measured = { width, height }
       if (changed) {
+        this.#fontStale = true
         this.#markResizing()
         this.#schedule()
       }
@@ -464,6 +471,8 @@ export class Chart<O extends object = object> {
   /** Merge `options` into the configuration and re-render in the next frame. */
   update(options: Partial<ChartConfig<O>>): this {
     this.#cfg = { ...this.#cfg, ...options }
+    // Options such as `class` may change the font size; new data does not.
+    for (const key in options) if (key !== 'data') this.#fontStale = true
     this.#schedule()
     return this
   }
@@ -476,6 +485,7 @@ export class Chart<O extends object = object> {
   /** Re-measure the container and re-render in the next frame. */
   resize(): this {
     this.#measure()
+    this.#fontStale = true
     this.#schedule()
     return this
   }
@@ -492,7 +502,11 @@ export class Chart<O extends object = object> {
     const hiddenKey = [...hidden].sort().join('\u0000')
     for (const plugin of this.#plugins) plugin.beforeRender?.({ config, legend, hidden })
     const size = this.size
-    const fontSize = cfg.fontSize ?? this.#measureFontSize()
+    if (cfg.fontSize === undefined && this.#fontStale) {
+      this.#font = this.#measureFontSize()
+      this.#fontStale = false
+    }
+    const fontSize = cfg.fontSize ?? this.#font
 
     let cache = this.#cache
     // What the chart shows changed, not only its size.
