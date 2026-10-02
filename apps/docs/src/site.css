@@ -94,14 +94,27 @@ code {
   text-decoration: none;
 }
 
-.brand-mark {
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.brand-logo {
+  display: block;
+  height: 28px;
+  width: auto;
+}
+
+/* The logo's words follow the page colors (light in dark mode); the tile keeps the brand blue. */
+.brand-logo-name {
+  fill: var(--fg);
+}
+
+.brand-logo-product {
+  fill: var(--muted);
+}
+
+.brand-logo-tile {
+  fill: #066fd1;
+}
+
+.brand-logo-mark {
+  fill: #fff;
 }
 
 .badge {
