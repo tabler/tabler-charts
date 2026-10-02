@@ -266,7 +266,8 @@ code {
   gap: 6px;
 }
 
-.control-input {
+.control-input,
+.demo-controls button {
   cursor: pointer;
   font: inherit;
   color: var(--fg);
@@ -277,7 +278,7 @@ code {
 }
 
 /* WebKit on Linux paints native buttons over the background otherwise. */
-button.control-input {
+.demo-controls button {
   appearance: none;
 }
 
