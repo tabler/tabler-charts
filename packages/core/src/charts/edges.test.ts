@@ -12,6 +12,7 @@ import { findByClass, findByTag, tickLabelExtent } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { bar } from './bar.ts'
 import { heatmap } from './heatmap.ts'
+import { line } from './line.ts'
 import { scatter } from './scatter.ts'
 
 const narrow = { width: 300, height: 160 }
@@ -129,5 +130,35 @@ describe('narrow charts', () => {
         { x: 10, y: 10 },
       ]),
     ).toBeLessThan(-4)
+  })
+
+  test('value labels on a short plot do not run into each other', () => {
+    // Nice ticks for 0–60 come at every 20 even when only two were asked for.
+    const values = [52, 48, 55, 50, 47, 53]
+    const data = { labels: ['a', 'b', 'c', 'd', 'e', 'f'], series: [{ name: 'A', values }] }
+    const gaps = (node: VNode, axisClass: string) => {
+      const axis = findByClass(node, axisClass)[0] as VNode
+      const at = findByClass(axis, 'tc-tick').map((t) =>
+        String(t.attrs.style)
+          .match(/translate\(([\d.-]+)px,\s*([\d.-]+)px\)/)
+          ?.slice(1)
+          .map(Number),
+      )
+      return at
+        .slice(1)
+        .map((p, i) => [
+          Math.abs((p?.[0] ?? 0) - (at[i]?.[0] ?? 0)),
+          Math.abs((p?.[1] ?? 0) - (at[i]?.[1] ?? 0)),
+        ])
+    }
+    const tall = build({ type: line, data, y: { zero: true } }, { width: 600, height: 75 })
+    for (const [, dy] of gaps(tall, 'tc-axis-y')) expect(dy).toBeGreaterThanOrEqual(12 * 1.25)
+    // Horizontal bars put the values along x: thinned by their width.
+    const side = build({ type: bar, orientation: 'horizontal', data }, { width: 120, height: 200 })
+    const ticks = findByClass(findByClass(side, 'tc-axis-x')[0] as VNode, 'tc-tick-label')
+    const widths = ticks.map((t) => estimateTextWidth(String(t.children[0]), 12))
+    gaps(side, 'tc-axis-x').forEach(([dx], i) => {
+      expect(dx).toBeGreaterThanOrEqual(((widths[i] ?? 0) + (widths[i + 1] ?? 0)) / 2)
+    })
   })
 })

@@ -89,7 +89,7 @@ export function horizontalLayout(
     paddingOuter: layout.paddingOuter ?? 0.15,
   })
   const y = valueScale(domain, [area.x, area.x + area.width], yOptions)
-  const yTicks = valueTicks(y, yOptions, count, tickFormat, locale)
+  const yTicks = thinTicks(valueTicks(y, yOptions, count, tickFormat, locale), 'bottom', fontSize)
   const xTicks = showCategories
     ? thinTicks(
         bandTicks(x, (_: BandKey, i) => format(labels[i] as Label, i)),

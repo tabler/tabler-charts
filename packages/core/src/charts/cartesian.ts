@@ -388,7 +388,9 @@ export function cartesianLayout(
   const x = xAxis.scale([area.x, area.x + area.width])
   const y = valueScale(domain, [area.y + area.height, area.y], yOptions)
 
-  const yTicks = valueTicks(y, yOptions, count, tickFormat, locale)
+  // Nice ticks can outnumber the count asked for: on a short plot, thin them
+  // like category labels so none overlap (the grid follows the ticks kept).
+  const yTicks = thinTicks(valueTicks(y, yOptions, count, tickFormat, locale), 'left', fontSize, 4)
   const xTicks = showX ? thinTicks(xAxis.ticks(x), 'bottom', fontSize) : []
 
   const background: VNode[] = []
