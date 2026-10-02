@@ -69,6 +69,7 @@ export { feature, features, register } from './features.ts'
 export type { DateFormat, Locale, NumberFormat } from './format.ts'
 export {
   formatDate,
+  formatDetail,
   formatNumber,
   formatTicks,
   getDateFormat,

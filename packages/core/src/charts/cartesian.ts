@@ -2,7 +2,7 @@ import type { DataTable, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { type Features, feature } from '../features.ts'
-import { formatNumber, type NumberFormat } from '../format.ts'
+import { formatDetail, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import {
   estimateTextWidth,
@@ -491,7 +491,7 @@ export function categoryInteraction(
   const { area, x, labels, horizontal } = layout
   const { data } = options
   const formatLabel = labelFormatter(options, ctx)
-  const formatValue = formatNumber(options.y?.format, ctx.locale)
+  const formatValue = formatDetail(options.y?.format, ctx.locale)
 
   const hitAt = (index: number): Hit => {
     const start = x.at(index)
@@ -575,7 +575,7 @@ export function seriesTable(
   const all = resolveLabels(options.data)
   const labels = all.length > limit ? all.slice(0, limit) : all
   const formatLabel = labelFormatter(options, ctx)
-  const formatValue = formatNumber(options.y?.format, ctx.locale)
+  const formatValue = formatDetail(options.y?.format, ctx.locale)
   const series = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
   return {
     columns: ['', ...series.map((s) => s.name)],

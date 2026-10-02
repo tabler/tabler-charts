@@ -58,6 +58,15 @@ describe('candlestick', () => {
     expect(num(body?.attrs.width)).toBeLessThanOrEqual(16)
   })
 
+  test('compact axis formats keep enough digits in the tooltip to tell values apart', () => {
+    const data = [{ x: 'a', open: 24_120, high: 24_960, low: 23_870, close: 24_812 }]
+    const hit = interactionOf({
+      data,
+      y: { format: { style: 'currency', currency: 'USD', notation: 'compact' } },
+    }).hitIndex(0)
+    expect(hit?.items.map((i) => i.text)).toEqual(['$24.1K', '$25K', '$23.9K', '$24.8K'])
+  })
+
   test('a flat period keeps a 1px body', () => {
     const body = findByClass(render(), 'tc-candle-body')[2]
     expect(num(body?.attrs.height)).toBe(1)

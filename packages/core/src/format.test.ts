@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import {
   formatDate,
+  formatDetail,
   formatNumber,
   formatTicks,
   getDateFormat,
@@ -118,5 +119,23 @@ describe('Intl caches', () => {
     expect(getDateFormat('en-US', { year: 'numeric' })).toBe(
       getDateFormat('en-US', { year: 'numeric' }),
     )
+  })
+})
+
+describe('formatDetail()', () => {
+  test('compact formats keep three significant digits for single values', () => {
+    const compact = { style: 'currency', currency: 'USD', notation: 'compact' } as const
+    expect(formatNumber(compact, 'en-US')(24_812)).toBe('$25K')
+    expect(formatDetail(compact, 'en-US')(24_812)).toBe('$24.8K')
+    expect(formatDetail(compact, 'en-US')(1_410_000_000)).toBe('$1.41B')
+  })
+
+  test('other formats, and compact ones with their own precision, stay as they are', () => {
+    expect(formatDetail({ style: 'percent' }, 'en-US')(0.125)).toBe('13%')
+    expect(formatDetail({ notation: 'compact', maximumFractionDigits: 0 }, 'en-US')(24_812)).toBe(
+      '25K',
+    )
+    expect(formatDetail(undefined, 'en-US')(24_812)).toBe('24,812')
+    expect(formatDetail((v) => `${v}!`, 'en-US')(3)).toBe('3!')
   })
 })

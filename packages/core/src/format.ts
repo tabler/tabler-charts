@@ -75,6 +75,23 @@ export function formatNumber(format?: NumberFormat, locale?: Locale): (value: nu
 }
 
 /**
+ * A formatter for values read one at a time (tooltips, data tables) in an
+ * axis format. Compact notation suits ticks ("$25K") but hides the
+ * difference between values: unless the format sets its own precision, it
+ * keeps three significant digits ("$24.8K").
+ */
+export function formatDetail(format?: NumberFormat, locale?: Locale): (value: number) => string {
+  const digits =
+    typeof format === 'object' &&
+    (format.minimumFractionDigits ?? format.maximumFractionDigits) === undefined &&
+    (format.minimumSignificantDigits ?? format.maximumSignificantDigits) === undefined
+  return formatNumber(
+    digits && format.notation === 'compact' ? { ...format, maximumSignificantDigits: 3 } : format,
+    locale,
+  )
+}
+
+/**
  * Number of fraction digits needed to tell apart ticks `step` apart,
  * e.g. `1 → 0`, `0.2 → 1`, `0.05 → 2`.
  */

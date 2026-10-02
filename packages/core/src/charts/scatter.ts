@@ -2,7 +2,7 @@ import type { DataTable } from '../a11y.ts'
 import type { ChartType, RenderContext } from '../chart.ts'
 import { axis, axisSize, linearTicks, type Tick } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
-import { formatNumber } from '../format.ts'
+import { formatDetail, formatNumber } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets, LINE_HEIGHT } from '../layout.ts'
 import type { LegendItem } from '../legend.ts'
@@ -156,8 +156,8 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   })
   placed.sort((a, b) => a.cx - b.cx)
 
-  const fx = formatNumber(xOptions.format, locale)
-  const fy = formatNumber(yOptions.format, locale)
+  const fx = formatDetail(xOptions.format, locale)
+  const fy = formatDetail(yOptions.format, locale)
   const fs = formatNumber(undefined, locale)
   const hitFor = (p: Placed, index: number): Hit => {
     const series = options.data.series[p.seriesIndex] as ScatterSeries
@@ -302,8 +302,8 @@ function scatterTable(
   ctx: RenderContext,
   limit: number = Number.POSITIVE_INFINITY,
 ): DataTable {
-  const fx = formatNumber(options.x?.format, ctx.locale)
-  const fy = formatNumber(options.y?.format, ctx.locale)
+  const fx = formatDetail(options.x?.format, ctx.locale)
+  const fy = formatDetail(options.y?.format, ctx.locale)
   const fs = formatNumber(undefined, ctx.locale)
   const series = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
   const withSize = series.some((s) => s.points.some((p) => p.size != null))

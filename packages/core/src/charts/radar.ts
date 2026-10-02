@@ -1,6 +1,6 @@
 import type { ChartType, RenderContext } from '../chart.ts'
 import { linearTicks } from '../components/axis.ts'
-import { formatNumber, type NumberFormat } from '../format.ts'
+import { formatDetail, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets } from '../layout.ts'
 import { linear } from '../scales/linear.ts'
@@ -108,7 +108,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
   const n = labels.length
   const visible = series.filter((s) => !ctx.hidden.has(seriesKey(s)))
   const formatLabel = options.format ?? ((label: Label) => String(label))
-  const formatValue = formatNumber(axis.format, locale)
+  const formatValue = formatDetail(axis.format, locale)
 
   const pad = insets(options.padding)
   const area = innerRect(width, height, {
