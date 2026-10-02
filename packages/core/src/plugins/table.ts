@@ -1,9 +1,9 @@
 import { tableContent } from '../a11y.ts'
 import { type ChartConfig, renderContext, type Size } from '../chart.ts'
 import { getNumberFormat } from '../format.ts'
+import { cancelIdle, scheduleIdle } from '../idle.ts'
 import type { ChartPlugin } from '../plugin.ts'
 import { render } from '../render/dom.ts'
-import { cancel, scheduleIdle } from '../scheduler.ts'
 
 /**
  * The chart data as an HTML table next to the SVG: visually hidden for
@@ -25,7 +25,7 @@ export function dataTable(): ChartPlugin {
       const key = {}
 
       const remove = () => {
-        cancel(key)
+        cancelIdle(key)
         if (!el) return
         render(el, null)
         el.remove()
@@ -87,7 +87,7 @@ export function dataTable(): ChartPlugin {
           if (same && el?.isConnected && el.classList.contains('tc-sr-only')) {
             scheduleIdle(key, () => update(config, size, hidden))
           } else {
-            cancel(key)
+            cancelIdle(key)
             update(config, size, hidden)
           }
         },

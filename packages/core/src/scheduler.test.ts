@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { cancel, flush, schedule, scheduleIdle } from './scheduler.ts'
+import { cancelIdle, scheduleIdle } from './idle.ts'
+import { cancel, flush, schedule } from './scheduler.ts'
 
 describe('scheduler', () => {
   test('runs tasks asynchronously, once per key with the latest task', async () => {
@@ -56,7 +57,7 @@ describe('scheduler', () => {
     flush()
     expect(calls).toEqual(['idle', 'flushed'])
     scheduleIdle(key, () => calls.push('cancelled'))
-    cancel(key)
+    cancelIdle(key)
     flush()
     expect(calls).toEqual(['idle', 'flushed'])
   })

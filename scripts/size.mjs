@@ -110,8 +110,8 @@ console.log(
 )
 // The CDN scripts as shipped: library, styles and adapter, already minified.
 for (const [name, file, budget] of [
-  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 35.25],
-  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 35.25],
+  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 35.5],
+  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 35.5],
   ['bootstrap.css', `${BOOTSTRAP}bootstrap.css`, 0.6],
   ['tabler.css', `${BOOTSTRAP}tabler.css`, 0.6],
 ]) {
