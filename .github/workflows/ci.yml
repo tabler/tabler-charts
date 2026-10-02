@@ -44,14 +44,12 @@ jobs:
       - name: Validate packages
         run: pnpm lint:pkg
 
+      # Typical imports bundled into .size/ and checked by Bundlewatch against
+      # bundlewatch.config.cjs. Pull requests get a status comparing every size
+      # with main once BUNDLEWATCH_GITHUB_TOKEN is set
+      # (https://service.bundlewatch.io/setup-github).
       - name: Size budget
         run: pnpm size
-
-      # The bundles measured above, compared with main on pull requests. The
-      # status needs BUNDLEWATCH_GITHUB_TOKEN (https://service.bundlewatch.io/setup-github);
-      # without it the step still checks the budgets.
-      - name: Bundlewatch
-        run: pnpm bundlewatch
         env:
           BUNDLEWATCH_GITHUB_TOKEN: ${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}
           CI_BRANCH_BASE: main

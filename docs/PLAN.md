@@ -206,7 +206,7 @@ Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexC
 
 ### M5 – Wydanie
 - [x] 37. `test: add playwright visual regression tests` – Playwright (Chromium) na zbudowanym playgroundzie (`vite preview`): każdy kafelek galerii w trybie jasnym i ciemnym, każde demo (losowe dane z ziarnem, zamrożony zegar), stany interakcji (tooltip i crosshair, pasmo słupka, aureola wycinka, fokus z klawiatury, ukryta seria); wzorce dla Linuksa z obrazu Playwright w CI (`.github/workflows/visual.yml`), lokalne wzorce innych platform poza repo; 2 commity: testy + workflow, potem wzorce.
-- [x] 38. `chore: add size budget check` – `pnpm size` (rolldown + gzip typowych importów do `.size/`), w CI. Budżety są w `bundlewatch.config.cjs` (jednostki Bundlewatch, 1 KB = 1024 B): w CI sprawdza je Bundlewatch i raportuje na PR-ach, lokalnie `pnpm size`. **Zrobione wcześniej**, w fazie optymalizacji po M3.
+- [x] 38. `chore: add size budget check` – `pnpm size`: `scripts/bundles.mjs` buduje typowe importy (rolldown, tree-shaking, minifikacja) do `.size/`, a Bundlewatch mierzy je z budżetami z `bundlewatch.config.cjs` (1 KB = 1024 B) i w CI raportuje na PR-ach. **Zrobione wcześniej**, w fazie optymalizacji po M3.
 - [ ] 39. `docs: write documentation site`. **Na samym końcu** (decyzja z 2026-10-01): po wszystkich innych krokach, gdy API się ustabilizuje.
 - [ ] 40. `chore: add changesets and release 0.1.0`. **Wstrzymane** (decyzja z 2026-10-01): na razie bez wydania – bez changesets, podbijania wersji, `npm publish` i tagów; pakiety zostają na `0.0.0`.
 
@@ -215,4 +215,4 @@ Typy używane w kartach i dashboardach tabler/tabler (nie na stronach demo ApexC
 - `pnpm dev` w `apps/docs` – ręczny przegląd wszystkich typów wykresów w light/dark,
   resize okna, hover/tooltip, toggle legendy.
 - Test SSR: skrypt Node renderujący wykres do stringa bez DOM.
-- `pnpm size` – sprawdzenie budżetu gzip core i każdego typu wykresu.
+- `pnpm size` – Bundlewatch: budżety gzip typowych importów, CSS i plików CDN.

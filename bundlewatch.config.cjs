@@ -1,13 +1,12 @@
 /**
- * Size budgets, gzipped, in Bundlewatch's units (1 KB = 1024 bytes). This is
- * the one place they are set: Bundlewatch checks them in CI and, with
- * BUNDLEWATCH_GITHUB_TOKEN set, reports every size against main on pull
- * requests; `pnpm size` (scripts/size.mjs) builds the .size/ bundles and
- * checks the same budgets locally. Raise a budget only on purpose.
+ * Size budgets, gzipped, in Bundlewatch's units (1 KB = 1024 bytes). `pnpm
+ * size` builds the .size/ bundles (scripts/bundles.mjs) and runs Bundlewatch
+ * on them; with BUNDLEWATCH_GITHUB_TOKEN set (CI), pull requests get a status
+ * comparing every size with main. Raise a budget only on purpose.
  */
 module.exports = {
   files: [
-    // Typical imports, bundled and minified by scripts/size.mjs.
+    // Typical imports, bundled and minified by scripts/bundles.mjs.
     { path: '.size/core-line.js', maxSize: '10.5KB' },
     { path: '.size/core-bar.js', maxSize: '10.5KB' },
     { path: '.size/core-pie.js', maxSize: '7KB' },
