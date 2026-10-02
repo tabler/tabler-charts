@@ -44,7 +44,7 @@ export function feature<K extends keyof Features>(name: K): NonNullable<Features
   const found = features[name]
   if (!found) {
     throw new Error(
-      `@tabler/charts: "${name}" is not registered. Import "@tabler/charts/${name === 'dates' ? 'time' : name}" (or "@tabler/charts" for everything).`,
+      `@tabler/charts: Import "@tabler/charts/${name === 'dates' ? 'time' : name}" for ${name}.`,
     )
   }
   return found

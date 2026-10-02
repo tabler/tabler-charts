@@ -35,7 +35,7 @@ const CASES = [
   [
     'core + gauge',
     `export { Chart } from '${DIST}core.js'; export { gauge } from '${DIST}gauge.js'`,
-    7.5,
+    7.75,
   ],
   [
     'core + radar',
@@ -71,7 +71,7 @@ const CASES = [
   [
     'elements/core + line',
     `export { defineChartElement } from '${ELEMENTS}core.js'; export { line } from '${DIST}line.js'`,
-    12.25,
+    12.5,
   ],
   ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 29.25],
   ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.25, react],

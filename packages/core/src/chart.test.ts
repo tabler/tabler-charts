@@ -258,6 +258,23 @@ describe('Chart', () => {
     el.style.removeProperty('--tc-font-size')
   })
 
+  test('charts with more than 2000 elements skip transitions unless animate: true', () => {
+    const many = Array.from({ length: 2500 }, () => 1)
+    const isStatic = () => el.querySelector('svg')?.classList.contains('tc-static')
+    const chart = new Chart(el, { type: dots, data: [1, 2, 3] })
+    expect(isStatic()).toBe(false)
+    chart.setData(many as never)
+    flush()
+    expect(isStatic()).toBe(true)
+    chart.update({ animate: true } as never)
+    flush()
+    expect(isStatic()).toBe(false)
+    // The server decides the same way.
+    expect(chartToString({ type: dots, data: many }, { width: 10, height: 5 })).toContain(
+      'class="tc-chart tc-chart-dots tc-static"',
+    )
+  })
+
   test('animate: false marks the svg static', () => {
     new Chart(el, { type: dots, data: [], animate: false })
     expect(el.querySelector('svg')?.classList.contains('tc-static')).toBe(true)

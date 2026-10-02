@@ -82,7 +82,12 @@ export interface BaseOptions {
   crosshair?: boolean
   /** Show a legend with toggles. Defaults to showing it for two or more entries. */
   legend?: boolean | LegendOptions
-  /** Animate entrances and data updates. Defaults to `true` (reduced motion always wins). */
+  /**
+   * Animate entrances and data updates (reduced motion always wins). By
+   * default charts animate unless they draw more than 2000 elements (e.g. a
+   * scatter of thousands of points), where transitions cost far more frame
+   * time than they show; `true` animates those too.
+   */
   animate?: boolean
   /**
    * Render the data as an HTML table: visually hidden for screen readers
@@ -168,7 +173,7 @@ export function renderContext<O extends object>(
 
 function assertType(config: ChartConfig<object>): void {
   if (!config.type || typeof config.type.render !== 'function') {
-    throw new TypeError('@tabler/charts: `type` must be a chart type, e.g. `type: line`.')
+    throw new TypeError('@tabler/charts: `type` must be a chart type such as line.')
   }
 }
 
@@ -205,11 +210,27 @@ export function chartLabel(config: ChartConfig<object>): string {
   return `${name}: ${names.length > 6 ? `${shown}, …` : shown}`
 }
 
+/** Elements beyond which charts skip transitions unless `animate: true`. */
+const ANIMATION_LIMIT = 2000
+
+/** Number of elements in chart content. */
+const countNodes = (child: ChildInput): number =>
+  Array.isArray(child)
+    ? child.reduce((n: number, c: ChildInput) => n + countNodes(c), 0)
+    : child && typeof child === 'object'
+      ? 1 + countNodes((child as VNode).children)
+      : 0
+
+/** Whether a chart renders without transitions: asked to, or too big to animate cheaply. */
+const isStatic = (config: ChartConfig<object>, content: ChildInput): boolean =>
+  config.animate === false || (config.animate !== true && countNodes(content) > ANIMATION_LIMIT)
+
 /** Wrap chart content (and hover layers) in the accessible root `<svg>`. */
 function composeChart(
   config: ChartConfig<object>,
   size: Size,
   id: string,
+  still: boolean,
   content: ChildInput,
   underlay?: ChildInput,
   overlay?: ChildInput,
@@ -220,12 +241,7 @@ function composeChart(
   return h(
     'svg',
     {
-      class: [
-        'tc-chart',
-        `tc-chart-${config.type.name}`,
-        config.animate === false && 'tc-static',
-        config.class,
-      ],
+      class: ['tc-chart', `tc-chart-${config.type.name}`, still && 'tc-static', config.class],
       viewBox: `0 0 ${width} ${height}`,
       width,
       height,
@@ -257,7 +273,8 @@ export function buildChart<O extends object>(
   assertType(config as ChartConfig<object>)
   const hidden = defaultHidden(resolveLegend(config).items)
   const content = renderContent(config, size, id, onHitTest, hidden)
-  return composeChart(config as ChartConfig<object>, size, id, content)
+  const base = config as ChartConfig<object>
+  return composeChart(base, size, id, isStatic(base, content), content)
 }
 
 /**
@@ -329,6 +346,8 @@ export class Chart<O extends object = object> {
         hidden: string
         fontSize: number | undefined
         content: ChildInput
+        /** Whether the content renders without transitions. */
+        still: boolean
       }
     | undefined
   #resizeTimer: ReturnType<typeof setTimeout> | undefined
@@ -337,11 +356,10 @@ export class Chart<O extends object = object> {
   /** Server-rendered svg to take over on the first render, if any. */
   #adopt: Element | null
   /**
-   * The measured `--tc-font-size`, and whether to read it again. Reading it
+   * The measured `--tc-font-size` (`undefined` reads it again). Reading it
    * forces the browser to restyle the page, so new data alone reuses it.
    */
   #font: number | undefined
-  #fontStale = true
 
   constructor(
     target: Element | string,
@@ -362,7 +380,7 @@ export class Chart<O extends object = object> {
         width !== this.#measured.width || (followsHeight && height !== this.#measured.height)
       this.#measured = { width, height }
       if (changed) {
-        this.#fontStale = true
+        this.#font = undefined
         this.#markResizing()
         this.#schedule()
       }
@@ -472,7 +490,7 @@ export class Chart<O extends object = object> {
   update(options: Partial<ChartConfig<O>>): this {
     this.#cfg = { ...this.#cfg, ...options }
     // Options such as `class` may change the font size; new data does not.
-    for (const key in options) if (key !== 'data') this.#fontStale = true
+    for (const key in options) if (key !== 'data') this.#font = undefined
     this.#schedule()
     return this
   }
@@ -485,7 +503,7 @@ export class Chart<O extends object = object> {
   /** Re-measure the container and re-render in the next frame. */
   resize(): this {
     this.#measure()
-    this.#fontStale = true
+    this.#font = undefined
     this.#schedule()
     return this
   }
@@ -502,10 +520,7 @@ export class Chart<O extends object = object> {
     const hiddenKey = [...hidden].sort().join('\u0000')
     for (const plugin of this.#plugins) plugin.beforeRender?.({ config, legend, hidden })
     const size = this.size
-    if (cfg.fontSize === undefined && this.#fontStale) {
-      this.#font = this.#measureFontSize()
-      this.#fontStale = false
-    }
+    this.#font ??= cfg.fontSize ?? this.#measureFontSize()
     const fontSize = cfg.fontSize ?? this.#font
 
     let cache = this.#cache
@@ -528,7 +543,15 @@ export class Chart<O extends object = object> {
         hidden,
         fontSize,
       )
-      cache = { cfg, width: size.width, height: size.height, hidden: hiddenKey, fontSize, content }
+      cache = {
+        cfg,
+        width: size.width,
+        height: size.height,
+        hidden: hiddenKey,
+        fontSize,
+        content,
+        still: isStatic(config, content),
+      }
       this.#cache = cache
     }
 
@@ -563,6 +586,7 @@ export class Chart<O extends object = object> {
         config,
         size,
         this.id,
+        cache.still,
         cache.content,
         under.length ? under : undefined,
         over.length ? over : undefined,
