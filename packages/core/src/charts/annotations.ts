@@ -89,10 +89,54 @@ export function annotationLayers(
   const y1 = area.y + area.height
   const inside = (p: number, lo: number, hi: number) => p >= lo - 0.5 && p <= hi + 0.5
   const pad = 4
-  /** Boxes of the labels placed so far, so later ones can step aside. */
-  const placed: [number, number, number, number][] = []
-  const clear = (box: [number, number, number, number]) =>
-    placed.every(([l, t, r, b]) => box[2] <= l || box[0] >= r || box[3] <= t || box[1] >= b)
+  /**
+   * Where an annotation lands: the pixel span it covers within the plot, and
+   * whether it runs across x (a vertical line); `undefined` when it is off
+   * the plot or names nothing on the axes.
+   */
+  const geometry = (a: Annotation): { a0: number; a1: number; vertical: boolean } | undefined => {
+    let span: readonly [number, number]
+    let vertical: boolean
+    if (a.y !== undefined) {
+      const [from, to] = isPair(a.y) ? a.y : [a.y, a.y]
+      if (!Number.isFinite(from) || !Number.isFinite(to)) return undefined
+      span = [scales.value(from), scales.value(to)]
+      vertical = horizontal
+    } else if (a.x !== undefined) {
+      const [from, to] = isPair(a.x) ? a.x : [a.x, a.x]
+      const start = categorySpan(scales, from)
+      const stop = categorySpan(scales, to)
+      if (!start || !stop) return undefined
+      // A single category: its center; a range: from the start of one to the end of the other.
+      span = isPair(a.x)
+        ? [Math.min(start[0], stop[0]), Math.max(start[1], stop[1])]
+        : [(start[0] + start[1]) / 2, (start[0] + start[1]) / 2]
+      vertical = !horizontal
+    } else {
+      return undefined
+    }
+    const lo = Math.min(span[0], span[1])
+    const hi = Math.max(span[0], span[1])
+    const [min, max] = vertical ? [x0, x1] : [y0, y1]
+    if (!inside(lo, min, max) && !inside(hi, min, max) && !(lo < min && hi > max)) return undefined
+    return { a0: Math.max(lo, min), a1: Math.min(hi, max), vertical }
+  }
+  const shapes = annotations.map(geometry)
+
+  type Box = [number, number, number, number]
+  /** Boxes labels keep clear of: the labels placed so far, and every line. */
+  const placed: Box[] = []
+  const obstacles: [number, Box][] = []
+  shapes.forEach((g, i) => {
+    if (!g || g.a1 - g.a0 > 0.5) return
+    const at = g.a0
+    obstacles.push([i, g.vertical ? [at - 1.5, y0, at + 1.5, y1] : [x0, at - 1.5, x1, at + 1.5]])
+  })
+  const apart = (box: Box, [l, t, r, b]: Box) =>
+    box[2] <= l || box[0] >= r || box[3] <= t || box[1] >= b
+  const clearOfLabels = (box: Box) => placed.every((p) => apart(box, p))
+  const clear = (box: Box, own: number) =>
+    clearOfLabels(box) && obstacles.every(([i, l]) => i === own || apart(box, l))
 
   annotations.forEach((a, index) => {
     const key = a.id ?? index
@@ -104,36 +148,12 @@ export function annotationLayers(
     })
     const end = a.position !== 'start'
 
-    // The pixel span an annotation covers, and whether it runs across x (a vertical line).
-    let span: readonly [number, number] | undefined
-    let vertical: boolean
-    if (a.y !== undefined) {
-      const [from, to] = isPair(a.y) ? a.y : [a.y, a.y]
-      if (!Number.isFinite(from) || !Number.isFinite(to)) return
-      span = [scales.value(from), scales.value(to)]
-      vertical = horizontal
-    } else if (a.x !== undefined) {
-      const [from, to] = isPair(a.x) ? a.x : [a.x, a.x]
-      const start = categorySpan(scales, from)
-      const stop = categorySpan(scales, to)
-      if (!start || !stop) return
-      // A single category: its center; a range: from the start of one to the end of the other.
-      span = isPair(a.x)
-        ? [Math.min(start[0], stop[0]), Math.max(start[1], stop[1])]
-        : [(start[0] + start[1]) / 2, (start[0] + start[1]) / 2]
-      vertical = !horizontal
-    } else {
-      return
-    }
-    const lo = Math.min(span[0], span[1])
-    const hi = Math.max(span[0], span[1])
-    const [min, max] = vertical ? [x0, x1] : [y0, y1]
-    if (!inside(lo, min, max) && !inside(hi, min, max) && !(lo < min && hi > max)) return
-    const a0 = Math.max(lo, min)
-    const a1 = Math.min(hi, max)
+    const shape = shapes[index]
+    if (!shape) return
+    const { a0, a1, vertical } = shape
 
     // Label: candidate spots in order of preference, inside the plot area; the
-    // first that does not cover an earlier label wins (or the first one).
+    // first that covers neither an earlier label nor another line wins (or the first one).
     let label: VNode | false | undefined
     if (a.label) {
       const w = estimateTextWidth(a.label, fontSize * 0.92)
@@ -141,12 +161,18 @@ export function annotationLayers(
       // [left edge, baseline] of each spot.
       const spots: [number, number][] = []
       if (vertical) {
-        // Beside a line or at the start of a band; on the other side if it would run out.
+        // Beside a line or at the start of a band; on the other side if it would
+        // run out, and then on the other side anyway, stepping along the line.
         const after = a0 + pad
-        const x = after + w <= x1 ? after : line ? a0 - pad - w : Math.max(x0, a1 - pad - w)
+        const before = line ? a0 - pad - w : Math.max(x0, a1 - pad - w)
+        const sides = after + w <= x1 ? [after, before] : [before, after]
         const top = end ? y0 + fontSize : y1 - pad
         const step = (end ? 1 : -1) * fontSize * 1.2
-        for (let k = 0; k < 3; k++) spots.push([Math.max(x0 + pad, x), top + k * step])
+        for (const x of sides) {
+          if (x < x0 || x + w > x1) continue
+          for (let k = 0; k < 3; k++) spots.push([x, top + k * step])
+        }
+        if (!spots.length) spots.push([Math.max(x0 + pad, sides[0] as number), top])
       } else {
         // At the preferred end above or below, then at the other end.
         const near = end ? x1 - pad - w : x0 + pad
@@ -156,13 +182,12 @@ export function annotationLayers(
           else spots.push([x, a0 + fontSize], [x, a1 - pad])
         }
       }
-      const box = ([x, y]: [number, number]): [number, number, number, number] => [
-        x,
-        y - fontSize,
-        x + w,
-        y + fontSize * 0.25,
-      ]
-      const spot = spots.find((s) => clear(box(s))) ?? (spots[0] as [number, number])
+      const box = ([x, y]: [number, number]): Box => [x, y - fontSize, x + w, y + fontSize * 0.25]
+      // Nothing free: at least keep off the other labels; a line through text reads better than text on text.
+      const spot =
+        spots.find((s) => clear(box(s), index)) ??
+        spots.find((s) => clearOfLabels(box(s))) ??
+        (spots[0] as [number, number])
       placed.push(box(spot))
       label = h(
         'text',

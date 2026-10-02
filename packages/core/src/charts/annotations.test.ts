@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig } from '../chart.ts'
 import '../annotations.ts'
 import '../time.ts'
+import { estimateTextWidth } from '../layout.ts'
 import { findByClass, gridLineOffset } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import type { Annotation } from './annotations.ts'
@@ -118,6 +119,32 @@ describe('annotations', () => {
     expect(topTick(node)).toBe(50)
     expect(lines(node)).toHaveLength(0)
     expect(labels(node)).toEqual([])
+  })
+
+  test('labels keep clear of other annotation lines, and of each other', () => {
+    const node = render({
+      annotations: [
+        { y: 39, label: 'Target' },
+        { x: 'Q2', label: 'Launch' },
+        { x: 'Q2', label: 'Also launch' },
+      ],
+    })
+    const target = Number(lines(node)[0]?.attrs.y1)
+    // [left, top, right, bottom] of each label, as the layout estimates them.
+    const boxes = findByClass(node, 'tc-annotation-label').map((t) => {
+      const x = Number(t.attrs.x)
+      const y = Number(t.attrs.y)
+      return [x, y - 12, x + estimateTextWidth(String(t.children[0]), 12 * 0.92), y + 3]
+    })
+    const [, launch, also] = boxes as number[][]
+    // Neither event label sits on the target line…
+    for (const [, top, , bottom] of [launch, also] as number[][]) {
+      expect(target < (top as number) || target > (bottom as number)).toBe(true)
+    }
+    // …and they do not cover each other.
+    const [l1 = 0, t1 = 0, r1 = 0, b1 = 0] = launch as number[]
+    const [l2 = 0, t2 = 0, r2 = 0, b2 = 0] = also as number[]
+    expect(r1 <= l2 || r2 <= l1 || b1 <= t2 || b2 <= t1).toBe(true)
   })
 
   test('colors, classes and keys', () => {
