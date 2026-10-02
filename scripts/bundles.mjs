@@ -1,8 +1,8 @@
 /**
  * Build typical imports of the built packages (after `pnpm build`) the way an
  * app would: bundled with rolldown, tree-shaken and minified, one file per
- * case in .size/. Bundlewatch measures them, with the budgets in
- * bundlewatch.config.cjs (`pnpm size` runs both).
+ * case in .size/, checked against bundlewatch.config.cjs by
+ * scripts/check-size.mjs (`pnpm size` runs both).
  */
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { build } from 'rolldown'

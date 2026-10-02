@@ -1,8 +1,10 @@
 /**
- * Size budgets, gzipped, in Bundlewatch's units (1 KB = 1024 bytes). `pnpm
- * size` builds the .size/ bundles (scripts/bundles.mjs) and runs Bundlewatch
- * on them; with BUNDLEWATCH_GITHUB_TOKEN set (CI), pull requests get a status
- * comparing every size with main. Raise a budget only on purpose.
+ * Size budgets, gzipped, in Bundlewatch's format and units (1 KB = 1024
+ * bytes). `pnpm size` builds the .size/ bundles (scripts/bundles.mjs) and
+ * checks them offline (scripts/check-size.mjs). Bundlewatch itself is not
+ * run: it always uploads the results (to a link shortener, and to its
+ * service for comparisons), but this config still works with it. Raise a
+ * budget only on purpose.
  */
 module.exports = {
   files: [

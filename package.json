@@ -21,7 +21,7 @@
     "lint:pkg": "pnpm -r --if-present lint:pkg",
     "docs:dev": "pnpm --filter @tabler/charts-docs dev",
     "docs:build": "pnpm --filter @tabler/charts-docs build",
-    "size": "node scripts/bundles.mjs && bundlewatch --config bundlewatch.config.cjs",
+    "size": "node scripts/bundles.mjs && node scripts/check-size.mjs",
     "examples:build": "pnpm -r --filter \"./examples/**\" build",
     "visual": "playwright test",
     "visual:update": "playwright test --update-snapshots"
@@ -32,7 +32,6 @@
     "@biomejs/biome": "^2.5.14",
     "@playwright/test": "^1.63.0",
     "@types/node": "^24.19.0",
-    "bundlewatch": "0.4.2",
     "happy-dom": "^20.14.5",
     "lightningcss": "^1.33.0",
     "publint": "^0.3.24",

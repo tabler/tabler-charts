@@ -44,15 +44,10 @@ jobs:
       - name: Validate packages
         run: pnpm lint:pkg
 
-      # Typical imports bundled into .size/ and checked by Bundlewatch against
-      # bundlewatch.config.cjs. Pull requests get a status comparing every size
-      # with main once BUNDLEWATCH_GITHUB_TOKEN is set
-      # (https://service.bundlewatch.io/setup-github).
+      # Typical imports bundled into .size/, checked offline against the
+      # budgets in bundlewatch.config.cjs.
       - name: Size budget
         run: pnpm size
-        env:
-          BUNDLEWATCH_GITHUB_TOKEN: ${{ secrets.BUNDLEWATCH_GITHUB_TOKEN }}
-          CI_BRANCH_BASE: main
 
       # Real SSR builds (Next, Nuxt, Astro) against the packages built above.
       - name: Build SSR examples
