@@ -495,12 +495,12 @@ export class Chart<O extends object = object> {
     const fontSize = cfg.fontSize ?? this.#measureFontSize()
 
     let cache = this.#cache
+    // What the chart shows changed, not only its size.
+    const changed = !cache || cache.cfg !== cfg || cache.hidden !== hiddenKey
     const stale =
-      !cache ||
-      cache.cfg !== cfg ||
-      cache.width !== size.width ||
+      changed ||
+      cache?.width !== size.width ||
       cache.height !== size.height ||
-      cache.hidden !== hiddenKey ||
       cache.fontSize !== fontSize
     if (!cache || stale) {
       this.#current = undefined
@@ -562,7 +562,7 @@ export class Chart<O extends object = object> {
     if (adopted) this.#markResizing()
 
     for (const plugin of this.#plugins)
-      plugin.afterRender?.({ config, legend, hidden, size, stale })
+      plugin.afterRender?.({ config, legend, hidden, size, stale, changed })
     if (stale) this.#emit('render', { size })
     return this
   }

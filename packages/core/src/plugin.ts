@@ -14,6 +14,8 @@ export interface AfterRenderState extends BeforeRenderState {
   size: Size
   /** Whether the chart content was rebuilt (config, size or hidden series changed). */
   stale: boolean
+  /** Whether the config or the hidden series changed (`stale` also covers size and font). */
+  changed: boolean
 }
 
 /** Hooks of an installed plugin; every one is optional. */

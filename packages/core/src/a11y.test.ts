@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { describeHit, tableContent } from './a11y.ts'
 import type { ChartConfig } from './chart.ts'
 import { Chart } from './chart-default.ts'
@@ -100,6 +100,38 @@ describe('Chart accessibility', () => {
     expect(el.querySelectorAll('.tc-table thead th')).toHaveLength(2)
     chart.update({ table: false } as Partial<ChartConfig<object>>).render()
     expect(el.querySelector('.tc-table')).toBeNull()
+  })
+
+  test('a hidden table catches up with new data once the browser is idle', () => {
+    const idle: (() => void)[] = []
+    vi.stubGlobal('requestIdleCallback', (callback: () => void) => idle.push(callback))
+    try {
+      chart = new Chart(el, base)
+      const firstCell = () => el.querySelector('.tc-table tbody td')?.textContent
+      expect(firstCell()).toBe('3,200')
+      chart.setData({ ...data, series: [{ name: 'Visitors', values: [1, 2, 3] }] } as never)
+      chart.render()
+      // The chart is already up to date; the table follows when the browser is idle.
+      expect(el.querySelectorAll('.tc-series')).toHaveLength(1)
+      expect(firstCell()).toBe('3,200')
+      for (const callback of idle) callback()
+      expect(firstCell()).toBe('1')
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  test('resizing the container leaves the table alone', () => {
+    chart = new Chart(el, { ...base, width: undefined })
+    const table = vi.spyOn(line, 'table')
+    // happy-dom has no layout: pretend the container got narrower.
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300)
+    chart.resize()
+    flush()
+    expect(el.querySelector('svg')?.getAttribute('width')).toBe('300')
+    expect(table).not.toHaveBeenCalled()
+    table.mockRestore()
+    width.mockRestore()
   })
 
   test('caps huge tables and says so in the caption', () => {

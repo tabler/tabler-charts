@@ -30,7 +30,7 @@ const CASES = [
   [
     'core + pie',
     `export { Chart } from '${DIST}core.js'; export { pie } from '${DIST}pie.js'`,
-    7.25,
+    7.5,
   ],
   [
     'core + gauge',
@@ -62,7 +62,7 @@ const CASES = [
     `export { exportSVG, exportImage, downloadChart } from '${DIST}export.js'`,
     2.5,
   ],
-  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 17.0],
+  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 17.25],
   [
     'SSR: chartToString + line',
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
@@ -74,8 +74,8 @@ const CASES = [
     12.25,
   ],
   ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 29.25],
-  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.0, react],
-  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 18.0, vue],
+  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.25, react],
+  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 18.25, vue],
   ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 29.0],
   ['everything', `export * from '${DIST}index.js'`, 31.25],
 ]

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { cancel, flush, schedule } from './scheduler.ts'
+import { cancel, flush, schedule, scheduleIdle } from './scheduler.ts'
 
 describe('scheduler', () => {
   test('runs tasks asynchronously, once per key with the latest task', async () => {
@@ -41,5 +41,23 @@ describe('scheduler', () => {
     })
     expect(flush()).toBe(2)
     expect(calls).toEqual(['first', 'second'])
+  })
+
+  test('idle tasks run when the browser is idle, or with flush()', async () => {
+    const calls: string[] = []
+    const key = {}
+    scheduleIdle(key, () => calls.push('old'))
+    scheduleIdle(key, () => calls.push('idle'))
+    expect(calls).toEqual([])
+    // Without requestIdleCallback (Node), a timer stands in.
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    expect(calls).toEqual(['idle'])
+    scheduleIdle(key, () => calls.push('flushed'))
+    flush()
+    expect(calls).toEqual(['idle', 'flushed'])
+    scheduleIdle(key, () => calls.push('cancelled'))
+    cancel(key)
+    flush()
+    expect(calls).toEqual(['idle', 'flushed'])
   })
 })
