@@ -117,6 +117,38 @@ code {
   fill: #fff;
 }
 
+.site-nav {
+  display: flex;
+  gap: 16px;
+  margin-right: auto;
+  margin-left: 24px;
+}
+
+.site-nav a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  color: var(--fg);
+}
+
+.case-group {
+  margin: 32px 0 12px;
+}
+
+.case-error {
+  padding: 12px;
+  border-radius: 6px;
+  color: #b42318;
+  background: #fef3f2;
+  font:
+    12px / 1.4 ui-monospace,
+    monospace;
+  white-space: pre-wrap;
+}
+
 .badge {
   font-size: 11px;
   font-weight: 500;
