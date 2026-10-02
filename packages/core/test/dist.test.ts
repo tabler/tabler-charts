@@ -46,6 +46,7 @@ describe('built package', () => {
     expect(core.features.annotations).toBeDefined()
     expect(core.features.dates).toBeDefined()
     expect(core.features.hydrate).toBeDefined()
+    expect(core.features.morph).toBeDefined()
   })
 
   test('the export entry ships the export functions', async () => {

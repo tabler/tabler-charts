@@ -10,6 +10,7 @@ import { logDomain, logTicks } from './charts/log-axis.ts'
 import { timeAxis } from './charts/time-axis.ts'
 import { register } from './features.ts'
 import { hydrate } from './render/hydrate.ts'
+import { morph } from './render/morph.ts'
 import { log } from './scales/log.ts'
 import { time, timePointScale } from './scales/time.ts'
 import { lttb, lttbIndices } from './shapes/decimate.ts'
@@ -24,6 +25,7 @@ register({
   line: { linePath, areaPath },
   annotations: { layers: annotationLayers, values: annotationValues },
   hydrate,
+  morph,
 })
 
 export { Chart } from './chart-default.ts'

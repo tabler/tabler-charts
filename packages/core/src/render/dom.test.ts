@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, test } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { features } from '../features.ts'
 import '../hydrate.ts'
 import { h, type VNode } from '../vnode.ts'
@@ -306,5 +306,27 @@ describe('render() hydrating existing markup', () => {
     const [s1, s2] = Array.from(root.children)
     render(box, tree(['s2', 's1']))
     expect(Array.from(root.children)).toEqual([s2, s1])
+  })
+})
+
+describe('render() with the morph feature', () => {
+  test('hands changes of d to it on updates, never when hydrating', () => {
+    const saved = features.morph
+    const morph = vi.fn(() => true)
+    features.morph = morph
+    try {
+      const box = document.createElement('div')
+      box.innerHTML = '<svg><path d="M0,0"></path></svg>'
+      const server = box.firstElementChild as Element
+      render(box, h('svg', null, h('path', { d: 'M1,1' })), server)
+      expect(morph).not.toHaveBeenCalled()
+      expect(box.querySelector('path')?.getAttribute('d')).toBe('M1,1')
+      render(box, h('svg', null, h('path', { d: 'M2,2' })))
+      expect(morph).toHaveBeenCalledWith(box.querySelector('path'), 'M1,1', 'M2,2')
+      // It took the change over, so the patcher left the attribute alone.
+      expect(box.querySelector('path')?.getAttribute('d')).toBe('M1,1')
+    } finally {
+      features.morph = saved
+    }
   })
 })

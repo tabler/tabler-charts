@@ -44,7 +44,10 @@
     "./src/candlestick.ts",
     "./dist/hydrate.js",
     "./dist/hydrate.cjs",
-    "./src/hydrate.ts"
+    "./src/hydrate.ts",
+    "./dist/morph.js",
+    "./dist/morph.cjs",
+    "./src/morph.ts"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -208,6 +211,16 @@
       "require": {
         "types": "./dist/hydrate.d.cts",
         "default": "./dist/hydrate.cjs"
+      }
+    },
+    "./morph": {
+      "import": {
+        "types": "./dist/morph.d.ts",
+        "default": "./dist/morph.js"
+      },
+      "require": {
+        "types": "./dist/morph.d.cts",
+        "default": "./dist/morph.cjs"
       }
     },
     "./time": {

@@ -16,6 +16,7 @@ export default defineConfig({
     'src/candlestick.ts',
     'src/annotations.ts',
     'src/hydrate.ts',
+    'src/morph.ts',
     'src/export.ts',
     'src/scatter.ts',
     'src/sparkline.ts',

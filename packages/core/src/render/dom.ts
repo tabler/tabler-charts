@@ -115,15 +115,20 @@ function patchNode(node: Node, next: Child): void {
 function patchElement(el: Element, next: VNode): void {
   const prev = rendered.get(el) as VNode
   if (prev === next) return
-  patchAttrs(el, prev.attrs, next.attrs)
+  patchAttrs(el, prev.attrs, next.attrs, true)
   patchChildren(el, next.children)
   rendered.set(el, next)
 }
 
-export function patchAttrs(el: Element, prev: Attrs, next: Attrs): void {
+export function patchAttrs(el: Element, prev: Attrs, next: Attrs, update = false): void {
   for (const name in next) {
     const value = next[name] as string | number
-    if (prev[name] !== value && isValidAttr(name)) el.setAttribute(name, String(value))
+    if (prev[name] === value || !isValidAttr(name)) continue
+    // Where CSS cannot transition `d` (Safari), the morph feature animates it.
+    if (update && name === 'd' && features.morph?.(el, String(prev[name] ?? ''), String(value))) {
+      continue
+    }
+    el.setAttribute(name, String(value))
   }
   for (const name in prev) {
     if (!(name in next) && isValidAttr(name)) el.removeAttribute(name)
