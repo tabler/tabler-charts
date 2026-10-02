@@ -44,6 +44,9 @@ jobs:
 
       - name: Visual tests
         run: pnpm visual ${{ inputs.update-snapshots && '--update-snapshots=all' || '' }}
+        env:
+          # Firefox refuses to start as root with a HOME owned by another user.
+          HOME: /root
 
       - name: Upload the report
         if: failure()

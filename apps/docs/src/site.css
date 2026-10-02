@@ -276,6 +276,11 @@ code {
   padding: 3px 10px;
 }
 
+/* WebKit on Linux paints native buttons over the background otherwise. */
+button.control-input {
+  appearance: none;
+}
+
 .control input[type="color"] {
   width: 28px;
   height: 24px;
