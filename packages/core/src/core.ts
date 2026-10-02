@@ -86,7 +86,15 @@ export type {
   ChartPlugin,
   PluginInstance,
 } from './plugin.ts'
-export { dataTable, defaultPlugins, highlight, keyboard, legend, tooltip } from './plugins/index.ts'
+export {
+  dataTable,
+  defaultPlugins,
+  highlight,
+  keyboard,
+  legend,
+  pointer,
+  tooltip,
+} from './plugins/index.ts'
 export { render } from './render/dom.ts'
 export type { RenderToStringOptions } from './render/string.ts'
 export { escapeAttr, escapeText, renderToString } from './render/string.ts'

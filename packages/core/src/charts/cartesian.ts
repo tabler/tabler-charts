@@ -514,23 +514,24 @@ export function categoryInteraction(
       if (series.color) item.color = series.color
       items.push(item)
     })
-    const title = formatLabel(label, index)
-    if (horizontal) {
-      const hit: Hit = {
-        index,
-        label: labelKey(label),
-        title,
-        x: area.x + area.width / 2,
-        y: center,
-        axis: 'y',
-        area,
-        items,
-      }
-      hit.band = { x: area.x, y: start, width: area.width, height: x.bandwidth }
-      return hit
+    // Horizontal bars run the categories along y: the hit sits at the plot center on x.
+    const hit: Hit = {
+      index,
+      label: labelKey(label),
+      title: formatLabel(label, index),
+      x: horizontal ? area.x + area.width / 2 : center,
+      area,
+      items,
     }
-    const hit: Hit = { index, label: labelKey(label), title, x: center, area, items }
-    if (x.bandwidth > 0) hit.band = { x: start, y: area.y, width: x.bandwidth, height: area.height }
+    if (horizontal) {
+      hit.y = center
+      hit.axis = 'y'
+    }
+    if (x.bandwidth > 0) {
+      hit.band = horizontal
+        ? { x: area.x, y: start, width: area.width, height: x.bandwidth }
+        : { x: start, y: area.y, width: x.bandwidth, height: area.height }
+    }
     return hit
   }
 

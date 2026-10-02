@@ -4,6 +4,7 @@ import { buildChart, Chart, type ChartConfig } from './chart.ts'
 import { bar } from './charts/bar.ts'
 import { line } from './charts/line.ts'
 import { type Hit, type HitTester, hitKey, type Interaction, toChartPoint } from './interaction.ts'
+import { pointer as pointerPlugin } from './plugins/pointer.ts'
 
 const data = {
   labels: ['Jan', 'Feb', 'Mar', 'Apr'],
@@ -137,7 +138,14 @@ describe('Chart pointer events', () => {
   beforeEach(() => {
     el = document.createElement('div')
     document.body.appendChild(el)
-    chart = new Chart(el, { type: line, data, width: 400, height: 200, locale: 'en-US' })
+    chart = new Chart(el, {
+      type: line,
+      data,
+      width: 400,
+      height: 200,
+      locale: 'en-US',
+      plugins: [pointerPlugin()],
+    })
     // happy-dom has no layout: pin the svg to the page origin at its natural size.
     const svg = el.querySelector('svg') as SVGSVGElement
     svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 200 }) as DOMRect

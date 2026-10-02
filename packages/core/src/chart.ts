@@ -1,6 +1,6 @@
 import type { DataTable } from './a11y.ts'
 import type { Locale } from './format.ts'
-import { type Hit, hitKey, type Interaction, toChartPoint } from './interaction.ts'
+import { type Hit, hitKey, type Interaction } from './interaction.ts'
 import { defaultHidden, type LegendItem, type LegendOptions } from './legend.ts'
 import type { ChartPlugin, PluginInstance } from './plugin.ts'
 import { render } from './render/dom.ts'
@@ -308,9 +308,10 @@ type Source =
 
 /**
  * A chart bound to a DOM element: measures its container, renders SVG into
- * it, re-renders on `update()` and resize (batched per animation frame) and
- * turns pointer input into `hover` / `click` events. Features such as the
- * tooltip or legend are plugins; the `Chart` exported by `@tabler/charts`
+ * it and re-renders on `update()` and resize (batched per animation frame).
+ * Features such as the tooltip, the legend and pointer input (`hover` /
+ * `click` events, from `pointer()`, which the highlight and tooltip plugins
+ * turn on themselves) are plugins; the `Chart` exported by `@tabler/charts`
  * installs the built-in ones.
  *
  * ```ts
@@ -327,7 +328,6 @@ export class Chart<O extends object = object> {
   #measured: Partial<Size> = {}
   readonly #handlers = new Map<keyof ChartEvents, Set<Handler<never>>>()
   readonly #unobserve: () => void
-  readonly #unlisten: () => void
   readonly #plugins: PluginInstance[]
   #destroyed = false
   #current: Interaction | undefined
@@ -382,7 +382,6 @@ export class Chart<O extends object = object> {
         this.#schedule()
       }
     })
-    this.#unlisten = this.#listen()
     const self = this as unknown as Chart<object>
     this.#plugins = [...defaultPlugins, ...(config.plugins ?? [])].map((plugin) =>
       plugin.install(self),
@@ -451,10 +450,21 @@ export class Chart<O extends object = object> {
     return hit
   }
 
+  /**
+   * Highlight what lies at a point in chart pixels, as the pointer does (the
+   * `pointer()` plugin calls it). Returns the hit, or `null` for none.
+   */
+  highlightAt(x: number, y: number, event?: PointerEvent): Hit | null {
+    const hit = this.hitTest(x, y)
+    this.#source = { kind: 'pointer', x, y }
+    this.#setHover(hit, event)
+    return hit
+  }
+
   /** Remove any highlight. */
-  clearHighlight(): void {
+  clearHighlight(event?: PointerEvent): void {
     this.#source = undefined
-    this.#setHover(null)
+    this.#setHover(null, event)
   }
 
   /**
@@ -471,7 +481,7 @@ export class Chart<O extends object = object> {
     if (!item) return this
     const next = hidden ?? !this.#hiddenSet(items).has(item.key)
     this.#toggled.set(item.key, next)
-    this.#emit('legend-toggle', { key: item.key, name: item.name, index: item.index, hidden: next })
+    this.emit('legend-toggle', { key: item.key, name: item.name, index: item.index, hidden: next })
     this.#schedule()
     return this
   }
@@ -596,7 +606,7 @@ export class Chart<O extends object = object> {
 
     for (const plugin of this.#plugins)
       plugin.afterRender?.({ config, legend, hidden, size, stale, changed })
-    if (stale) this.#emit('render', { size })
+    if (stale) this.emit('render', { size })
     return this
   }
 
@@ -625,51 +635,9 @@ export class Chart<O extends object = object> {
     cancel(this)
     clearTimeout(this.#resizeTimer)
     this.#unobserve()
-    this.#unlisten()
     for (const plugin of this.#plugins) plugin.destroy?.()
     this.#handlers.clear()
     render(this.element, null)
-  }
-
-  /** One set of delegated pointer listeners on the element; survives re-renders. */
-  #listen(): () => void {
-    const el = this.element
-    if (typeof el.addEventListener !== 'function') return () => {}
-
-    const local = (event: MouseEvent) => {
-      const svg = el.querySelector('svg.tc-chart')
-      if (!svg) return undefined
-      const { width, height } = this.size
-      return toChartPoint(svg, event.clientX, event.clientY, width, height)
-    }
-    const onMove = (event: PointerEvent) => {
-      const point = local(event)
-      if (!point) return
-      this.#source = { kind: 'pointer', x: point.x, y: point.y }
-      this.#setHover(this.hitTest(point.x, point.y), event)
-    }
-    const onLeave = (event: PointerEvent) => {
-      // On touch, keep the last highlight after the finger lifts.
-      if (event.pointerType === 'touch' || this.#source?.kind !== 'pointer') return
-      this.#source = undefined
-      this.#setHover(null, event)
-    }
-    const onClick = (event: MouseEvent) => {
-      const point = local(event)
-      const hit = point ? this.hitTest(point.x, point.y) : null
-      if (hit) this.#emit('click', { hit, event })
-    }
-
-    el.addEventListener('pointermove', onMove as EventListener)
-    el.addEventListener('pointerdown', onMove as EventListener)
-    el.addEventListener('pointerleave', onLeave as EventListener)
-    el.addEventListener('click', onClick as EventListener)
-    return () => {
-      el.removeEventListener('pointermove', onMove as EventListener)
-      el.removeEventListener('pointerdown', onMove as EventListener)
-      el.removeEventListener('pointerleave', onLeave as EventListener)
-      el.removeEventListener('click', onClick as EventListener)
-    }
   }
 
   /**
@@ -683,7 +651,7 @@ export class Chart<O extends object = object> {
     if (force && key === '' && this.#hovered === '') return
     this.#hovered = key
     this.#hit = hit
-    this.#emit('hover', event ? { hit, event } : { hit })
+    this.emit('hover', event ? { hit, event } : { hit })
     if (rerender) this.#schedule()
   }
 
@@ -728,7 +696,8 @@ export class Chart<O extends object = object> {
     }
   }
 
-  #emit<K extends keyof ChartEvents>(name: K, event: ChartEvents[K]): void {
+  /** Call the handlers of an event (plugins emit `click`, for instance). */
+  emit<K extends keyof ChartEvents>(name: K, event: ChartEvents[K]): void {
     const set = this.#handlers.get(name)
     if (set) for (const handler of set) (handler as Handler<ChartEvents[K]>)(event)
   }

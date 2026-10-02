@@ -4,7 +4,7 @@ import { Chart, type ChartConfig } from './chart.ts'
 import { Chart as DefaultChart } from './chart-default.ts'
 import { line } from './charts/line.ts'
 import type { ChartPlugin } from './plugin.ts'
-import { legend, tooltip } from './plugins/index.ts'
+import { legend, pointer, tooltip } from './plugins/index.ts'
 import { flush } from './scheduler.ts'
 import { h } from './vnode.ts'
 
@@ -45,8 +45,26 @@ describe('core Chart', () => {
     expect(el.querySelector('svg')?.hasAttribute('tabindex')).toBe(false)
     expect(el.querySelector('.tc-crosshair')).toBeNull()
     expect(el.classList.contains('tc-container')).toBe(false)
-    // Hover events still work without any plugin.
+    // Without plugins nothing listens to the pointer.
+    expect(chart.active).toBeNull()
+  })
+
+  test('pointer() alone turns pointer input into highlights and events', () => {
+    chart = new Chart(el, { ...base, plugins: [pointer()] })
+    const spy = vi.fn()
+    chart.on('hover', spy)
+    hover()
     expect(chart.active?.label).toBe('Feb')
+    expect(spy).toHaveBeenCalledTimes(1)
+    // Nothing is drawn for it.
+    expect(el.querySelector('.tc-crosshair')).toBeNull()
+  })
+
+  test('plugins that need the pointer share one set of listeners', () => {
+    const add = vi.spyOn(el, 'addEventListener')
+    chart = new Chart(el, { ...base, plugins: [pointer(), tooltip(), pointer()] })
+    expect(add.mock.calls.filter(([type]) => type === 'pointermove')).toHaveLength(1)
+    add.mockRestore()
   })
 
   test('installs the plugins given in the config', () => {
@@ -83,7 +101,7 @@ describe('core Chart', () => {
         }
       },
     }
-    chart = new Chart(el, { ...base, plugins: [probe] })
+    chart = new Chart(el, { ...base, plugins: [pointer(), probe] })
     expect(calls).toEqual(['install:true', 'before', 'after:true'])
     expect(el.querySelector('svg')?.getAttribute('data-probe')).toBe('yes')
     hover()

@@ -1,6 +1,7 @@
 import type { ChartPlugin } from '../plugin.ts'
 import { render } from '../render/dom.ts'
 import { hitAnchor, placeTooltip, tooltipContent } from '../tooltip.ts'
+import { listenPointer } from './pointer.ts'
 
 /**
  * An HTML tooltip (`.tc-tooltip`) for the highlighted category, placed next
@@ -10,6 +11,7 @@ export function tooltip(): ChartPlugin {
   return {
     name: 'tooltip',
     install(chart) {
+      const stop = listenPointer(chart)
       const el = chart.element as HTMLElement
       // Positioning context for the tooltip (zero specificity in CSS, so page styles win).
       const addedClass = !el.classList.contains('tc-container')
@@ -71,6 +73,7 @@ export function tooltip(): ChartPlugin {
             tip.remove()
           }
           if (addedClass) el.classList.remove('tc-container')
+          stop?.()
         },
       }
     },

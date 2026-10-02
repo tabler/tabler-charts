@@ -1,5 +1,6 @@
 import { hoverOverlay, hoverUnderlay } from '../components/hover.ts'
 import type { ChartPlugin } from '../plugin.ts'
+import { listenPointer } from './pointer.ts'
 
 /**
  * Draws the highlighted category: a crosshair (or a band behind bars) under
@@ -8,11 +9,15 @@ import type { ChartPlugin } from '../plugin.ts'
 export function highlight(): ChartPlugin {
   return {
     name: 'highlight',
-    install: () => ({
-      layers: (hit, config) => ({
-        under: hoverUnderlay(hit, config.crosshair !== false),
-        over: hoverOverlay(hit),
-      }),
-    }),
+    install(chart) {
+      const stop = listenPointer(chart)
+      return {
+        layers: (hit, config) => ({
+          under: hoverUnderlay(hit, config.crosshair !== false),
+          over: hoverOverlay(hit),
+        }),
+        ...(stop ? { destroy: stop } : {}),
+      }
+    },
   }
 }
