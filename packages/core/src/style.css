@@ -270,11 +270,6 @@
   --tc-area-gradient-start: 0.3;
 }
 
-.tc-point-min,
-.tc-point-max {
-  fill: var(--tc-text-muted);
-}
-
 /* Bubbles overlap, so they are slightly see-through. */
 .tc-bubble {
   fill-opacity: var(--tc-bubble-opacity);
@@ -288,6 +283,12 @@
   transition:
     cx var(--tc-duration) var(--tc-easing),
     cy var(--tc-duration) var(--tc-easing);
+}
+
+/* Sparkline min/max markers in a text color; after .tc-point, which they also are. */
+.tc-point-min,
+.tc-point-max {
+  fill: var(--tc-text-muted);
 }
 
 /* Annotations: reference lines and bands, in a muted color unless given one. */
