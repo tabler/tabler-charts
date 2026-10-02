@@ -216,6 +216,17 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   }
   ctx.onHitTest(interaction)
 
+  /** One path drawing a dot of `radius` at every point (two arcs each). */
+  const dotsPath = (dots: readonly ScatterPoint[]) => {
+    if (!dots.length) return null
+    const r = round(radius)
+    let d = ''
+    for (const p of dots) {
+      d += `M${round(x(p.x) - radius)},${round(y(p.y))}a${r},${r},0,1,0,${2 * r},0a${r},${r},0,1,0,${-2 * r},0`
+    }
+    return h('path', { key: 'dots', class: 'tc-point tc-dots', d })
+  }
+
   const background = []
   if (yOptions.grid !== false) background.push(grid({ direction: 'y', ticks: yTicks, area }))
   if (xOptions.grid) background.push(grid({ direction: 'x', ticks: xTicks, area }))
@@ -235,12 +246,18 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
           'data-series': series.name,
           style: series.color ? `--tc-series-color:${series.color}` : undefined,
         },
+        // Plain points share one path per series: thousands of circles would
+        // each cost the browser style and layout work. The path keeps its
+        // commands while the point count does, so new data morphs. Bubbles
+        // stay circles: each is see-through over the others.
+        dotsPath(series.points.filter((p) => usable(p) && sizeOf(p) === undefined)),
         series.points.map(
           (point, i) =>
             usable(point) &&
+            sizeOf(point) !== undefined &&
             h('circle', {
               key: i,
-              class: ['tc-point', sizeOf(point) !== undefined && 'tc-bubble'],
+              class: 'tc-point tc-bubble',
               cx: round(x(point.x)),
               cy: round(y(point.y)),
               r: round(bubble(sizeOf(point))),

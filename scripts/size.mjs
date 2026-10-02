@@ -73,11 +73,11 @@ const CASES = [
     `export { defineChartElement } from '${ELEMENTS}core.js'; export { line } from '${DIST}line.js'`,
     12.5,
   ],
-  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 29.25],
+  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 29.5],
   ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.25, react],
   ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 18.25, vue],
-  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 29.0],
-  ['everything', `export * from '${DIST}index.js'`, 31.25],
+  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 29.25],
+  ['everything', `export * from '${DIST}index.js'`, 31.5],
 ]
 
 let failed = false
@@ -103,10 +103,10 @@ for (const [name, source, budget, external] of CASES) {
   )
 }
 const css = gzipSync(readFileSync(`${DIST}style.css`)).length / 1000
-const cssOk = css <= 2.75
+const cssOk = css <= 2.8
 failed ||= !cssOk
 console.log(
-  `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 2.75)`,
+  `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 2.8)`,
 )
 // The CDN scripts as shipped: library, styles and adapter, already minified.
 for (const [name, file, budget] of [

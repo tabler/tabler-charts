@@ -40,15 +40,34 @@ function interactionOf(config: Partial<ChartConfig<ScatterOptions>> = {}): Inter
   return found
 }
 
+/** Every point as a circle: bubbles are circles, plain dots arcs in one path per series. */
 const circles = (node: ReturnType<typeof render>) =>
-  findByClass(node, 'tc-point').map((c) => c.attrs as { cx: number; cy: number; r: number })
+  findByClass(node, 'tc-point').flatMap((c) => {
+    if (c.tag === 'circle') return [c.attrs as { cx: number; cy: number; r: number }]
+    return [...String(c.attrs.d).matchAll(/M(-?[\d.]+),(-?[\d.]+)a([\d.]+)/g)].map((m) => {
+      const r = Number(m[3])
+      return { cx: Number(m[1]) + r, cy: Number(m[2]), r }
+    })
+  })
 
 describe('scatter', () => {
-  test('renders one circle per point in keyed series groups', () => {
+  test('draws the plain points of each keyed series group as one path', () => {
     const node = render()
     expect(findByClass(node, 'tc-series').map((g) => g.key)).toEqual(['North', 'South'])
+    const dots = findByClass(node, 'tc-dots')
+    expect(dots.map((d) => d.tag)).toEqual(['path', 'path'])
     expect(circles(node)).toHaveLength(5)
+    expect(circles(node)[0]?.r).toBe(4)
     expect(node.attrs.class).toBe('tc-chart tc-chart-scatter')
+  })
+
+  test('new data with as many points keeps the path commands, so it morphs', () => {
+    const commands = (node: ReturnType<typeof render>) =>
+      findByClass(node, 'tc-dots').map((d) => String(d.attrs.d).replace(/[^MaA]/g, ''))
+    const moved = {
+      series: data.series.map((s) => ({ ...s, points: s.points.map((p) => ({ x: p.y, y: p.x })) })),
+    }
+    expect(commands(render({ data: moved }))).toEqual(commands(render()))
   })
 
   test('maps both axes linearly', () => {

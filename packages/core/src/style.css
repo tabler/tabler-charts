@@ -373,7 +373,8 @@
 .tc-gauge-arc,
 .tc-gauge-track,
 .tc-candle-wick,
-.tc-radar-ring {
+.tc-radar-ring,
+.tc-dots {
   transition: d var(--tc-duration) var(--tc-easing);
 }
 
