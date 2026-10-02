@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../docs/images/logo-white.svg">
+    <img src="../../docs/images/logo.svg" alt="Tabler Charts" width="280">
+  </picture>
+</p>
+
 # @tabler/charts-vue
 
 Vue 3 components and a composable for [`@tabler/charts`](../core). Charts render to SVG on the server (Nuxt included), and the browser takes the markup over without re-creating it.

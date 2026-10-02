@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../docs/images/logo-white.svg">
+    <img src="../../docs/images/logo.svg" alt="Tabler Charts" width="280">
+  </picture>
+</p>
+
 # @tabler/charts-bootstrap
 
 [`@tabler/charts`](../core) for Bootstrap 5.3 and Tabler: a theme mapping (CSS and SCSS) and a data API, so charts can be declared in HTML.

@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../docs/images/logo-white.svg">
+    <img src="../../docs/images/logo.svg" alt="Tabler Charts" width="280">
+  </picture>
+</p>
+
 # @tabler/charts
 
 Zero-dependency SVG charts styled with CSS: the engine, every chart type, the plugins and the stylesheet.

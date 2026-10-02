@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../../docs/images/logo-white.svg">
+    <img src="../../docs/images/logo.svg" alt="Tabler Charts" width="280">
+  </picture>
+</p>
+
 # @tabler/charts-elements
 
 The `<tabler-chart>` Web Component for [`@tabler/charts`](../core). Use it in plain HTML or with any framework (Svelte, Angular, Astro …), in light DOM by default or in a shadow root.
