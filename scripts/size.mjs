@@ -1,8 +1,10 @@
 /**
  * Size budget: bundle typical imports of the built package with rolldown,
- * minify, gzip and compare against the budgets below. Run after `pnpm build`.
+ * minify, gzip and compare against the budgets in bundlewatch.config.cjs.
+ * Run after `pnpm build`; the bundles land in .size/ for Bundlewatch.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { gzipSync } from 'node:zlib'
 import { build } from 'rolldown'
 
@@ -15,84 +17,91 @@ const BOOTSTRAP = new URL('../packages/bootstrap/dist/', import.meta.url).pathna
 const react = [/^react($|\/)/, /^react-dom($|\/)/]
 const vue = [/^vue($|\/)/, /^@vue\//]
 
-/** [name, entry source, budget in kB gzipped, externals] */
+/** [name, entry source, externals]; the budgets are in bundlewatch.config.cjs. */
 const CASES = [
-  [
-    'core + line',
-    `export { Chart } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    10.75,
-  ],
-  [
-    'core + bar',
-    `export { Chart } from '${DIST}core.js'; export { bar } from '${DIST}bar.js'`,
-    10.75,
-  ],
-  [
-    'core + pie',
-    `export { Chart } from '${DIST}core.js'; export { pie } from '${DIST}pie.js'`,
-    7.25,
-  ],
+  ['core + line', `export { Chart } from '${DIST}core.js'; export { line } from '${DIST}line.js'`],
+  ['core + bar', `export { Chart } from '${DIST}core.js'; export { bar } from '${DIST}bar.js'`],
+  ['core + pie', `export { Chart } from '${DIST}core.js'; export { pie } from '${DIST}pie.js'`],
   [
     'core + gauge',
     `export { Chart } from '${DIST}core.js'; export { gauge } from '${DIST}gauge.js'`,
-    7.25,
   ],
   [
     'core + radar',
     `export { Chart } from '${DIST}core.js'; export { radar } from '${DIST}radar.js'`,
-    7.75,
   ],
   [
     'core + heatmap',
     `export { Chart } from '${DIST}core.js'; export { heatmap } from '${DIST}heatmap.js'`,
-    7.75,
   ],
   [
     'core + candlestick',
     `export { Chart } from '${DIST}core.js'; export { candlestick } from '${DIST}candlestick.js'`,
-    9.5,
   ],
   [
     'core + line + tooltip + legend',
     `export { Chart, tooltip, highlight, legend } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    12.5,
   ],
   [
     'export (svg, image, download)',
     `export { exportSVG, exportImage, downloadChart } from '${DIST}export.js'`,
-    2.5,
   ],
-  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`, 17.25],
+  ['default Chart + line', `export { Chart, line } from '${DIST}index.js'`],
   [
     'SSR: chartToString + line',
     `export { chartToString } from '${DIST}core.js'; export { line } from '${DIST}line.js'`,
-    8.5,
   ],
   [
     'elements/core + line',
     `export { defineChartElement } from '${ELEMENTS}core.js'; export { line } from '${DIST}line.js'`,
-    12.0,
   ],
-  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`, 29.5],
-  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, 18.5, react],
-  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, 18.5, vue],
-  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`, 29.25],
-  ['everything', `export * from '${DIST}index.js'`, 31.5],
+  ['elements (every type)', `export { defineChartElement } from '${ELEMENTS}index.js'`],
+  ['react: LineChart', `export { LineChart } from '${REACT}index.js'`, react],
+  ['vue: LineChart', `export { LineChart } from '${VUE}index.js'`, vue],
+  ['bootstrap data API', `export { init } from '${BOOTSTRAP}index.js'`],
+  ['everything', `export * from '${DIST}index.js'`],
 ]
 
-let failed = false
-const entry = new URL('./.size-entry.mjs', import.meta.url).pathname
-// Every measured bundle and its budget, for Bundlewatch (bundlewatch.config.cjs).
-const OUT = new URL('../.size/', import.meta.url).pathname
+// The budgets live in bundlewatch.config.cjs: Bundlewatch checks them in CI
+// (and reports them on pull requests); this script builds the bundles it
+// watches into .size/ and checks the same budgets locally, without a network.
 const ROOT = new URL('../', import.meta.url).pathname
+const OUT = `${ROOT}.size/`
+const config = createRequire(import.meta.url)('../bundlewatch.config.cjs')
+const budgets = new Map(config.files.map((f) => [f.path, f.maxSize]))
+/** Bundlewatch sizes: `B`, `KB` or `MB`, in powers of 1024 like its `bytes` parser. */
+const bytes = (size) => {
+  const [, n, unit = 'B'] = String(size).match(/^([\d.]+)\s*([kKmM]?B)?$/) ?? []
+  return Number(n) * { B: 1, KB: 1024, kB: 1024, MB: 1024 ** 2, mB: 1024 ** 2 }[unit]
+}
+const kb = (n) => `${(n / 1024).toFixed(2)} KB`
+
 mkdirSync(OUT, { recursive: true })
-const watched = []
 const slug = (name) =>
   name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
-for (const [name, source, budget, external] of CASES) {
+
+let failed = false
+/** Compare a file's gzip size (level 9, as Bundlewatch's gzip-size) with its budget. */
+const check = (name, path, data) => {
+  const size = gzipSync(data, { level: 9 }).length
+  const budget = budgets.get(path)
+  if (budget === undefined) {
+    failed = true
+    console.log(`FAIL ${name.padEnd(36)} no budget for ${path} in bundlewatch.config.cjs`)
+    return
+  }
+  const ok = size <= bytes(budget)
+  failed ||= !ok
+  console.log(
+    `${ok ? 'ok  ' : 'FAIL'} ${name.padEnd(36)} ${kb(size).padStart(9)} gzip  (budget ${budget})`,
+  )
+}
+
+const entry = new URL('./.size-entry.mjs', import.meta.url).pathname
+for (const [name, source, external] of CASES) {
   writeFileSync(entry, source)
   const result = await build({
     input: entry,
@@ -105,40 +114,24 @@ for (const [name, source, budget, external] of CASES) {
     },
   })
   const code = result.output.map((o) => o.code ?? '').join('')
-  writeFileSync(`${OUT}${slug(name)}.js`, code)
-  watched.push({ path: `.size/${slug(name)}.js`, budget })
-  const kb = gzipSync(code).length / 1000
-  const ok = kb <= budget
-  failed ||= !ok
-  console.log(
-    `${ok ? 'ok  ' : 'FAIL'} ${name.padEnd(32)} ${kb.toFixed(2).padStart(6)} kB gzip  (budget ${budget})`,
-  )
-}
-const css = gzipSync(readFileSync(`${DIST}style.css`)).length / 1000
-const cssOk = css <= 2.8
-failed ||= !cssOk
-watched.push({ path: `${DIST}style.css`.replace(ROOT, ''), budget: 2.8 })
-console.log(
-  `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 2.8)`,
-)
-// The CDN scripts as shipped: library, styles and adapter, already minified.
-for (const [name, file, budget] of [
-  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`, 35.5],
-  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`, 35.5],
-  ['bootstrap.css', `${BOOTSTRAP}bootstrap.css`, 0.6],
-  ['tabler.css', `${BOOTSTRAP}tabler.css`, 0.6],
-]) {
-  const kb = gzipSync(readFileSync(file)).length / 1000
-  const ok = kb <= budget
-  failed ||= !ok
-  watched.push({ path: file.replace(ROOT, ''), budget })
-  console.log(
-    `${ok ? 'ok  ' : 'FAIL'} ${name.padEnd(32)} ${kb.toFixed(2).padStart(6)} kB gzip  (budget ${budget})`,
-  )
+  const path = `.size/${slug(name)}.js`
+  writeFileSync(`${ROOT}${path}`, code)
+  check(name, path, code)
 }
 writeFileSync(entry, '')
-writeFileSync(`${OUT}budgets.json`, `${JSON.stringify(watched, null, 2)}\n`)
+
+// Files shipped as they are: the stylesheets and the CDN scripts.
+for (const [name, file] of [
+  ['style.css', `${DIST}style.css`],
+  ['CDN tabler-charts.min.js', `${ELEMENTS}tabler-charts.min.js`],
+  ['CDN tabler-charts-bootstrap.min.js', `${BOOTSTRAP}tabler-charts-bootstrap.min.js`],
+  ['bootstrap.css', `${BOOTSTRAP}bootstrap.css`],
+  ['tabler.css', `${BOOTSTRAP}tabler.css`],
+]) {
+  check(name, file.replace(ROOT, ''), readFileSync(file))
+}
+
 if (failed) {
-  console.error('\nSize budget exceeded. Raise the budget in scripts/size.mjs only on purpose.')
+  console.error('\nSize budget exceeded. Raise it in bundlewatch.config.cjs only on purpose.')
   process.exit(1)
 }

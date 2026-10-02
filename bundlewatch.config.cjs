@@ -1,19 +1,37 @@
 /**
- * Bundlewatch reports the bundles that `pnpm size` measures, with the same
- * budgets: scripts/size.mjs writes each bundle and its budget to .size/, so
- * run `pnpm size` first. With BUNDLEWATCH_GITHUB_TOKEN set (CI), pull
- * requests get a status comparing every size with main.
+ * Size budgets, gzipped, in Bundlewatch's units (1 KB = 1024 bytes). This is
+ * the one place they are set: Bundlewatch checks them in CI and, with
+ * BUNDLEWATCH_GITHUB_TOKEN set, reports every size against main on pull
+ * requests; `pnpm size` (scripts/size.mjs) builds the .size/ bundles and
+ * checks the same budgets locally. Raise a budget only on purpose.
  */
-const { readFileSync } = require('node:fs')
-
-const watched = JSON.parse(readFileSync(`${__dirname}/.size/budgets.json`, 'utf8'))
-
 module.exports = {
-  files: watched.map(({ path, budget }) => ({
-    path,
-    // Budgets are in kB of 1000 bytes, like scripts/size.mjs.
-    maxSize: `${Math.round(budget * 1000)}B`,
-    compression: 'gzip',
-  })),
+  files: [
+    // Typical imports, bundled and minified by scripts/size.mjs.
+    { path: '.size/core-line.js', maxSize: '10.5KB' },
+    { path: '.size/core-bar.js', maxSize: '10.5KB' },
+    { path: '.size/core-pie.js', maxSize: '7KB' },
+    { path: '.size/core-gauge.js', maxSize: '7.25KB' },
+    { path: '.size/core-radar.js', maxSize: '7.5KB' },
+    { path: '.size/core-heatmap.js', maxSize: '7.5KB' },
+    { path: '.size/core-candlestick.js', maxSize: '9.25KB' },
+    { path: '.size/core-line-tooltip-legend.js', maxSize: '12.25KB' },
+    { path: '.size/export-svg-image-download.js', maxSize: '2.5KB' },
+    { path: '.size/default-chart-line.js', maxSize: '17KB' },
+    { path: '.size/ssr-charttostring-line.js', maxSize: '8.25KB' },
+    { path: '.size/elements-core-line.js', maxSize: '11.75KB' },
+    { path: '.size/elements-every-type.js', maxSize: '29KB' },
+    { path: '.size/react-linechart.js', maxSize: '18KB' },
+    { path: '.size/vue-linechart.js', maxSize: '18KB' },
+    { path: '.size/bootstrap-data-api.js', maxSize: '28.75KB' },
+    { path: '.size/everything.js', maxSize: '31KB' },
+    // Shipped as they are.
+    { path: 'packages/core/dist/style.css', maxSize: '2.75KB' },
+    { path: 'packages/elements/dist/tabler-charts.min.js', maxSize: '35KB' },
+    { path: 'packages/bootstrap/dist/tabler-charts-bootstrap.min.js', maxSize: '35KB' },
+    { path: 'packages/bootstrap/dist/bootstrap.css', maxSize: '600B' },
+    { path: 'packages/bootstrap/dist/tabler.css', maxSize: '600B' },
+  ],
+  defaultCompression: 'gzip',
   ci: { trackBranches: ['main'] },
 }
