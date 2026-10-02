@@ -13,7 +13,7 @@
   "author": "Paweł Kuna",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codecalm/tabler-charts.git",
+    "url": "git+https://github.com/tabler/charts.git",
     "directory": "packages/react"
   },
   "type": "module",
