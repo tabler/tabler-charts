@@ -109,9 +109,11 @@ export function axisSize(
 ): number {
   const { tickSize = 0, tickPadding = 8 } = options
   if (ticks.length === 0) return 0
+  // Beside the plot, labels are as wide as their text: a little slack covers
+  // fonts wider than the estimate, so they do not touch the chart's edge.
   const labels = isHorizontal(position)
     ? fontSize * LINE_HEIGHT
-    : ticks.reduce((max, t) => Math.max(max, estimateTextWidth(t.label, fontSize)), 0)
+    : ticks.reduce((max, t) => Math.max(max, estimateTextWidth(t.label, fontSize)), 0) + 3
   return Math.ceil(labels + tickSize + tickPadding)
 }
 

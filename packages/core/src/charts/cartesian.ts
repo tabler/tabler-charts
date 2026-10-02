@@ -380,7 +380,12 @@ export function cartesianLayout(
     top: pad.top + Math.max(showY ? halfLine : 0, overhang, EDGE / 2),
     bottom:
       pad.bottom +
-      Math.max(showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : 0, overhang, EDGE / 2),
+      Math.max(
+        // Without an x axis, the lowest value label still needs half a line.
+        showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : showY ? halfLine : 0,
+        overhang,
+        EDGE / 2,
+      ),
     ...sides,
   }
   const area = innerRect(width, height, margins)
