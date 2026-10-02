@@ -258,10 +258,11 @@ describe('Chart', () => {
     el.style.removeProperty('--tc-font-size')
   })
 
-  test('charts with more than 2000 elements skip transitions unless animate: true', () => {
-    const many = Array.from({ length: 2500 }, () => 1)
+  test('charts with more than 1000 elements skip transitions unless animate: true', () => {
+    const many = Array.from({ length: 1200 }, () => 1)
     const isStatic = () => el.querySelector('svg')?.classList.contains('tc-static')
-    const chart = new Chart(el, { type: dots, data: [1, 2, 3] })
+    // The dots type draws a group plus one circle per value.
+    const chart = new Chart(el, { type: dots, data: Array.from({ length: 999 }, () => 1) })
     expect(isStatic()).toBe(false)
     chart.setData(many as never)
     flush()

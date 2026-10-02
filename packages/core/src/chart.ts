@@ -84,8 +84,8 @@ export interface BaseOptions {
   legend?: boolean | LegendOptions
   /**
    * Animate entrances and data updates (reduced motion always wins). By
-   * default charts animate unless they draw more than 2000 elements (e.g. a
-   * scatter of thousands of points), where transitions cost far more frame
+   * default charts animate unless they draw more than 1000 elements (e.g. a
+   * scatter of a thousand points), where transitions cost far more frame
    * time than they show; `true` animates those too.
    */
   animate?: boolean
@@ -211,7 +211,7 @@ export function chartLabel(config: ChartConfig<object>): string {
 }
 
 /** Elements beyond which charts skip transitions unless `animate: true`. */
-const ANIMATION_LIMIT = 2000
+const ANIMATION_LIMIT = 1000
 
 /** Number of elements in chart content. */
 const countNodes = (child: ChildInput): number =>
