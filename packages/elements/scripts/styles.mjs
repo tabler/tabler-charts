@@ -24,20 +24,24 @@ export function pageStyles() {
 
 export function shadowStyles() {
   let css = source()
+  // data-theme on the element wins; data-tc-theme is the theme of its nearest
+  // themed ancestor, set by the shadow mode (no browser but Chromium has
+  // :host-context(), and custom properties set by page CSS stop at :host).
   css = swap(
     css,
     ':where(:root),\n:where([data-theme="light"])',
-    ':host,\n:host([data-theme="light"])',
+    ':host,\n:host([data-theme="light"]),\n:host([data-tc-theme="light"])',
   )
-  css = swap(css, ':where(:root:not([data-theme="light"]))', ':host(:not([data-theme="light"]))')
-  css = swap(css, ':where([data-theme="dark"]) {', ':host([data-theme="dark"]) {')
-  // Where :host-context() works (Chromium), a dark theme set on an ancestor applies
-  // too. It gets its own rule: in a selector list, browsers without it would drop
-  // the whole rule. The element's own data-theme still comes after and wins.
-  const start = css.indexOf(':host([data-theme="dark"]) {')
-  const end = css.indexOf('}', start) + 1
-  const dark = css.slice(start, end)
-  css = `${css.slice(0, start)}${dark.replace(':host([data-theme="dark"])', ':host-context([data-theme="dark"])')}\n\n${css.slice(start)}`
+  css = swap(
+    css,
+    ':where(:root:not([data-theme="light"]))',
+    ':host(:not([data-theme="light"]):not([data-tc-theme="light"]))',
+  )
+  css = swap(
+    css,
+    ':where([data-theme="dark"]) {',
+    ':host([data-theme="dark"]),\n:host([data-tc-theme="dark"]) {',
+  )
   // Custom elements are inline by default.
   return minify(`:host{display:block}${css}`)
 }

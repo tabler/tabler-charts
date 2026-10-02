@@ -13,7 +13,8 @@
  * `tabler-chart::part(root | chart | legend | tooltip | table)` and theme
  * with tokens on the element itself (`tabler-chart { --tc-color-1: … }`,
  * `data-theme="dark"`). Tokens set on ancestors stop at the element, which
- * defines its own defaults.
+ * defines its own defaults; a `data-theme` on an ancestor is followed (the
+ * element mirrors it as `data-tc-theme`).
  */
 import type { ShadowMode } from './element.ts'
 
@@ -27,6 +28,52 @@ const PARTS: readonly (readonly [string, string])[] = [
   [':scope > .tc-tooltip', 'tooltip'],
   [':scope > .tc-table-wrap', 'table'],
 ]
+
+/** Shadow hosts whose ancestors' data-theme they follow. */
+const hosts = /* @__PURE__ */ new Set<Element>()
+let watching = false
+
+/** The data-theme of the nearest themed ancestor, across shadow roots. */
+function inheritedTheme(host: Element): string | null {
+  let node: Node | null = host.parentNode
+  while (node) {
+    if (node instanceof Element) {
+      const themed = node.closest('[data-theme]')
+      if (themed) return themed.getAttribute('data-theme')
+      node = node.getRootNode()
+    }
+    node = node instanceof ShadowRoot ? node.host : null
+  }
+  return null
+}
+
+/**
+ * Mirror the ancestors' theme onto every host as data-tc-theme, unless it
+ * sets its own data-theme (which wins in the styles anyway).
+ */
+function syncThemes(): void {
+  for (const host of hosts) {
+    if (!host.isConnected) {
+      hosts.delete(host)
+      continue
+    }
+    const theme = host.hasAttribute('data-theme') ? null : inheritedTheme(host)
+    if (theme) host.setAttribute('data-tc-theme', theme)
+    else host.removeAttribute('data-tc-theme')
+  }
+}
+
+function followTheme(host: Element): void {
+  hosts.add(host)
+  syncThemes()
+  if (watching || typeof MutationObserver !== 'function') return
+  watching = true
+  new MutationObserver(syncThemes).observe(host.ownerDocument.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+    subtree: true,
+  })
+}
 
 /** One constructable stylesheet shared by every shadow root. */
 let sheet: CSSStyleSheet | undefined
@@ -55,6 +102,7 @@ export const shadow: ShadowMode = {
   mount(host) {
     const root = host.shadowRoot ?? host.attachShadow({ mode: 'open' })
     adopt(root)
+    followTheme(host)
     // (:scope matches nothing in a shadow root's querySelector, so look at its children.)
     let container = [...root.children].find((child) => child.classList.contains('tc-root'))
     if (!container) {

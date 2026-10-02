@@ -227,21 +227,38 @@ describe('<tabler-chart>', () => {
       expect(root?.querySelectorAll('svg.tc-chart-bar')).toHaveLength(1)
     })
 
+    test('follows a themed ancestor, unless it sets its own theme', async () => {
+      const data = JSON.stringify({ labels: ['a'], series: [{ name: 'A', values: [1] }] })
+      document.body.innerHTML = `<div data-theme="dark"><section><shadow-chart type="line" width="200" height="100"><script type="application/json">${data}</script></shadow-chart></section></div>`
+      await settle()
+      const el = document.querySelector('shadow-chart') as ChartElement
+      const ancestor = document.querySelector('[data-theme]') as HTMLElement
+      expect(el.getAttribute('data-tc-theme')).toBe('dark')
+      ancestor.dataset.theme = 'light'
+      await settle()
+      expect(el.getAttribute('data-tc-theme')).toBe('light')
+      ancestor.removeAttribute('data-theme')
+      await settle()
+      expect(el.hasAttribute('data-tc-theme')).toBe(false)
+      // Its own data-theme wins, so it does not mirror the ancestor's.
+      ancestor.dataset.theme = 'dark'
+      el.dataset.theme = 'light'
+      await settle()
+      expect(el.hasAttribute('data-tc-theme')).toBe(false)
+    })
+
     test('the shadow stylesheet puts the tokens on :host', () => {
       expect(shadowStyles.startsWith(':host{display:block}')).toBe(true)
       for (const selector of [
-        ':host,:host([data-theme=light]){--tc-color-1:',
-        ':host(:not([data-theme=light])){--tc-color-1:',
-        ':host([data-theme=dark]){--tc-color-1:',
+        ':host,:host([data-theme=light]),:host([data-tc-theme=light]){--tc-color-1:',
+        ':host(:not([data-theme=light]):not([data-tc-theme=light])){--tc-color-1:',
+        ':host([data-theme=dark]),:host([data-tc-theme=dark]){--tc-color-1:',
       ]) {
         expect(shadowStyles).toContain(selector)
       }
       expect(shadowStyles).not.toContain(':root')
-      // A dark ancestor (Chromium), in a rule of its own so other browsers keep the rest.
-      expect(shadowStyles).toContain(':host-context([data-theme="dark"]){--tc-color-1:')
-      expect(shadowStyles.indexOf(':host-context(')).toBeLessThan(
-        shadowStyles.indexOf(':host([data-theme=dark])'),
-      )
+      // Ancestors' themes come through data-tc-theme, in every browser.
+      expect(shadowStyles).not.toContain(':host-context')
     })
   })
 })
