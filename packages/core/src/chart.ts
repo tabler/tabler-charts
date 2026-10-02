@@ -375,13 +375,14 @@ export class Chart<O extends object = object> {
 
   /** Size of the last render. */
   get size(): Size {
-    // In 'container' height mode, plugins such as the legend take part of the container.
-    let reserved = 0
-    for (const plugin of this.#plugins) reserved += plugin.reservedHeight?.() ?? 0
-    const measured =
-      reserved && this.#measured.height
-        ? { ...this.#measured, height: this.#measured.height - reserved }
-        : this.#measured
+    // In 'container' height mode, plugins such as the legend take part of the
+    // container. Only then: measuring them forces a layout of the page.
+    let measured = this.#measured
+    if (this.#cfg.height === 'container' && measured.height) {
+      let reserved = 0
+      for (const plugin of this.#plugins) reserved += plugin.reservedHeight?.() ?? 0
+      if (reserved) measured = { ...measured, height: measured.height - reserved }
+    }
     return resolveSize(this.#cfg, measured)
   }
 

@@ -130,6 +130,22 @@ describe('Chart legend', () => {
     expect(el.querySelector('svg')?.nextElementSibling?.className).toBe('tc-legend')
   })
 
+  test('is measured only when the chart follows the container height', () => {
+    // Reading offsetHeight forces a layout of the page: never on every render.
+    const read = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
+    chart = new Chart(el, base)
+    chart.update({ data: { ...data } } as never)
+    flush()
+    expect(read).not.toHaveBeenCalled()
+    chart.destroy()
+    // happy-dom has no layout: give the container a height to follow.
+    const height = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300)
+    chart = new Chart(el, { ...base, height: 'container' })
+    expect(read).toHaveBeenCalled()
+    read.mockRestore()
+    height.mockRestore()
+  })
+
   test('toggles series on click and emits legend-toggle', () => {
     chart = new Chart(el, base)
     const spy = vi.fn()
