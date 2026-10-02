@@ -14,7 +14,7 @@
   "author": "Paweł Kuna",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tabler/charts.git",
+    "url": "git+https://github.com/tabler/tabler-charts.git",
     "directory": "packages/vue"
   },
   "type": "module",

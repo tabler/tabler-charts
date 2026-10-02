@@ -13,7 +13,7 @@
   "author": "Pawe\u0142 Kuna",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tabler/charts.git",
+    "url": "git+https://github.com/tabler/tabler-charts.git",
     "directory": "packages/bootstrap"
   },
   "type": "module",
