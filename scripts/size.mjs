@@ -2,7 +2,7 @@
  * Size budget: bundle typical imports of the built package with rolldown,
  * minify, gzip and compare against the budgets below. Run after `pnpm build`.
  */
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 import { build } from 'rolldown'
 
@@ -82,6 +82,16 @@ const CASES = [
 
 let failed = false
 const entry = new URL('./.size-entry.mjs', import.meta.url).pathname
+// Every measured bundle and its budget, for Bundlewatch (bundlewatch.config.cjs).
+const OUT = new URL('../.size/', import.meta.url).pathname
+const ROOT = new URL('../', import.meta.url).pathname
+mkdirSync(OUT, { recursive: true })
+const watched = []
+const slug = (name) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 for (const [name, source, budget, external] of CASES) {
   writeFileSync(entry, source)
   const result = await build({
@@ -95,6 +105,8 @@ for (const [name, source, budget, external] of CASES) {
     },
   })
   const code = result.output.map((o) => o.code ?? '').join('')
+  writeFileSync(`${OUT}${slug(name)}.js`, code)
+  watched.push({ path: `.size/${slug(name)}.js`, budget })
   const kb = gzipSync(code).length / 1000
   const ok = kb <= budget
   failed ||= !ok
@@ -105,6 +117,7 @@ for (const [name, source, budget, external] of CASES) {
 const css = gzipSync(readFileSync(`${DIST}style.css`)).length / 1000
 const cssOk = css <= 2.8
 failed ||= !cssOk
+watched.push({ path: `${DIST}style.css`.replace(ROOT, ''), budget: 2.8 })
 console.log(
   `${cssOk ? 'ok  ' : 'FAIL'} ${'style.css'.padEnd(32)} ${css.toFixed(2).padStart(6)} kB gzip  (budget 2.8)`,
 )
@@ -118,11 +131,13 @@ for (const [name, file, budget] of [
   const kb = gzipSync(readFileSync(file)).length / 1000
   const ok = kb <= budget
   failed ||= !ok
+  watched.push({ path: file.replace(ROOT, ''), budget })
   console.log(
     `${ok ? 'ok  ' : 'FAIL'} ${name.padEnd(32)} ${kb.toFixed(2).padStart(6)} kB gzip  (budget ${budget})`,
   )
 }
 writeFileSync(entry, '')
+writeFileSync(`${OUT}budgets.json`, `${JSON.stringify(watched, null, 2)}\n`)
 if (failed) {
   console.error('\nSize budget exceeded. Raise the budget in scripts/size.mjs only on purpose.')
   process.exit(1)

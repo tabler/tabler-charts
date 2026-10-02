@@ -12,6 +12,8 @@ coverage/
 .idea/
 .vercel
 scripts/.size-entry.mjs
+# Bundles measured by scripts/size.mjs, for Bundlewatch
+.size/
 # Example app builds
 .next/
 next-env.d.ts
