@@ -204,7 +204,8 @@ const groups: [string, () => Case[]][] = [
           y: { format: { style: 'percent' } },
           data: {
             labels: days(30).map((t) => new Date(t).toISOString().slice(5, 10)),
-            series: [{ name: 'Errors', values: walk(30, 0.0012, 0.0004, 0.0001) }],
+            // (walk() rounds to cents, which would turn these into zeros.)
+            series: [{ name: 'Errors', values: range(30).map(() => 0.0008 + rnd() * 0.0009) }],
           },
         },
       },
