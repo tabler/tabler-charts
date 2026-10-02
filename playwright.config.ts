@@ -2,7 +2,8 @@ import { defineConfig, devices } from '@playwright/test'
 
 /**
  * Visual regression tests: screenshots of the playground (built and served
- * with `vite preview`) compared with committed baselines.
+ * with `vite preview`) compared with committed baselines, in Chromium; the
+ * edge cases, axe and export checks also run in Firefox and WebKit.
  *
  * Screenshots depend on the platform's fonts and rendering, so the baselines
  * that count are the Linux ones, made in the Playwright Docker image (CI, see
@@ -42,5 +43,19 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },
-  projects: [{ name: 'chromium' }],
+  projects: [
+    { name: 'chromium' },
+    // Firefox and Safari's engine run the checks that are not pixel baselines of
+    // the page (edge cases, axe, export), with export baselines of their own.
+    ...(['firefox', 'webkit'] as const).map((name) => ({
+      name,
+      testMatch: /(cases|a11y|export)\.spec\.ts/,
+      snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{projectName}/{arg}{ext}',
+      use: {
+        ...devices[name === 'firefox' ? 'Desktop Firefox' : 'Desktop Safari'],
+        viewport: { width: 1024, height: 900 },
+        deviceScaleFactor: 1,
+      },
+    })),
+  ],
 })
