@@ -504,13 +504,12 @@
   animation: none;
 }
 
-/* While the container is being resized, jump instead of chasing the pointer. */
-.tc-chart[data-resizing],
-.tc-chart[data-resizing] * {
-  transition: none;
-}
-
-.tc-static {
+/* Static charts, and charts while their container is resized (jump instead
+   of chasing the pointer): every transition inside uses --tc-duration, so a
+   zero duration on the svg turns them all off, without a selector that has
+   to be checked against every element of the page. */
+.tc-static,
+.tc-chart[data-resizing] {
   --tc-duration: 0ms;
 }
 
