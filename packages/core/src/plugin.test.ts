@@ -114,7 +114,7 @@ describe('highlight API', () => {
     chart.on('hover', spy)
     expect(chart.highlightIndex(2, 1)?.label).toBe('Mar')
     expect(chart.highlightSource).toBe('index')
-    expect(chart.anchor?.x).toBe(chart.active?.x)
+    expect(chart.pointer).toBeUndefined()
     flush()
     expect(el.querySelector('.tc-tooltip-item-active')?.textContent).toContain('B')
     chart.clearHighlight()

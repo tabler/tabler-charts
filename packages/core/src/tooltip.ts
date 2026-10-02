@@ -1,6 +1,18 @@
 import type { Hit } from './interaction.ts'
 import { type ChildInput, h, type VNode } from './vnode.ts'
 
+/**
+ * Where a tooltip for `hit` belongs, in chart pixels: the pointer when it
+ * drives the highlight, otherwise the focused value (keyboard).
+ */
+export function hitAnchor(hit: Hit, pointer?: { x: number; y: number }): { x: number; y: number } {
+  if (pointer) return pointer
+  const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
+  if (hit.guide && item?.y != null) return { x: item.x, y: item.y }
+  if (hit.axis === 'y') return { x: item?.x ?? hit.x, y: hit.y ?? hit.area.y }
+  return { x: hit.x, y: item?.y ?? hit.area.y + hit.area.height / 2 }
+}
+
 export interface TooltipOptions {
   /**
    * Custom content for a hit: VNodes built with `h()` or plain text.

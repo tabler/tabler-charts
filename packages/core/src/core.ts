@@ -103,7 +103,7 @@ export { barPath, hbarPath } from './shapes/bar.ts'
 export type { Curve, PathOptions, Point } from './shapes/path.ts'
 export { areaPath, linePath } from './shapes/path.ts'
 export type { TooltipOptions, TooltipPlacement } from './tooltip.ts'
-export { placeTooltip, tooltipContent } from './tooltip.ts'
+export { hitAnchor, placeTooltip, tooltipContent } from './tooltip.ts'
 export type {
   Attrs,
   AttrValue,

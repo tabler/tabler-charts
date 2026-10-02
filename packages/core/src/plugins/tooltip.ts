@@ -1,6 +1,6 @@
 import type { ChartPlugin } from '../plugin.ts'
 import { render } from '../render/dom.ts'
-import { placeTooltip, tooltipContent } from '../tooltip.ts'
+import { hitAnchor, placeTooltip, tooltipContent } from '../tooltip.ts'
 
 /**
  * An HTML tooltip (`.tc-tooltip`) for the highlighted category, placed next
@@ -20,7 +20,7 @@ export function tooltip(): ChartPlugin {
         afterRender() {
           const option = chart.config.tooltip
           const hit = chart.active
-          const anchor = chart.anchor
+          const anchor = hit && hitAnchor(hit, chart.pointer)
           if (option === false || typeof document === 'undefined') {
             tip?.removeAttribute('data-visible')
             return
