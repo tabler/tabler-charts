@@ -548,12 +548,14 @@
   z-index: 10;
   pointer-events: none;
   opacity: 0;
+  /* Never wider than the chart (placement keeps it inside); long names wrap. */
   min-width: 120px;
+  max-width: min(280px, 100%);
   padding: 8px 10px;
   font-family: var(--tc-font-family);
   font-size: var(--tc-font-size);
   line-height: 1.4;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   color: var(--tc-tooltip-color);
   background: var(--tc-tooltip-bg);
   border: 1px solid var(--tc-tooltip-border);
@@ -597,6 +599,7 @@
 
 .tc-tooltip-value {
   font-weight: 500;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
@@ -637,6 +640,7 @@
   margin: 0;
   padding: 2px 4px;
   font: inherit;
+  text-align: start;
   color: var(--tc-text-color);
   background: none;
   border: 0;
