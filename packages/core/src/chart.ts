@@ -195,19 +195,16 @@ export function resolveLegend<O extends object>(config: ChartConfig<O>): Resolve
 
 /**
  * The chart's accessible name: its `title`, or else the chart type and its
- * legend entries ("Line chart: Visitors, Sign-ups"), since an image without
+ * legend entries ("line chart: Visitors, Sign-ups"), since an image without
  * a name is announced as nothing at all. Set `title` for a name in the
  * page's language.
  */
 export function chartLabel(config: ChartConfig<object>): string {
   if (config.title) return config.title
-  const kind = config.type.name
-  const name =
-    kind === 'sparkline' ? 'Sparkline' : `${kind.charAt(0).toUpperCase()}${kind.slice(1)} chart`
   const names = (config.type.legend?.(config) ?? []).map((item) => item.name).filter(Boolean)
-  if (!names.length) return name
   const shown = names.slice(0, 6).join(', ')
-  return `${name}: ${names.length > 6 ? `${shown}, …` : shown}`
+  // Screen readers do not care for capitals; a long list of names is cut short.
+  return `${config.type.name} chart${names.length ? `: ${shown}${names.length > 6 ? ', …' : ''}` : ''}`
 }
 
 /** Elements beyond which charts skip transitions unless `animate: true`. */
