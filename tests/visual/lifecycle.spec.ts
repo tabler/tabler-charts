@@ -126,7 +126,7 @@ async function cycles(page: Page, scenario: string, n: number): Promise<void> {
         } else if (scenario === 'forgotten') {
           // Taken out of the page without destroy(): must still be let go.
           const el = host()
-          new w.tc.Chart(el, { type: w.tc.bar, data: data(k), locale: 'en-US' })
+          new w.tc.Chart(el, { type: w.tc.bar, data: data(k), locale: 'en-US', sync: 'forgotten' })
           await frame()
           poke(el)
           el.remove()

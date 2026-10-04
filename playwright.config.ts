@@ -45,11 +45,11 @@ export default defineConfig({
   },
   projects: [
     { name: 'chromium' },
-    // Firefox and Safari's engine run the checks that are not pixel baselines of
-    // the page (edge cases, axe, export), with export baselines of their own.
+    // Firefox and Safari's engine run every check but the pixel baselines of the
+    // page, with export baselines of their own.
     ...(['firefox', 'webkit'] as const).map((name) => ({
       name,
-      testMatch: /(cases|a11y|export|environments|csp|transitions|lifecycle|patterns)\.spec\.ts/,
+      testIgnore: /(charts|mobile)\.spec\.ts/,
       snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{projectName}/{arg}{ext}',
       use: {
         ...devices[name === 'firefox' ? 'Desktop Firefox' : 'Desktop Safari'],
