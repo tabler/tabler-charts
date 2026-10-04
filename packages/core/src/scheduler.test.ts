@@ -50,6 +50,26 @@ describe('scheduler', () => {
     expect(ran).toBe(false)
   })
 
+  test('a task queued again by its own run waits for the next frame', () => {
+    const frames: (() => void)[] = []
+    vi.stubGlobal('requestAnimationFrame', (callback: () => void) => frames.push(callback))
+    const key = {}
+    let runs = 0
+    const task = () => {
+      // Like a chart updated from its own render handler, without end.
+      runs++
+      schedule(key, task)
+    }
+    schedule(key, task)
+    expect(flush()).toBe(1)
+    expect(runs).toBe(1)
+    // One run per frame: the page stays responsive in between.
+    frames.pop()?.()
+    expect(runs).toBe(2)
+    cancel(key)
+    vi.unstubAllGlobals()
+  })
+
   test('tasks scheduled while flushing run in the same flush', () => {
     const calls: string[] = []
     schedule({}, () => {

@@ -43,19 +43,31 @@ export function cancel(key: object): void {
   queue.delete(key)
 }
 
-/** Run queued tasks now, idle ones too; returns how many ran. Tasks queued meanwhile run too. */
+/**
+ * Run queued tasks now, idle ones too; returns how many ran. Tasks queued
+ * meanwhile run too, but each key only once: a task queued again after it
+ * ran (a chart updated from its own `render` handler) waits for the next
+ * frame, instead of looping in this one and freezing the page.
+ */
 export function flush(): number {
   pending = false
   let count = 0
-  while (queue.size > 0) {
-    const tasks = Array.from(queue.values())
-    queue.clear()
-    for (const task of tasks) {
-      run(task)
-      count++
-    }
-  }
-  count += flushHooks.idle?.() ?? 0
+  const ran = new Set<object>()
+  const later = new Map<object, () => void>()
   // Idle work can schedule frame work in turn.
-  return queue.size ? count + flush() : count
+  do {
+    // (A Map also visits what is added while it is walked: tasks queued meanwhile.)
+    for (const [key, task] of queue) {
+      queue.delete(key)
+      if (ran.has(key)) later.set(key, task)
+      else {
+        ran.add(key)
+        run(task)
+        count++
+      }
+    }
+    count += flushHooks.idle?.() ?? 0
+  } while (queue.size > 0)
+  for (const [key, task] of later) schedule(key, task)
+  return count
 }
