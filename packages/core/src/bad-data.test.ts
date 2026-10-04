@@ -246,3 +246,53 @@ test('junk data never throws nor writes NaN into the svg', () => {
   const report = [...failures].map(([key, detail]) => `${key}\n    ${detail}`)
   expect(report.join('\n'), `${failures.size} kinds of failure`).toBe('')
 }, 300_000)
+
+test('numeric options that are not finite count as left out', () => {
+  const series = {
+    labels: ['a', 'b', 'c'],
+    series: [
+      { name: 'A', values: [1, 2, 3] },
+      { name: 'B', values: [2, 1, 3] },
+    ],
+  }
+  const slices = [
+    { name: 'a', value: 1 },
+    { name: 'b', value: 2 },
+  ]
+  const cases: [ChartType<never>, unknown, string[]][] = [
+    [line, series, ['pointRadius', 'decimate']],
+    [area, series, ['pointRadius']],
+    [bar, series, ['radius', 'maxBarWidth', 'gap', 'groupPadding']],
+    [radar, series, ['pointRadius', 'startAngle']],
+    [heatmap, series, ['min', 'max', 'gap', 'radius']],
+    [pie, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],
+    [donut, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],
+    [gauge, slices, ['max', 'startAngle', 'angle', 'thickness', 'gap', 'cornerRadius']],
+    [scatter, { series: [{ name: 'A', points: [{ x: 1, y: 2, size: 3 }] }] }, ['radius']],
+    [sparkline, [1, 2, 3], ['pointRadius']],
+    [
+      candlestick,
+      [{ x: 'a', open: 1, high: 3, low: 0, close: 2 }],
+      ['maxCandleWidth', 'groupPadding', 'radius'],
+    ],
+  ]
+  const size = { width: 300, height: 150 }
+  const failures: string[] = []
+  for (const [type, data, own] of cases) {
+    const config = { type, data, locale: 'en-US', points: 'all' } as unknown as ChartConfig<object>
+    const expected = chartToString(config, size)
+    // Options of the type, and the ones every chart takes.
+    for (const key of [...own, 'padding', 'fontSize', 'aspectRatio', 'width', 'height']) {
+      for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+        const svg = chartToString({ ...config, [key]: value }, size)
+        if (svg !== expected) failures.push(`${type.name} ${key}: ${value}`)
+      }
+    }
+    const padding = { top: Number.NaN, left: 1 / 0 }
+    const sides = chartToString({ ...config, padding } as ChartConfig<object>, size)
+    if (badAttributes(sides).length) failures.push(`${type.name} padding sides`)
+  }
+  expect(failures).toEqual([])
+  // A start angle beyond what a quarter turn changes used to loop for ever.
+  expect(chartToString({ type: gauge, data: 30, startAngle: 1e300 }, size)).toContain('<svg')
+})
