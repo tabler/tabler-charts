@@ -50,6 +50,7 @@ const ATTRIBUTES = [
   'table',
   'patterns',
   'value-labels',
+  'sync',
   'options',
 ] as const
 
@@ -189,6 +190,7 @@ export function createChartElement(setup: ChartElementSetup): new () => ChartEle
       set('title', attr('label') ?? undefined)
       set('description', attr('description') ?? undefined)
       set('locale', attr('locale') ?? undefined)
+      set('sync', attr('sync') ?? undefined)
       set('tooltip', flag(attr('tooltip')))
       set('animate', flag(attr('animate')))
       set('keyboard', flag(attr('keyboard')))

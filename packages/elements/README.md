@@ -46,6 +46,7 @@ The element renders into itself (light DOM), so the page CSS and the `--tc-*` to
 | `legend`, `tooltip`, `animate`, `keyboard`, `table` | `"false"` turns them off; `legend="bottom"` moves the legend, `table="visible"` shows the data table |
 | `patterns` | pattern fills: present (or `"true"`) always, `"auto"` in forced colors only (the default), `"false"` never |
 | `value-labels` | values on the marks: present (or `"true"`), or `"all"` for every point of a line |
+| `sync` | a group name: elements of the same group share the hover |
 | `options` | JSON with any other option, e.g. `options='{"stacked": true}'` |
 
 Data comes from the inline `<script type="application/json">`, or from the `data` property, which wins:
