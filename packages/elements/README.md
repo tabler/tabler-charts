@@ -45,6 +45,7 @@ The element renders into itself (light DOM), so the page CSS and the `--tc-*` to
 | `locale` | `locale` |
 | `legend`, `tooltip`, `animate`, `keyboard`, `table` | `"false"` turns them off; `legend="bottom"` moves the legend, `table="visible"` shows the data table |
 | `patterns` | pattern fills: present (or `"true"`) always, `"auto"` in forced colors only (the default), `"false"` never |
+| `value-labels` | values on the marks: present (or `"true"`), or `"all"` for every point of a line |
 | `options` | JSON with any other option, e.g. `options='{"stacked": true}'` |
 
 Data comes from the inline `<script type="application/json">`, or from the `data` property, which wins:

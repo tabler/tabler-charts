@@ -49,6 +49,7 @@ const ATTRIBUTES = [
   'keyboard',
   'table',
   'patterns',
+  'value-labels',
   'options',
 ] as const
 
@@ -193,6 +194,8 @@ export function createChartElement(setup: ChartElementSetup): new () => ChartEle
       set('keyboard', flag(attr('keyboard')))
       const patterns = attr('patterns')
       set('patterns', patterns === 'auto' ? patterns : flag(patterns))
+      const labels = attr('value-labels')
+      set('valueLabels', labels === 'all' ? { points: 'all' } : flag(labels))
       const legend = attr('legend')
       set(
         'legend',
