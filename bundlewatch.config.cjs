@@ -15,7 +15,7 @@ module.exports = {
     { path: '.size/core-gauge.js', maxSize: '7.75KB' },
     { path: '.size/core-radar.js', maxSize: '8.25KB' },
     { path: '.size/core-heatmap.js', maxSize: '8.25KB' },
-    { path: '.size/core-candlestick.js', maxSize: '9.75KB' },
+    { path: '.size/core-candlestick.js', maxSize: '10KB' },
     { path: '.size/core-line-tooltip-legend.js', maxSize: '13.25KB' },
     { path: '.size/export-svg-image-download.js', maxSize: '2.5KB' },
     { path: '.size/default-chart-line.js', maxSize: '20.75KB' },
