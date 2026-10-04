@@ -10,7 +10,7 @@ function seriesGroup(seriesIndex: number, color: string | undefined, child: VNod
     {
       key: seriesIndex,
       class: ['tc-series', `tc-series-${seriesIndex + 1}`],
-      style: color ? `--tc-series-color:${color}` : undefined,
+      style: { '--tc-series-color': color },
     },
     child,
   )

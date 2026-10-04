@@ -167,7 +167,7 @@ function renderPie(
         key: sliceKey(slice.data),
         class: ['tc-series', `tc-series-${slice.index + 1}`, slice.data.class],
         'data-series': slice.data.name,
-        style: slice.data.color ? `--tc-series-color:${slice.data.color}` : undefined,
+        style: { '--tc-series-color': slice.data.color },
       },
       // Fixed path structure, so CSS can transition slices between data sets.
       slice.value > 0 && h('path', { class: 'tc-slice', d: arcPathStable(geometry(slice)) }),

@@ -39,7 +39,7 @@ export function legendContent(items: readonly LegendItem[], hidden: ReadonlySet<
             `tc-series-${item.index + 1}`,
             off && 'tc-legend-item-hidden',
           ],
-          style: item.color ? `--tc-series-color:${item.color}` : undefined,
+          style: { '--tc-series-color': item.color },
           'aria-pressed': off ? 'false' : 'true',
           'data-key': item.key,
         },

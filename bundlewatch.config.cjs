@@ -9,18 +9,18 @@
 module.exports = {
   files: [
     // Typical imports, bundled and minified by scripts/bundles.mjs.
-    { path: '.size/core-line.js', maxSize: '10.5KB' },
+    { path: '.size/core-line.js', maxSize: '10.75KB' },
     { path: '.size/core-bar.js', maxSize: '10.5KB' },
     { path: '.size/core-pie.js', maxSize: '7KB' },
     { path: '.size/core-gauge.js', maxSize: '7.25KB' },
-    { path: '.size/core-radar.js', maxSize: '7.5KB' },
+    { path: '.size/core-radar.js', maxSize: '7.75KB' },
     { path: '.size/core-heatmap.js', maxSize: '7.75KB' },
     { path: '.size/core-candlestick.js', maxSize: '9.25KB' },
     { path: '.size/core-line-tooltip-legend.js', maxSize: '12.25KB' },
     { path: '.size/export-svg-image-download.js', maxSize: '2.5KB' },
     { path: '.size/default-chart-line.js', maxSize: '17.75KB' },
     { path: '.size/ssr-charttostring-line.js', maxSize: '8.5KB' },
-    { path: '.size/elements-core-line.js', maxSize: '11.75KB' },
+    { path: '.size/elements-core-line.js', maxSize: '12KB' },
     { path: '.size/elements-every-type.js', maxSize: '29.5KB' },
     { path: '.size/react-linechart.js', maxSize: '18.75KB' },
     { path: '.size/vue-linechart.js', maxSize: '18.75KB' },

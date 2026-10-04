@@ -5,7 +5,7 @@ import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets } from '../layout.ts'
 import { band } from '../scales/band.ts'
 import { extent } from '../scales/extent.ts'
-import { h } from '../vnode.ts'
+import { h, type StyleValue } from '../vnode.ts'
 import {
   type CartesianData,
   type Label,
@@ -93,7 +93,7 @@ const slotColor = (series: Series, index: number): string =>
 
 /** How one cell is painted: inline style, the tooltip swatch, and whether it is drawn empty. */
 interface Paint {
-  style?: string
+  style?: StyleValue
   color: string
   empty?: boolean
 }
@@ -150,7 +150,7 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
       const index = rangeOf(ranges, v)
       const range = ranges[index]
       if (!range || ctx.hidden.has(rangeKey(range, index))) return { color: EMPTY, empty: true }
-      return { style: `--tc-cell-fill:${range.color}`, color: range.color }
+      return { style: { '--tc-cell-fill': range.color }, color: range.color }
     }
     if (stops) {
       const at = position(v) * (stops.length - 1)
@@ -163,7 +163,7 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
           : u >= 100
             ? (stops[k + 1] as string)
             : `color-mix(in oklab,${stops[k + 1]} ${u}%,${from})`
-      return { style: `--tc-cell-fill:${color}`, color }
+      return { style: { '--tc-cell-fill': color }, color }
     }
     const pct = share(v)
     return {
@@ -268,7 +268,7 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
         // Colored by series, a row takes its palette slot like any series.
         class: ['tc-heatmap-row', bySeries && ['tc-series', `tc-series-${slot(s) + 1}`]],
         'data-series': s.name,
-        style: bySeries && s.color ? `--tc-series-color:${s.color}` : undefined,
+        style: bySeries ? { '--tc-series-color': s.color } : undefined,
       },
       labels.map((label, i) => {
         const v = valueAt(i, j)

@@ -144,7 +144,7 @@ export function annotationLayers(
     const attrs = (part?: string) => ({
       key: part ? `${key}-${part}` : key,
       class: ['tc-annotation', a.y !== undefined ? 'tc-annotation-y' : 'tc-annotation-x', a.class],
-      style: a.color ? `--tc-annotation-color:${a.color}` : undefined,
+      style: { '--tc-annotation-color': a.color },
     })
     const end = a.position !== 'start'
 

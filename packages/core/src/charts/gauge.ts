@@ -216,7 +216,7 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
         key: ringKey(ring.data),
         class: ['tc-series', `tc-series-${ring.index + 1}`, ring.data.class],
         'data-series': ring.data.name,
-        style: ring.data.color ? `--tc-series-color:${ring.data.color}` : undefined,
+        style: { '--tc-series-color': ring.data.color },
       },
       h('path', {
         class: 'tc-gauge-track',

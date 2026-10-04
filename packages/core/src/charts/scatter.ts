@@ -244,7 +244,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
           key: seriesKey(series),
           class: ['tc-series', `tc-series-${seriesIndex + 1}`, series.class],
           'data-series': series.name,
-          style: series.color ? `--tc-series-color:${series.color}` : undefined,
+          style: { '--tc-series-color': series.color },
         },
         // Plain points share one path per series: thousands of circles would
         // each cost the browser style and layout work. The path keeps its

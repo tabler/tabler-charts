@@ -98,14 +98,27 @@ export function normalizeClass(value: ClassValue): string {
   return result
 }
 
-/** Serialize a style value into a CSS declaration list. */
+/**
+ * Values that could leave their declaration (`;`, braces, quotes, escapes,
+ * comments) or load something (`url()` and friends). Colors and dashes often
+ * come from user data, and `red;position:fixed` would restyle the chart's
+ * elements, `url(…)` would make the browser request it.
+ */
+const UNSAFE =
+  /[;{}<>"'\\]|\/\*|\b(?:url|src|attr|image|image-set|cross-fade|element|expression)\s*\(/i
+
+/**
+ * Serialize a style value into a CSS declaration list. In a map, values that
+ * could inject CSS (see {@link UNSAFE}) are left out, so use one for values
+ * from data; a raw string is taken as it is.
+ */
 export function normalizeStyle(value: StyleValue | null | undefined): string {
   if (!value) return ''
   if (typeof value === 'string') return value
   let result = ''
   for (const prop in value) {
     const v = value[prop]
-    if (v == null || v === '') continue
+    if (v == null || v === '' || UNSAFE.test(String(v))) continue
     result += `${result ? ';' : ''}${prop}:${v}`
   }
   return result

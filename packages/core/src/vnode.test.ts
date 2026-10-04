@@ -77,4 +77,38 @@ describe('normalizeStyle()', () => {
   test('skips empty values', () => {
     expect(normalizeStyle({ fill: '', stroke: 'blue' })).toBe('stroke:blue')
   })
+
+  test('keeps colors, dashes and custom property references', () => {
+    for (const value of [
+      'red',
+      '#066fd1',
+      'rgb(1 2 3 / 50%)',
+      'oklch(65% 0.2 250)',
+      'var(--bs-success)',
+      'color-mix(in oklab, red 40%, blue)',
+      '4 2',
+      '6px',
+    ]) {
+      expect(normalizeStyle({ '--x': value })).toBe(`--x:${value}`)
+    }
+  })
+
+  test('leaves out values that could inject CSS or load something', () => {
+    for (const value of [
+      'red;position:fixed',
+      'red}body{display:none',
+      'url(https://example.com/x)',
+      'URL (x)',
+      '-webkit-image-set(x 1x)',
+      'image(x)',
+      'attr(data-x)',
+      'red"onclick="x',
+      "red'",
+      '\\75 rl(x)',
+      'u/**/rl(x)',
+      '</style>',
+    ]) {
+      expect(normalizeStyle({ '--x': value, fill: 'red' })).toBe('fill:red')
+    }
+  })
 })

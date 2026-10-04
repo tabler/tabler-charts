@@ -40,7 +40,7 @@ export function tooltipContent(hit: Hit, options: TooltipOptions = {}): VNode {
                 `tc-series-${item.seriesIndex + 1}`,
                 hit.seriesIndex === item.seriesIndex && 'tc-tooltip-item-active',
               ],
-              style: item.color ? `--tc-series-color:${item.color}` : undefined,
+              style: { '--tc-series-color': item.color },
             },
             h('span', { class: 'tc-tooltip-swatch' }),
             h('span', { class: 'tc-tooltip-name' }, item.name),

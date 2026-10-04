@@ -16,7 +16,7 @@ import { type BandKey, type BandScale, band, point } from '../scales/band.ts'
 import { extent } from '../scales/extent.ts'
 import { type LinearScale, linear } from '../scales/linear.ts'
 import { niceDomain } from '../scales/ticks.ts'
-import { type ClassValue, h, type VNode } from '../vnode.ts'
+import { type ClassValue, h, type Props, type VNode } from '../vnode.ts'
 import type { Annotation } from './annotations.ts'
 
 /** Category label on the x axis. */
@@ -459,20 +459,18 @@ export function plotClip(
 }
 
 /** Attributes shared by every series group. */
-export function seriesAttrs(series: Series, index: number): Record<string, string | ClassValue> {
-  const vars: string[] = []
-  if (series.color) vars.push(`--tc-series-color:${series.color}`)
-  if (series.dash !== undefined) {
-    vars.push(
-      `--tc-series-dash:${typeof series.dash === 'number' ? `${series.dash}px` : series.dash}`,
-    )
-  }
-  if (series.width !== undefined) vars.push(`--tc-series-width:${series.width}px`)
+export function seriesAttrs(series: Series, index: number): Props {
+  const { dash, width } = series
   return {
     key: seriesKey(series),
     class: ['tc-series', `tc-series-${index + 1}`, series.class],
     'data-series': series.name,
-    ...(vars.length ? { style: vars.join(';') } : {}),
+    // A map, so values from data cannot inject CSS (see normalizeStyle).
+    style: {
+      '--tc-series-color': series.color,
+      '--tc-series-dash': typeof dash === 'number' ? `${dash}px` : dash,
+      '--tc-series-width': Number.isFinite(width) ? `${width}px` : undefined,
+    },
   }
 }
 
