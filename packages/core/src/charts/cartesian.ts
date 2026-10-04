@@ -355,14 +355,13 @@ export function cartesianLayout(
   )
   const countX = Math.max(2, Math.round(width / TICK_SPACING_X))
   const keys = labels.map(labelKey)
+  const labelAt = (i: number) => format(labels[i] as Label, i)
   // Time axes (from the time module) place points by date, with calendar ticks.
   const xAxis: CategoryAxis = timed
     ? feature('time').axis(labels, keys, xOptions, countX, locale)
     : {
-        edges: [
-          format(labels[0] as Label, 0),
-          format(labels[labels.length - 1] as Label, labels.length - 1),
-        ],
+        // No labels, no edges: a custom format is not asked about a label that is not there.
+        edges: labels.length ? [labelAt(0), labelAt(labels.length - 1)] : [],
         scale: (range) =>
           layout.scale === 'point'
             ? point(keys, range)
@@ -370,7 +369,7 @@ export function cartesianLayout(
                 paddingInner: layout.paddingInner ?? 0.3,
                 paddingOuter: layout.paddingOuter ?? 0.15,
               }),
-        ticks: (scale) => bandTicks(scale, (_: BandKey, i) => format(labels[i] as Label, i)),
+        ticks: (scale) => bandTicks(scale, (_: BandKey, i) => labelAt(i)),
       }
   const edgeLabels = xAxis.edges
 

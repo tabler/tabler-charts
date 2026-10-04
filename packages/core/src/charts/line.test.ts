@@ -181,6 +181,13 @@ describe('line', () => {
     ).not.toThrow()
   })
 
+  test('does not ask a custom x.format about labels that are not there', () => {
+    const format = (label: unknown) => (label as string).toUpperCase()
+    expect(() =>
+      chartToString({ ...base, data: { labels: [], series: [] }, x: { format } }, size),
+    ).not.toThrow()
+  })
+
   test('matches the snapshot', () => {
     expect(chartToString({ ...base, points: 'last' }, size)).toMatchSnapshot()
   })
