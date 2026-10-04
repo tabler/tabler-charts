@@ -24,7 +24,9 @@ export function morph(el: Element, from: string, to: string): boolean {
   const current = running.get(el)
   if (current) cancelAnimationFrame(current.frame)
   running.delete(el)
-  if (native) return false
+  // A chart without transitions (too big to animate, or resizing) has nothing to
+  // morph: said here, before asking for the style of each of its paths.
+  if (native || el.closest('.tc-static,[data-resizing]')) return false
 
   const style = getComputedStyle(el)
   const index = style.transitionProperty.split(', ').findIndex((p) => p === 'd' || p === 'all')

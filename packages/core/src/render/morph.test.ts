@@ -98,6 +98,22 @@ describe('morph()', () => {
     expect((await load())(path('M0,0'), 'M0,0', 'M1,1')).toBe(false)
   })
 
+  test('a chart without transitions is not asked for the style of its paths', async () => {
+    stubBrowser({ native: false })
+    const morph = await load()
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    const el = path('M0,0L10,10')
+    svg.append(el)
+    svg.setAttribute('class', 'tc-chart tc-static')
+    expect(morph(el, 'M0,0L10,10', 'M0,0L20,20')).toBe(false)
+    svg.setAttribute('class', 'tc-chart')
+    svg.setAttribute('data-resizing', '')
+    expect(morph(el, 'M0,0L10,10', 'M0,0L20,20')).toBe(false)
+    expect(window.getComputedStyle).not.toHaveBeenCalled()
+    svg.removeAttribute('data-resizing')
+    expect(morph(el, 'M0,0L10,10', 'M0,0L20,20')).toBe(true)
+  })
+
   test('a path whose commands change jumps, cancelling a running morph', async () => {
     stubBrowser({ native: false })
     const morph = await load()
