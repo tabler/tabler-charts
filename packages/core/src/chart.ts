@@ -257,8 +257,9 @@ function composeChart(
   const { patterns } = config
   // [class, root style, defs] of the pattern fills, when the chart has them.
   const fills =
-    patterns !== false &&
-    (patterns === true ? feature('patterns') : features.patterns)?.(config, id)
+    patterns === false
+      ? undefined
+      : (patterns === true ? feature('patterns') : features.patterns)?.(config, id)
   return h(
     'svg',
     {
@@ -266,10 +267,10 @@ function composeChart(
         'tc-chart',
         `tc-chart-${config.type.name}`,
         still && 'tc-static',
-        fills && fills[0],
+        fills?.[0],
         config.class,
       ],
-      style: fills ? fills[1] : undefined,
+      style: fills?.[1],
       viewBox: `0 0 ${width} ${height}`,
       width,
       height,
@@ -282,7 +283,7 @@ function composeChart(
     // Keyed, so their coming and going never shifts the (unkeyed) chart
     // content in the DOM patcher: that would recreate it and restart animations.
     descId && h('desc', { key: 'desc', id: descId }, config.description),
-    fills && fills[2],
+    fills?.[2],
     underlay && h('g', { key: 'hover-under', class: 'tc-hover-layer' }, underlay),
     content,
     overlay && h('g', { key: 'hover-over', class: 'tc-hover-layer' }, overlay),
@@ -485,8 +486,7 @@ export class Chart<O extends object = object> {
   highlightIndex(index: number, seriesIndex?: number): Hit | null {
     const hit = this.#current?.hitIndex(index, seriesIndex) ?? null
     if (!hit) return null
-    this.#source =
-      seriesIndex === undefined ? { kind: 'index', index } : { kind: 'index', index, seriesIndex }
+    this.#source = { kind: 'index', index, seriesIndex }
     this.#setHover(hit)
     return hit
   }
@@ -678,8 +678,7 @@ export class Chart<O extends object = object> {
   destroy(): void {
     if (this.#destroyed) return
     this.#destroyed = true
-    if (mounted.get(this.element) === (this as unknown as Chart<object>))
-      mounted.delete(this.element)
+    if (mounted.get(this.element) === (this as never)) mounted.delete(this.element)
     cancel(this)
     clearTimeout(this.#resizeTimer)
     this.#unobserve()

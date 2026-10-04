@@ -74,6 +74,13 @@ export function formatNumber(format?: NumberFormat, locale?: Locale): (value: nu
   return (value) => nf.format(unsignedZero(value))
 }
 
+/** Whether number options set their digits (fraction or significant). */
+const digitsOf = (o: Intl.NumberFormatOptions): boolean =>
+  (o.minimumFractionDigits ??
+    o.maximumFractionDigits ??
+    o.minimumSignificantDigits ??
+    o.maximumSignificantDigits) !== undefined
+
 /**
  * A formatter for values read one at a time (tooltips, data tables) in an
  * axis format. Compact notation suits ticks ("$25K") but hides the
@@ -81,16 +88,13 @@ export function formatNumber(format?: NumberFormat, locale?: Locale): (value: nu
  * keeps three significant digits ("$24.8K").
  */
 export function formatDetail(format?: NumberFormat, locale?: Locale): (value: number) => string {
-  const digits =
-    typeof format === 'object' &&
-    (format.minimumFractionDigits ?? format.maximumFractionDigits) === undefined &&
-    (format.minimumSignificantDigits ?? format.maximumSignificantDigits) === undefined
   return formatNumber(
-    digits && format.notation === 'compact' ? { ...format, maximumSignificantDigits: 3 } : format,
+    typeof format === 'object' && format.notation === 'compact' && !digitsOf(format)
+      ? { ...format, maximumSignificantDigits: 3 }
+      : format,
     locale,
   )
 }
-
 /**
  * Number of fraction digits needed to tell apart ticks `step` apart,
  * e.g. `1 → 0`, `0.2 → 1`, `0.05 → 2`.
@@ -102,17 +106,8 @@ export function stepPrecision(step: number): number {
 }
 
 function hasPrecision(options: Intl.NumberFormatOptions): boolean {
-  return (
-    options.minimumFractionDigits !== undefined ||
-    options.maximumFractionDigits !== undefined ||
-    options.minimumSignificantDigits !== undefined ||
-    options.maximumSignificantDigits !== undefined ||
-    options.notation === 'compact' ||
-    options.notation === 'scientific' ||
-    options.notation === 'engineering'
-  )
+  return digitsOf(options) || (options.notation ?? 'standard') !== 'standard'
 }
-
 /**
  * Create a formatter for axis ticks `step` apart. Unless `format` sets its
  * own precision, every tick gets the same number of fraction digits, derived

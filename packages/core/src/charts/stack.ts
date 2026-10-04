@@ -38,7 +38,7 @@ export function stackSeries(
     if (percent) {
       series.forEach((s, j) => {
         const v = s.values[i]
-        if (visible[j] && v != null && Number.isFinite(v)) total += Math.abs(v)
+        if (visible[j] && v != null) total += Math.abs(v)
       })
     }
     let up = 0
@@ -49,7 +49,7 @@ export function stackSeries(
       const s = series[j] as Series
       if (!visible[j]) continue
       const raw = s.values[i]
-      const valid = raw != null && Number.isFinite(raw)
+      const valid = raw != null
       if (!valid && !nullAsZero) continue
       let v = valid ? (raw as number) : 0
       if (percent) v = total === 0 ? 0 : v / total

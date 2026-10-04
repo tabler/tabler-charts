@@ -40,10 +40,10 @@ export function innerRect(width: number, height: number, margins: Insets): Rect 
 
 // Approximate advance widths in em for common UI sans-serif fonts
 // (system-ui / SF, Segoe UI, Roboto), measured in the browser.
-const THIN = /* @__PURE__ */ new Set(" !'.,:;|ijlI`")
-const NARROW = /* @__PURE__ */ new Set('()[]{}-/frt')
-const ROUND = /* @__PURE__ */ new Set('CDGHNOQU')
-const WIDE = /* @__PURE__ */ new Set('%@MWmw')
+const THIN = " !'.,:;|ijlI`"
+const NARROW = '()[]{}-/frt'
+const ROUND = 'CDGHNOQU'
+const WIDE = '%@MWmw'
 
 /**
  * Full-width characters, a whole em each: Hangul, CJK and kana, compatibility
@@ -61,10 +61,10 @@ const isWide = (code: number): boolean =>
 function charWidth(char: string): number {
   if (char >= '0' && char <= '9') return char === '1' ? 0.45 : 0.63
   if (isWide(char.codePointAt(0) as number)) return 1
-  if (THIN.has(char)) return 0.27
-  if (NARROW.has(char)) return 0.38
-  if (WIDE.has(char)) return 0.88
-  if (ROUND.has(char)) return 0.76
+  if (THIN.includes(char)) return 0.27
+  if (NARROW.includes(char)) return 0.38
+  if (WIDE.includes(char)) return 0.88
+  if (ROUND.includes(char)) return 0.76
   if (char >= 'A' && char <= 'Z') return 0.66
   return 0.57
 }
