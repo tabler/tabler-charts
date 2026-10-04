@@ -51,6 +51,7 @@ const ATTRIBUTES = [
   'patterns',
   'value-labels',
   'sync',
+  'shapes',
   'options',
 ] as const
 
@@ -191,6 +192,7 @@ export function createChartElement(setup: ChartElementSetup): new () => ChartEle
       set('description', attr('description') ?? undefined)
       set('locale', attr('locale') ?? undefined)
       set('sync', attr('sync') ?? undefined)
+      set('shapes', flag(attr('shapes')))
       set('tooltip', flag(attr('tooltip')))
       set('animate', flag(attr('animate')))
       set('keyboard', flag(attr('keyboard')))

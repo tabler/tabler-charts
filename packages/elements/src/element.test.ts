@@ -67,7 +67,7 @@ describe('<tabler-chart>', () => {
 
   test('maps attributes and the options JSON into the config', async () => {
     const el = await mount(
-      `<tabler-chart type="bar" width="400" aspect-ratio="4" legend="bottom" tooltip="false" animate="false" table="visible" patterns value-labels="all" sync="board" locale="de-DE" options='{"stacked":true,"radius":0}'></tabler-chart>`,
+      `<tabler-chart type="bar" width="400" aspect-ratio="4" legend="bottom" tooltip="false" animate="false" table="visible" patterns value-labels="all" shapes sync="board" locale="de-DE" options='{"stacked":true,"radius":0}'></tabler-chart>`,
     )
     el.data = {
       labels: ['a'],
@@ -88,6 +88,7 @@ describe('<tabler-chart>', () => {
       patterns: true,
       valueLabels: { points: 'all' },
       sync: 'board',
+      shapes: true,
       locale: 'de-DE',
       stacked: true,
       radius: 0,
