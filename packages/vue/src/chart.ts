@@ -9,7 +9,9 @@ import {
 import {
   type DefineSetupFnComponent,
   defineComponent,
+  getCurrentInstance,
   h,
+  inject,
   type MaybeRefOrGetter,
   onActivated,
   onBeforeUnmount,
@@ -19,6 +21,7 @@ import {
   type SetupContext,
   type ShallowRef,
   shallowRef,
+  ssrContextKey,
   toRaw,
   toValue,
   useId,
@@ -79,9 +82,12 @@ function setup<O extends object>(fixedType: ChartType<O> | undefined) {
     }
 
     // The server-rendered chart; the same string on every render, so Vue never
-    // rewrites the container while the chart owns it.
+    // rewrites the container while the chart owns it. Only on the server and when
+    // hydrating its markup (the component then already has its element): mounted
+    // in the browser alone, the chart is built once, by the Chart.
     const initial = config()
-    const html = chartToString(initial, resolveSize(initial))
+    const server = inject(ssrContextKey, null) !== null || getCurrentInstance()?.vnode.el != null
+    const html = server ? chartToString(initial, resolveSize(initial)) : ''
 
     const element = shallowRef<HTMLElement | null>(null)
     const chart = shallowRef<Chart<O> | null>(null)
