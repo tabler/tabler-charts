@@ -82,6 +82,14 @@ describe('@tabler/charts-vue', () => {
     expect(host.querySelector('.tc-legend')).not.toBeNull()
   })
 
+  test('mounted in the browser alone, the chart is built once', () => {
+    const counted = { ...line, render: vi.fn(line.render) }
+    mount(() => h(TablerChart, { type: counted, data: data(), width: 300, height: 150 }))
+    flush()
+    expect(counted.render).toHaveBeenCalledOnce()
+    expect(host.querySelectorAll('svg.tc-chart .tc-line')).toHaveLength(2)
+  })
+
   test('kebab-case attributes become options; class and style go to the container', () => {
     const chart = ref<{ chart: Chart<object> | null } | null>(null)
     mount(() =>
