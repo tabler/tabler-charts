@@ -644,7 +644,8 @@
 .tc-legend-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 12px;
+  /* Rows of entries 24px apart at least (WCAG 2.2 target size). */
+  gap: 4px 12px;
 }
 
 .tc-legend-item {
