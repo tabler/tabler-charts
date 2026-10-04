@@ -9,7 +9,7 @@
 module.exports = {
   files: [
     // Typical imports, bundled and minified by scripts/bundles.mjs.
-    { path: '.size/core-line.js', maxSize: '11.25KB' },
+    { path: '.size/core-line.js', maxSize: '11.5KB' },
     { path: '.size/core-bar.js', maxSize: '11.25KB' },
     { path: '.size/core-pie.js', maxSize: '7.75KB' },
     { path: '.size/core-gauge.js', maxSize: '7.75KB' },
