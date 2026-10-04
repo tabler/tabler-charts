@@ -14,6 +14,8 @@ export interface HitItem {
   /** Anchor of the value in chart pixels (point, bar end); `y` is `null` for gaps. */
   x: number
   y: number | null
+  /** The mark's rectangle (bar, segment, cell), for value labels inside it. */
+  box?: Rect
 }
 
 /** What lies under the pointer. */

@@ -231,6 +231,7 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
         text: v === null ? '–' : range?.name ? `${value(v)} · ${range.name}` : value(v),
         x: cellX(i) + cellW / 2,
         y: cellY(r) + cellH / 2,
+        box: { x: cellX(i), y: cellY(r), width: cellW, height: cellH },
         color: v === null ? 'var(--tc-grid-color)' : paint(v, s).color,
       }
     })

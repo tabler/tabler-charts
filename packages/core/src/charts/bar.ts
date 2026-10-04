@@ -143,11 +143,28 @@ export const bar: ChartType<BarOptions> = {
         options,
         ctx,
         (seriesIndex, i, v) => {
-          const across = isLine(seriesIndex)
-            ? x.at(i) + x.bandwidth / 2
-            : barLeft(seriesIndex, i) + barWidth / 2
-          const end = y(isLine(seriesIndex) ? v : (segment(seriesIndex, i)?.y1 ?? 0))
-          return horizontal ? { x: end, y: across } : { x: across, y: end }
+          if (isLine(seriesIndex)) {
+            const across = x.at(i) + x.bandwidth / 2
+            return horizontal ? { x: y(v), y: across } : { x: across, y: y(v) }
+          }
+          const left = barLeft(seriesIndex, i)
+          const seg = segment(seriesIndex, i)
+          const end = y(seg?.y1 ?? 0)
+          const base = y(seg?.y0 ?? 0)
+          // The bar's box, for value labels inside it.
+          const lo = Math.min(end, base)
+          const length = Math.abs(end - base)
+          return horizontal
+            ? {
+                x: end,
+                y: left + barWidth / 2,
+                box: { x: lo, y: left, width: length, height: barWidth },
+              }
+            : {
+                x: left + barWidth / 2,
+                y: end,
+                box: { x: left, y: lo, width: barWidth, height: length },
+              }
         },
         (px, py, i) => {
           // Pointer position across the categories and along the values.

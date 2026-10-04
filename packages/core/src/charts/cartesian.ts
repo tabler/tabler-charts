@@ -492,7 +492,7 @@ const HOVER_SLOP = 8
 /**
  * Interaction by category: the nearest category to the pointer while it is
  * over the plot area, with every visible series' value there. `anchor`
- * places each value (line point, bar end); `markAt` names the series of the
+ * places each value (line point, bar end, and the bar's box); `markAt` names the series of the
  * mark directly under the pointer, if the chart has distinct marks (bars).
  * Labels and values are formatted with `x.format` / `y.format` and the locale.
  */
@@ -500,7 +500,11 @@ export function categoryInteraction(
   layout: CartesianLayout,
   options: CartesianOptions,
   ctx: RenderContext,
-  anchor: (seriesIndex: number, index: number, value: number) => { x: number; y: number },
+  anchor: (
+    seriesIndex: number,
+    index: number,
+    value: number,
+  ) => { x: number; y: number; box?: Rect },
   markAt?: (x: number, y: number, index: number) => number | undefined,
 ): Interaction {
   const { area, x, labels, horizontal } = layout
@@ -525,8 +529,7 @@ export function categoryInteraction(
         seriesIndex,
         value,
         text: value === null ? '–' : formatValue(value),
-        x: point.x,
-        y: point.y,
+        ...point,
       }
       if (series.color) item.color = series.color
       items.push(item)
