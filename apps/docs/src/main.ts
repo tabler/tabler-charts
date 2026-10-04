@@ -19,6 +19,7 @@ import { radarDemo } from './demos/radar.ts'
 import { reactDemo } from './demos/react.tsx'
 import { scatterDemo } from './demos/scatter.ts'
 import { sparklineDemo } from './demos/sparkline.ts'
+import { syncDemo } from './demos/sync.ts'
 import { tablerDemo } from './demos/tabler.ts'
 import { timeDemo } from './demos/time.ts'
 import { valueLabelsDemo } from './demos/value-labels.ts'
@@ -40,6 +41,7 @@ const demos: Demo[] = [
   scatterDemo,
   patternsDemo,
   valueLabelsDemo,
+  syncDemo,
   exportDemo,
   customType,
   elementDemo,
