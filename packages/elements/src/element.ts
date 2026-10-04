@@ -48,6 +48,7 @@ const ATTRIBUTES = [
   'animate',
   'keyboard',
   'table',
+  'patterns',
   'options',
 ] as const
 
@@ -190,6 +191,8 @@ export function createChartElement(setup: ChartElementSetup): new () => ChartEle
       set('tooltip', flag(attr('tooltip')))
       set('animate', flag(attr('animate')))
       set('keyboard', flag(attr('keyboard')))
+      const patterns = attr('patterns')
+      set('patterns', patterns === 'auto' ? patterns : flag(patterns))
       const legend = attr('legend')
       set(
         'legend',
