@@ -13,6 +13,7 @@ import { galleryDemo } from './demos/gallery.ts'
 import { gaugeDemo } from './demos/gauge.ts'
 import { heatmapDemo } from './demos/heatmap.ts'
 import { lineDemo } from './demos/line.ts'
+import { numberFormatDemo } from './demos/number-format.ts'
 import { patternsDemo } from './demos/patterns.ts'
 import { pieDemo } from './demos/pie.ts'
 import { radarDemo } from './demos/radar.ts'
@@ -41,6 +42,7 @@ const demos: Demo[] = [
   scatterDemo,
   patternsDemo,
   valueLabelsDemo,
+  numberFormatDemo,
   syncDemo,
   exportDemo,
   customType,
