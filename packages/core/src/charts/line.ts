@@ -1,5 +1,7 @@
 import type { ChartType, RenderContext } from '../chart.ts'
+import { fadeMask } from '../components/fade.ts'
 import { feature } from '../features.ts'
+import { round } from '../layout.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { type ChildInput, h } from '../vnode.ts'
 import {
@@ -46,8 +48,6 @@ export interface LineOptions extends CartesianOptions {
    */
   decimate?: number
 }
-
-const round = (value: number): number => Math.round(value * 100) / 100
 
 /** Points in pixels for a series; `null` for missing values. */
 function seriesPoints(
@@ -200,25 +200,6 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     h('g', { key: 'series', class: 'tc-series-list', 'clip-path': layout.clip.url }, areas, lines),
     layout.foreground,
   ]
-}
-
-/**
- * A vertical luminance mask shared by all gradient areas. Areas keep their
- * series color from CSS; the mask only fades them, with stop opacities read
- * from `--tc-area-gradient-start` / `--tc-area-gradient-end`.
- */
-function fadeMask(id: string) {
-  return h(
-    'mask',
-    { id, maskContentUnits: 'objectBoundingBox' },
-    h(
-      'linearGradient',
-      { id: `${id}-gradient`, x1: 0, y1: 0, x2: 0, y2: 1 },
-      h('stop', { class: 'tc-fade-start', offset: 0 }),
-      h('stop', { class: 'tc-fade-end', offset: 1 }),
-    ),
-    h('rect', { width: 1, height: 1, fill: `url(#${id}-gradient)` }),
-  )
 }
 
 /**

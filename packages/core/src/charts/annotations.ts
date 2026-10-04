@@ -1,4 +1,4 @@
-import { estimateTextWidth, type Rect } from '../layout.ts'
+import { estimateTextWidth, type Rect, round } from '../layout.ts'
 import type { BandKey, BandScale } from '../scales/band.ts'
 import { type ClassValue, h, type VNode } from '../vnode.ts'
 import { labelKey, toMs } from './cartesian.ts'
@@ -78,8 +78,6 @@ export const cleanAnnotations = (v: unknown): Annotation[] | undefined =>
         label: a.label == null ? undefined : text(a.label),
         color: typeof a.color === 'string' ? a.color : undefined,
       })).filter((a) => a.y !== null && a.x !== null && (a.x ?? a.y) !== undefined) as Annotation[])
-
-const round = (value: number): number => Math.round(value * 100) / 100
 
 const isPair = <T>(v: T | readonly [T, T]): v is readonly [T, T] => Array.isArray(v)
 

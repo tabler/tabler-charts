@@ -4,7 +4,14 @@ import { axis, axisSize, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { formatDetail, formatNumber } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
-import { estimateTextWidth, type InsetsInput, innerRect, insets, LINE_HEIGHT } from '../layout.ts'
+import {
+  estimateTextWidth,
+  type InsetsInput,
+  innerRect,
+  insets,
+  LINE_HEIGHT,
+  round,
+} from '../layout.ts'
 import type { LegendItem } from '../legend.ts'
 import { extent } from '../scales/extent.ts'
 import type { LinearScale } from '../scales/linear.ts'
@@ -12,6 +19,7 @@ import { type ClassValue, h } from '../vnode.ts'
 import {
   domainOf,
   markerShape,
+  plotClip,
   plottable,
   tickCount,
   type ValueAxisOptions,
@@ -78,7 +86,6 @@ const seriesKey = (series: ScatterSeries): string => series.id ?? series.name
 /** A point's bubble size, or `undefined` when it has none (or an invalid one). */
 const sizeOf = (p: ScatterPoint): number | undefined =>
   p.size != null && Number.isFinite(p.size) && p.size > 0 ? p.size : undefined
-const round = (value: number): number => Math.round(value * 100) / 100
 
 /** SVG path of a circle of radius `r` around the origin. */
 const circlePath = (r: number): string => `M${r},0A${r},${r},0,1,1,${-r},0A${r},${r},0,1,1,${r},0Z`
@@ -242,10 +249,9 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   if (yOptions.grid !== false) background.push(grid({ direction: 'y', ticks: yTicks, area }))
   if (xOptions.grid) background.push(grid({ direction: 'x', ticks: xTicks, area }))
 
-  const clipId = `${ctx.id}-clip`
   // Dots may reach a little past the plot edges; bubbles are cut at them (like
   // Chart.js), as a big one there would cover the axis labels.
-  const bleed = sizes.length ? 1 : overhang + 1
+  const clip = plotClip(ctx, area, sizes.length ? 0 : overhang)
   const groups = options.data.series.map(
     (series, seriesIndex) =>
       !ctx.hidden.has(seriesKey(series)) &&
@@ -281,22 +287,9 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   )
 
   return [
-    h(
-      'defs',
-      null,
-      h(
-        'clipPath',
-        { id: clipId },
-        h('rect', {
-          x: area.x - bleed,
-          y: area.y - bleed,
-          width: area.width + bleed * 2,
-          height: area.height + bleed * 2,
-        }),
-      ),
-    ),
+    h('defs', null, clip.def),
     background,
-    h('g', { key: 'series', class: 'tc-series-list', 'clip-path': `url(#${clipId})` }, groups),
+    h('g', { key: 'series', class: 'tc-series-list', 'clip-path': clip.url }, groups),
     showY && axis({ position: 'left', ticks: yTicks, area }),
     showX && axis({ position: 'bottom', ticks: xTicks, area }),
   ]

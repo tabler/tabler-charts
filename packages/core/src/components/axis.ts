@@ -1,5 +1,5 @@
 import { formatTicks, type Locale, type NumberFormat } from '../format.ts'
-import { estimateTextWidth, LINE_HEIGHT, type Rect } from '../layout.ts'
+import { estimateTextWidth, LINE_HEIGHT, type Rect, round } from '../layout.ts'
 import type { BandKey, BandScale } from '../scales/band.ts'
 import type { LinearScale } from '../scales/linear.ts'
 import { tickStep } from '../scales/ticks.ts'
@@ -176,5 +176,3 @@ export function axis(options: AxisOptions): VNode {
     ),
   )
 }
-
-const round = (value: number): number => Math.round(value * 100) / 100

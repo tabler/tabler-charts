@@ -2,7 +2,7 @@ import type { ChartType, RenderContext } from '../chart.ts'
 import { linearTicks } from '../components/axis.ts'
 import { formatDetail, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
-import { estimateTextWidth, type InsetsInput, innerRect, insets } from '../layout.ts'
+import { estimateTextWidth, type InsetsInput, innerRect, insets, round } from '../layout.ts'
 import { linear } from '../scales/linear.ts'
 import { type ChildInput, h } from '../vnode.ts'
 import {
@@ -53,7 +53,6 @@ export interface RadarOptions {
   padding?: InsetsInput
 }
 
-const round = (value: number): number => Math.round(value * 100) / 100
 /** Space between the outer ring and the spoke labels. */
 const LABEL_GAP = 8
 /** Pixels around the outer ring that still count as hovering it. */

@@ -7,6 +7,7 @@
  * stylesheet or the page's custom properties. Browser only.
  */
 import type { Chart } from './chart.ts'
+import { round } from './layout.ts'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
@@ -166,8 +167,6 @@ function legendLayer(
     Number.parseFloat(getComputedStyle(legend)[bottom ? 'marginTop' : 'marginBottom']) || 0
   return { svg: g, height: round(box.height + margin), margin, bottom }
 }
-
-const round = (value: number): number => Math.round(value * 100) / 100
 
 /**
  * The chart as a standalone SVG document: the computed styles are inlined,

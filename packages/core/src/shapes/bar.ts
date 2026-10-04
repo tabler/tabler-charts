@@ -1,5 +1,8 @@
+import { round as to2 } from '../layout.ts'
+
+/** Rounded for path data, without a `-0`. */
 const round = (value: number): number => {
-  const rounded = Math.round(value * 100) / 100
+  const rounded = to2(value)
   return rounded === 0 ? 0 : rounded
 }
 

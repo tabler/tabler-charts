@@ -41,7 +41,6 @@ export interface Features {
   annotations?: { layers: typeof annotationLayers; values: typeof annotationValues }
   /** Pattern fills behind `patterns` (and forced colors, with `'auto'`). */
   patterns?: typeof patternFills
-  /** Values written on the marks, behind `valueLabels`. */
   /**
    * Steps that finish a chart's rendered content (see `addPost`): point
    * shapes, value labels.

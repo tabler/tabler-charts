@@ -2,7 +2,7 @@ import type { ChartType, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, thinTicks } from '../components/axis.ts'
 import { formatNumber, type Locale, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
-import { estimateTextWidth, type InsetsInput, innerRect, insets } from '../layout.ts'
+import { estimateTextWidth, type InsetsInput, innerRect, insets, round } from '../layout.ts'
 import { band } from '../scales/band.ts'
 import { extent } from '../scales/extent.ts'
 import { h, type StyleValue } from '../vnode.ts'
@@ -76,8 +76,6 @@ export interface HeatmapOptions {
 
 /** Share of the full color at the minimum, so zero still reads as a value, not a gap. */
 const FLOOR = 0.08
-
-const round = (value: number): number => Math.round(value * 100) / 100
 
 const EMPTY = 'var(--tc-heat-empty,var(--tc-grid-color))'
 
