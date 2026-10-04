@@ -146,6 +146,23 @@ describe('value labels', () => {
     }
   })
 
+  test('a chart type of your own says how its values are labelled', () => {
+    // A heatmap under another name: nothing depends on what a type is called.
+    const grid = { ...heatmap, name: 'grid' }
+    const data = { labels: ['a', 'b'], series: [{ name: 'r', values: [1200, 3400] }] }
+    const format = { minimumFractionDigits: 1 }
+    const texts = (type: object) => valueLabels(render({ type, data, format })).map((l) => l.text)
+    expect(texts(grid)).toEqual(['1,200.0', '3,400.0'])
+    expect(texts(grid)).toEqual(texts(heatmap))
+    // Without the word of the type, a label shows what the tooltip does.
+    const { valueLabels: _, ...plain } = grid
+    expect(texts(plain)).toEqual(['1,200.0', '3,400.0'])
+    expect(texts({ ...plain, valueLabels: { marks: 'cell', format: () => ({}) } })).toEqual([
+      '1,200',
+      '3,400',
+    ])
+  })
+
   test('off by default and with false; on the core, only with its import', () => {
     const data = { labels, series: series(2) }
     expect(render({ type: bar, data, valueLabels: false })).not.toContain('tc-value-label')

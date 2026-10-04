@@ -1,7 +1,7 @@
 import type { DataTable } from './a11y.ts'
 import type { ValueLabelOptions } from './charts/value-labels.ts'
 import { feature, features } from './features.ts'
-import type { Locale } from './format.ts'
+import type { Locale, NumberFormat } from './format.ts'
 import { type Hit, hitKey, type Interaction } from './interaction.ts'
 import { defaultHidden, type LegendItem, type LegendOptions } from './legend.ts'
 import type { ChartPlugin, PluginInstance } from './plugin.ts'
@@ -53,6 +53,17 @@ export interface ChartType<O extends object = object> {
    * sparklines opt out so a page of stat tiles does not multiply tab stops.
    */
   readonly keyboard?: boolean
+  /**
+   * How value labels (`valueLabels`) read this chart type, when not as bars
+   * or points: `marks: 'slice'` writes each value as its share, inside its
+   * slice; `marks: 'cell'` writes it in the middle of its mark. `format`
+   * names the number format of the values in the options (by default a label
+   * shows the text of the tooltip).
+   */
+  readonly valueLabels?: {
+    marks?: 'slice' | 'cell'
+    format?(options: O): NumberFormat | undefined
+  }
 }
 
 export type { DataTable, LegendItem }

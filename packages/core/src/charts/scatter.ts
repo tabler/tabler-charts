@@ -363,4 +363,5 @@ export const scatter: ChartType<ScatterOptions> = {
   render: renderScatter,
   legend: scatterLegend,
   table: scatterTable,
+  valueLabels: { format: (options) => options.y?.format },
 }

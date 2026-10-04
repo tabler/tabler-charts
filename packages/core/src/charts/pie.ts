@@ -261,6 +261,7 @@ function pieType(name: string, defaults: { inner: number; corner: number }): Cha
     render: (options, ctx): ChildInput => renderPie(options, ctx, defaults),
     legend: pieLegend,
     table: pieTable,
+    valueLabels: { marks: 'slice' },
   }
 }
 

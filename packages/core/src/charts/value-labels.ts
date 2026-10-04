@@ -51,19 +51,19 @@ export function valueLabels(
   const option = config.valueLabels
   const options: ValueLabelOptions = typeof option === 'object' ? option : {}
   const { fontSize, locale } = ctx
-  const type = config.type.name
-  const pie = type === 'pie' || type === 'donut'
+  // What the chart type says about its marks (slices, cells) and its number format.
+  const spec = config.type.valueLabels
+  const pie = spec?.marks === 'slice'
+  const cell = spec?.marks === 'cell'
   const stacked = !!(config as { stacked?: unknown }).stacked
   const format = options.format
     ? formatNumber(options.format, locale)
     : pie
       ? (v: number) =>
           getNumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 }).format(v)
-      : type === 'heatmap'
-        ? formatNumber((config as { format?: NumberFormat }).format, locale)
-        : type === 'scatter'
-          ? formatNumber((config as { y?: { format?: NumberFormat } }).y?.format, locale)
-          : undefined
+      : spec?.format
+        ? formatNumber(spec.format(config), locale)
+        : undefined
   // Numbers have no descenders: one em is their height, with room to spare.
   const height = fontSize
 
@@ -114,7 +114,7 @@ export function valueLabels(
     } else if (box) {
       const horizontal = hit.axis === 'y'
       const down = value < 0
-      if (!stacked && type !== 'heatmap') {
+      if (!stacked && !cell) {
         // Beyond the bar's end, then just inside it.
         const reach = (horizontal ? width / 2 : height / 2) + GAP
         const sign = down ? 1 : -1
