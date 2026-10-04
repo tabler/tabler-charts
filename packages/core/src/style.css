@@ -120,6 +120,10 @@
   overflow: visible;
   font-family: var(--tc-font-family);
   font-size: var(--tc-font-size);
+  /* Labels are laid out for the chart's font: page spacing would widen them. */
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-transform: none;
   color: var(--tc-text-color);
   -webkit-tap-highlight-color: transparent;
 }
