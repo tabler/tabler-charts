@@ -381,7 +381,6 @@
 .tc-slice,
 .tc-gauge-arc,
 .tc-gauge-track,
-.tc-candle-wick,
 .tc-radar-ring,
 .tc-dots {
   transition: d var(--tc-duration) var(--tc-easing);
@@ -457,8 +456,12 @@
   --tc-candle-color: var(--tc-negative-color, var(--tc-color-8));
 }
 
+/* Bodies and wicks morph, and change color when a period turns. */
 .tc-candle-body {
   fill: var(--tc-candle-color);
+  transition:
+    d var(--tc-duration) var(--tc-easing),
+    fill var(--tc-duration) var(--tc-easing);
 }
 
 .tc-candle-wick {
@@ -466,6 +469,9 @@
   stroke: var(--tc-candle-color);
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;
+  transition:
+    d var(--tc-duration) var(--tc-easing),
+    stroke var(--tc-duration) var(--tc-easing);
 }
 
 /* Tristate sparklines: losses in the last palette slot (red), draws as a muted tick. */

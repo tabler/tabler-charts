@@ -45,17 +45,42 @@ describe('candlestick', () => {
     ])
   })
 
+  /** The box of a candle body path (end points of its M, H, V and A commands). */
+  const box = (d: unknown) => {
+    const xs: number[] = []
+    const ys: number[] = []
+    for (const [cmd, ...rest] of String(d).match(/[MHVA][^MHVAZ]*/g) ?? []) {
+      const n = rest.join('').split(',').map(Number)
+      if (cmd === 'H') xs.push(n[0] as number)
+      else if (cmd === 'V') ys.push(n[0] as number)
+      else {
+        xs.push(n[n.length - 2] as number)
+        ys.push(n[n.length - 1] as number)
+      }
+    }
+    const x = Math.min(...xs)
+    const y = Math.min(...ys)
+    return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y }
+  }
+
   test('the wick spans low to high and the body open to close', () => {
     const node = render()
     const [wick] = findByClass(node, 'tc-candle-wick')
-    const [body] = findByClass(node, 'tc-candle-body')
+    const body = box(findByClass(node, 'tc-candle-body')[0]?.attrs.d)
     const [, x, top, bottom] = String(wick?.attrs.d).match(/^M([\d.]+),([\d.]+)V([\d.]+)$/) ?? []
     // Higher prices are further up: the wick runs from high (top) down to low.
-    expect(num(top)).toBeLessThan(num(body?.attrs.y))
-    expect(num(bottom)).toBeGreaterThan(num(body?.attrs.y) + num(body?.attrs.height))
+    expect(num(top)).toBeLessThan(body.y)
+    expect(num(bottom)).toBeGreaterThan(body.y + body.height)
     // The wick runs through the middle of the body.
-    expect(num(x)).toBeCloseTo(num(body?.attrs.x) + num(body?.attrs.width) / 2, 1)
-    expect(num(body?.attrs.width)).toBeLessThanOrEqual(16)
+    expect(num(x)).toBeCloseTo(body.x + body.width / 2, 1)
+    expect(body.width).toBeLessThanOrEqual(16)
+  })
+
+  test('bodies keep their path commands whatever their size, so they morph', () => {
+    const commands = findByClass(render(), 'tc-candle-body').map((b) =>
+      String(b.attrs.d).replace(/[^A-Z]/g, ''),
+    )
+    expect(new Set(commands).size).toBe(1)
   })
 
   test('compact axis formats keep enough digits in the tooltip to tell values apart', () => {
@@ -68,8 +93,7 @@ describe('candlestick', () => {
   })
 
   test('a flat period keeps a 1px body', () => {
-    const body = findByClass(render(), 'tc-candle-body')[2]
-    expect(num(body?.attrs.height)).toBe(1)
+    expect(box(findByClass(render(), 'tc-candle-body')[2]?.attrs.d).height).toBe(1)
   })
 
   test('the value axis covers every low and high', () => {

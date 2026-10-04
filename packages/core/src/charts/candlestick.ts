@@ -27,6 +27,15 @@ export interface Candle {
   close: number
 }
 
+/**
+ * A rounded rectangle with the same commands whatever its size and radius
+ * (a zero radius draws square corners), so CSS can morph one into another.
+ */
+const bodyPath = (x: number, y: number, w: number, h: number, r: number): string => {
+  const a = `A${r},${r},0,0,1,`
+  return `M${round(x + r)},${y}H${round(x + w - r)}${a}${round(x + w)},${round(y + r)}V${round(y + h - r)}${a}${round(x + w - r)},${round(y + h)}H${round(x + r)}${a}${x},${round(y + h - r)}V${round(y + r)}${a}${round(x + r)},${y}Z`
+}
+
 export interface CandlestickOptions {
   data: readonly Candle[]
   /** Maximum candle body width in pixels. Defaults to `16`. */
@@ -148,13 +157,10 @@ export const candlestick: ChartType<CandlestickOptions> = {
           class: 'tc-candle-wick',
           d: `M${cx},${round(y(c.high))}V${round(y(c.low))}`,
         }),
-        h('rect', {
+        // A path, not a rect, so it morphs between updates (d), in Safari too.
+        h('path', {
           class: 'tc-candle-body',
-          x: left,
-          y: round(top),
-          width: round(width),
-          height: round(bottom - top),
-          rx: r,
+          d: bodyPath(left, round(top), round(width), round(bottom - top), r),
         }),
       )
     })
