@@ -11,6 +11,21 @@ const requestFrame = (callback: () => void): void => {
   else queueMicrotask(callback)
 }
 
+/**
+ * Run a task; an error it throws is reported on its own (as an uncaught
+ * error, in the console and to `window.onerror`) instead of stopping the
+ * tasks of other charts in the same frame.
+ */
+export function run(task: () => void): void {
+  try {
+    task()
+  } catch (error) {
+    setTimeout(() => {
+      throw error
+    })
+  }
+}
+
 /** Run `task` in the next frame, replacing any task already queued for `key`. */
 export function schedule(key: object, task: () => void): void {
   queue.set(key, task)
@@ -36,7 +51,7 @@ export function flush(): number {
     const tasks = Array.from(queue.values())
     queue.clear()
     for (const task of tasks) {
-      task()
+      run(task)
       count++
     }
   }

@@ -3,7 +3,7 @@
  * it runs in an idle callback (within a second at the latest), or with
  * `flush()`. A module of its own, so charts without such work do not ship it.
  */
-import { flushHooks } from './scheduler.ts'
+import { flushHooks, run } from './scheduler.ts'
 
 const idle = /* @__PURE__ */ new Map<object, () => void>()
 let pending = false
@@ -15,7 +15,7 @@ function drain(): number {
     const tasks = Array.from(idle.values())
     idle.clear()
     for (const task of tasks) {
-      task()
+      run(task)
       count++
     }
   }

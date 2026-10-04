@@ -1,8 +1,24 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 import { cancelIdle, scheduleIdle } from './idle.ts'
 import { cancel, flush, schedule } from './scheduler.ts'
 
 describe('scheduler', () => {
+  test('an error in one task does not stop the others, and is still reported', () => {
+    vi.useFakeTimers()
+    try {
+      const ran: string[] = []
+      schedule({}, () => {
+        throw new Error('broken chart')
+      })
+      schedule({}, () => ran.push('next'))
+      expect(() => flush()).not.toThrow()
+      expect(ran).toEqual(['next'])
+      expect(() => vi.runAllTimers()).toThrow('broken chart')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   test('runs tasks asynchronously, once per key with the latest task', async () => {
     const calls: string[] = []
     const a = {}
