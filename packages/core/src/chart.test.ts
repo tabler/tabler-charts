@@ -212,6 +212,18 @@ describe('Chart', () => {
     expect(flush()).toBe(0)
   })
 
+  test('a hidden container (0×0) is not rendered until it shows again', () => {
+    const chart = new Chart(el, { type: dots, data: [] })
+    resizeTo(el, 400, 10)
+    flush()
+    resizeTo(el, 0, 0)
+    expect(flush()).toBe(0)
+    expect(el.querySelector('svg')?.getAttribute('width')).toBe('400')
+    resizeTo(el, 300, 10)
+    expect(flush()).toBe(1)
+    expect(chart.size.width).toBe(300)
+  })
+
   test('follows the container height with height: "container"', () => {
     const chart = new Chart(el, { type: dots, data: [], height: 'container' })
     resizeTo(el, 400, 150)
