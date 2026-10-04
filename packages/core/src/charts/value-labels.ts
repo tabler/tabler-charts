@@ -145,17 +145,14 @@ export function valueLabels(
     }
     // Labels may rise into the margin above the plot, not over the axes.
     const room = { ...area, y: 0, height: area.y + area.height }
-    const fits = (p: Placed) =>
+    // Glyphs leave a little room at their sides (`slim`): a label may brush a neighbour.
+    const fits = (p: Placed, slim = { ...p.box, x: p.box.x + 5, width: p.box.width - 10 }) =>
       contains(pie ? area : room, p.box) &&
       (!p.inside || !box || contains(box, p.box)) &&
       (!pie || sliceFits(item, area, share, p.box)) &&
       !placed.some((other) => overlaps(other.box, p.box)) &&
-      !marks.some(
-        // Glyphs leave a little room at their sides: a label may brush a neighbour.
-        (mark) =>
-          mark !== box && overlaps(mark, { ...p.box, x: p.box.x + 5, width: p.box.width - 10 }),
-      )
-    const spot = candidates.find(fits)
+      !marks.some((mark) => mark !== box && overlaps(mark, slim))
+    const spot = candidates.find((p) => fits(p))
     if (spot) placed.push(spot)
   })
 
