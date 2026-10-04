@@ -1,4 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
+import { installTextChecks } from './text-checks.ts'
 
 /**
  * The edge cases page (cases.html): every card must render without errors,
@@ -37,48 +38,9 @@ async function findings(page: Page): Promise<string[]> {
           }
         }
       }
-      const frame = svg.getBoundingClientRect()
-      // Some engines (Firefox) pad every text box by a constant: w(a) + w(b) - w(ab).
-      const probe = (value: string) => {
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-        text.setAttribute('class', 'tc-tick-label')
-        text.textContent = value
-        svg.append(text)
-        const width = text.getBoundingClientRect().width
-        text.remove()
-        return width
-      }
-      const pad = Math.max(0, (probe('Ab') + probe('cd') - probe('Abcd')) / 2)
-      const box = (text: Element) => {
-        const r = text.getBoundingClientRect()
-        return new DOMRect(r.x + pad, r.y, Math.max(0, r.width - pad * 2), r.height)
-      }
-      const texts = [...svg.querySelectorAll('text')].filter((t) => t.textContent)
-      const kinds = new Map<string, DOMRect[]>()
-      for (const text of texts) {
-        const r = box(text)
-        if (!r.width) continue
-        const out = Math.max(
-          frame.left - r.left,
-          r.right - frame.right,
-          frame.top - r.top,
-          r.bottom - frame.bottom,
-        )
-        if (out > 1.5) found.push(`"${text.textContent}" ${Math.round(out)} px outside`)
-        const kind =
-          text.closest('.tc-axis')?.getAttribute('class') ?? text.getAttribute('class') ?? ''
-        if (/gauge|pie/.test(kind)) continue
-        const others = kinds.get(kind) ?? []
-        // Engines differ in how tall a text box is (Firefox takes the whole line):
-        // touching boxes are fine, sharing a third of their height is not.
-        const overlaps = (o: DOMRect) =>
-          Math.min(o.right, r.right) - Math.max(o.left, r.left) > 1 &&
-          Math.min(o.bottom, r.bottom) - Math.max(o.top, r.top) > Math.min(o.height, r.height) * 0.3
-        if (others.some(overlaps)) {
-          found.push(`"${text.textContent}" overlaps a label`)
-        }
-        kinds.set(kind, [...others, r])
-      }
+      const check = (window as unknown as { __tcTextIssues: (svg: Element) => string[] })
+        .__tcTextIssues
+      found.push(...check(svg))
       const tip = card.querySelector('.tc-tooltip[data-visible]')
       if (tip) {
         const c = card.getBoundingClientRect()
@@ -115,6 +77,7 @@ async function open(page: Page, theme: 'light' | 'dark') {
     if (message.type() === 'error') errors.push(message.text())
   })
   await page.addInitScript((mode) => localStorage.setItem('tc-docs-theme', mode), theme)
+  await page.addInitScript(installTextChecks)
   await page.goto('/cases.html')
   await page.locator('[data-case]').first().waitFor()
   await page.evaluate(() => document.fonts.ready)
