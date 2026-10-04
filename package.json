@@ -12,7 +12,7 @@
     "build": "pnpm -r --filter \"./packages/**\" build",
     "dev": "pnpm -r --parallel --filter \"./packages/**\" dev",
     "typecheck": "tsc -p . && pnpm -r --if-present typecheck",
-    "lint": "biome check .",
+    "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "test": "vitest run",

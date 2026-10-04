@@ -90,7 +90,7 @@ th{text-align:inherit}button{border-radius:0;margin:0;font-family:inherit;font-s
     title: 'Hidden when created',
     expect:
       'display:none at first (width 0), shown 200 ms later: the chart fills the container then.',
-    html: '<div id="tab" style="display:none">' + CHART + '</div>',
+    html: `<div id="tab" style="display:none">${CHART}</div>`,
     after: () =>
       new Promise((resolve) =>
         setTimeout(() => {
