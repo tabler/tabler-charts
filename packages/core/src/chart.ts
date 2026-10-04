@@ -405,7 +405,8 @@ export class Chart<O extends object = object> {
     const changed =
       width !== this.#measured.width || (followsHeight && height !== this.#measured.height)
     this.#measured = { width, height }
-    if (changed) {
+    // A hidden container (display: none) measures 0×0: nothing to draw until it shows again.
+    if (changed && (width || height)) {
       this.#font = undefined
       this.#markResizing()
       this.#schedule()
