@@ -98,6 +98,14 @@ annotations: [
 ]
 ```
 
+### Value labels
+
+`valueLabels: true` writes the values on the marks: bars at their end (inside when there is no room outside), stacked segments and heatmap cells inside, slices their share, lines and scatters above their last point (`valueLabels: { points: 'all' }` for every point). Values take the axis format (`valueLabels: { format }` overrides it). A label that does not fit its mark or the chart, or would cover another label or mark, is left out: labels never overlap. On the core, `import '@tabler/charts/value-labels'` enables them.
+
+```js
+new Chart('#el', { type: bar, data, valueLabels: true })
+```
+
 ### Data from outside
 
 Data, annotations and axis bounds often come from users, APIs or JSON and are not always what the types say. Charts take them as they are and never throw or draw `NaN` over them: a value that is not a finite number (`null`, `'42'`, `NaN`, `Infinity`, an object) is a gap, as are numbers too large to plot (beyond ±1e300); names become text; a color that is not a string falls back to the palette; series, slices, points or annotations that are not objects are left out. Numbers in strings are not parsed: convert them first if your API sends them.
@@ -119,6 +127,7 @@ Data, annotations and axis bounds often come from users, APIs or JSON and are no
 | `keyboard` | `true` | Arrow keys walk the data; sparklines opt out |
 | `animate` | `true` | Charts with more than 1000 elements skip transitions unless `true` |
 | `patterns` | `'auto'` | Pattern fills: `true` always, `'auto'` in forced colors only, `false` never |
+| `valueLabels` | `false` | Values on the marks: `true`, or `{ points: 'all', format }` (see below) |
 | `class` | | Extra classes on the `<svg>` |
 | `plugins` | | Extra plugins |
 

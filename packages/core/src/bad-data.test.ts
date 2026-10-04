@@ -19,6 +19,7 @@ import './line.ts'
 import './log.ts'
 import { flush } from './scheduler.ts'
 import './time.ts'
+import './value-labels.ts'
 
 /**
  * Bad input: data from users, APIs and JSON attributes is often not what the
@@ -152,6 +153,7 @@ const options = (name: string): Record<string, unknown> => {
     if (chance(0.2) && name === 'bar') out.orientation = 'horizontal'
   }
   if (chance(0.15)) out.y = { scale: 'log' }
+  if (chance(0.25)) out.valueLabels = pick([true, { points: 'all' }, { format: junk() }])
   // Junk in the options that bound the axes, and in annotations.
   if (chance(0.15)) out.y = { ...(out.y as object), min: junk(), max: num(), ticks: junk() }
   if (chance(0.15)) {

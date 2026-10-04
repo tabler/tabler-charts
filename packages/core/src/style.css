@@ -379,6 +379,22 @@
   pointer-events: none;
 }
 
+/* -- Value labels ----------------------------------------------------------- */
+
+/* Values on the marks (valueLabels): text color with a surface halo, so they
+   read over any mark; they glide with the data and fade in when new. */
+.tc-value-label {
+  fill: var(--tc-text-color);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: var(--tc-surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  transition: transform var(--tc-duration) var(--tc-easing);
+  animation: tc-fade-in var(--tc-duration) var(--tc-easing);
+}
+
 /* -- Patterns --------------------------------------------------------------- */
 
 /*
@@ -836,6 +852,10 @@
 }
 
 @media (forced-colors: active) {
+  .tc-value-label {
+    fill: CanvasText;
+    stroke: Canvas;
+  }
   .tc-tick-label {
     fill: CanvasText;
   }

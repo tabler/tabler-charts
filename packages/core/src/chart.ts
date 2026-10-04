@@ -1,4 +1,5 @@
 import type { DataTable } from './a11y.ts'
+import type { ValueLabelOptions } from './charts/value-labels.ts'
 import { feature, features } from './features.ts'
 import type { Locale } from './format.ts'
 import { type Hit, hitKey, type Interaction } from './interaction.ts'
@@ -105,6 +106,14 @@ export interface BaseOptions {
    */
   patterns?: boolean | 'auto'
   /**
+   * Write the values on the marks: bars at their end, stacked segments,
+   * cells and slices inside (slices show their share), lines and points
+   * above their last point (`points: 'all'` for every one). Labels that do
+   * not fit are left out. Needs `@tabler/charts/value-labels` on the core
+   * (`@tabler/charts` includes it).
+   */
+  valueLabels?: boolean | ValueLabelOptions
+  /**
    * Render the data as an HTML table: visually hidden for screen readers
    * (`true`, the default), shown below the chart (`'visible'`), or not at all.
    * An object sets `visible` and `maxRows` (default 1000; longer data is cut
@@ -163,7 +172,23 @@ function renderContent<O extends object>(
   hidden: ReadonlySet<string>,
   fontSize?: number,
 ): ChildInput {
-  return config.type.render(config, renderContext(config, size, id, onHitTest, hidden, fontSize))
+  let found: Interaction | undefined
+  const ctx = renderContext(
+    config,
+    size,
+    id,
+    (interaction) => {
+      found = interaction
+      onHitTest(interaction)
+    },
+    hidden,
+    fontSize,
+  )
+  const content = config.type.render(config, ctx)
+  // Value labels go over the content, worked out from its interaction.
+  return config.valueLabels && found
+    ? [content, feature('value-labels')(config as ChartConfig<object>, found, ctx)]
+    : content
 }
 
 /** Render context for a config and size (also used by plugins such as the data table). */

@@ -3,6 +3,7 @@ import type { dateLabels } from './charts/dates.ts'
 import type { logDomain, logTicks } from './charts/log-axis.ts'
 import type { patternFills } from './charts/patterns.ts'
 import type { timeAxis } from './charts/time-axis.ts'
+import type { valueLabels } from './charts/value-labels.ts'
 import type { hydrate } from './render/hydrate.ts'
 import type { morph } from './render/morph.ts'
 import type { log } from './scales/log.ts'
@@ -37,6 +38,8 @@ export interface Features {
   annotations?: { layers: typeof annotationLayers; values: typeof annotationValues }
   /** Pattern fills behind `patterns` (and forced colors, with `'auto'`). */
   patterns?: typeof patternFills
+  /** Values written on the marks, behind `valueLabels`. */
+  'value-labels'?: typeof valueLabels
 }
 
 export const features: Features = {}

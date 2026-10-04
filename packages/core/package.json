@@ -42,6 +42,9 @@
     "./dist/patterns.js",
     "./dist/patterns.cjs",
     "./src/patterns.ts",
+    "./dist/value-labels.js",
+    "./dist/value-labels.cjs",
+    "./src/value-labels.ts",
     "./dist/candlestick.js",
     "./dist/candlestick.cjs",
     "./src/candlestick.ts",
@@ -214,6 +217,16 @@
       "require": {
         "types": "./dist/patterns.d.cts",
         "default": "./dist/patterns.cjs"
+      }
+    },
+    "./value-labels": {
+      "import": {
+        "types": "./dist/value-labels.d.ts",
+        "default": "./dist/value-labels.js"
+      },
+      "require": {
+        "types": "./dist/value-labels.d.cts",
+        "default": "./dist/value-labels.cjs"
       }
     },
     "./hydrate": {

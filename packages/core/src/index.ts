@@ -2,7 +2,7 @@
  * `@tabler/charts`: everything from `@tabler/charts/core`, with a `Chart`
  * that installs the built-in plugins (tooltip, legend, keyboard, …) and
  * every optional feature registered (time and log axes, decimation,
- * annotations, pattern fills).
+ * annotations, pattern fills, value labels).
  */
 
 import { annotationLayers, annotationValues } from './charts/annotations.ts'
@@ -10,6 +10,7 @@ import { dateLabels } from './charts/dates.ts'
 import { logDomain, logTicks } from './charts/log-axis.ts'
 import { patternFills } from './charts/patterns.ts'
 import { timeAxis } from './charts/time-axis.ts'
+import { valueLabels } from './charts/value-labels.ts'
 import { register } from './features.ts'
 import { hydrate } from './render/hydrate.ts'
 import { morph } from './render/morph.ts'
@@ -27,6 +28,7 @@ register({
   line: { linePath, areaPath },
   annotations: { layers: annotationLayers, values: annotationValues },
   patterns: patternFills,
+  'value-labels': valueLabels,
   hydrate,
   morph,
 })
