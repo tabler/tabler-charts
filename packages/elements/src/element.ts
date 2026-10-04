@@ -32,7 +32,17 @@ export interface ChartElement extends HTMLElement {
   options: Record<string, unknown>
 }
 
-const EVENTS: readonly (keyof ChartEvents)[] = ['hover', 'click', 'legend-toggle', 'render']
+/**
+ * Every chart event, passed on as a `tc-*` DOM event. Written out here (the
+ * element takes nothing but types from the core, whichever entry builds it),
+ * and checked against `ChartEvents`: a new event does not compile until it is listed.
+ */
+const EVENTS = Object.keys({
+  hover: 0,
+  click: 0,
+  'legend-toggle': 0,
+  render: 0,
+} satisfies Record<keyof ChartEvents, 0>) as (keyof ChartEvents)[]
 
 /** Attributes read into the config; everything else goes through `options`. */
 const ATTRIBUTES = [

@@ -3,6 +3,7 @@ import {
   type ChartConfig,
   type ChartEvents,
   type ChartType,
+  chartEvents,
   chartToString,
   resolveSize,
 } from '@tabler/charts'
@@ -47,8 +48,6 @@ export type ChartComponent<O extends object> = DefineSetupFnComponent<
   Omit<ChartProps<O>, 'type'>,
   ChartEmits
 >
-
-const EVENTS = ['hover', 'click', 'legend-toggle', 'render'] as const
 
 const camelize = (key: string): string => key.replace(/-(\w)/g, (_, c: string) => c.toUpperCase())
 
@@ -104,7 +103,7 @@ function setup<O extends object>(fixedType: ChartType<O> | undefined) {
       // The chart takes the server-rendered svg over in place.
       const created = new Chart(element.value as HTMLElement, config())
       applied = created.config
-      for (const name of EVENTS) {
+      for (const name of chartEvents) {
         created.on(name, (event) => (emit as (name: string, event: unknown) => void)(name, event))
       }
       chart.value = created
@@ -150,7 +149,7 @@ export const TablerChart: DefineSetupFnComponent<
   name: 'TablerChart',
   inheritAttrs: false,
   props: ['type', 'data'],
-  emits: [...EVENTS],
+  emits: [...chartEvents],
 }) as never
 
 /** A component for one chart type, e.g. `chartComponent(line, 'LineChart')`. */
@@ -162,7 +161,7 @@ export function chartComponent<O extends object>(
     name,
     inheritAttrs: false,
     props: ['data'],
-    emits: [...EVENTS],
+    emits: [...chartEvents],
   }) as never
 }
 

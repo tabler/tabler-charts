@@ -380,6 +380,14 @@ export interface ChartEvents {
   click: { hit: Hit; event: MouseEvent }
 }
 
+/** The name of every chart event, for adapters that pass them all on. */
+export const chartEvents: readonly (keyof ChartEvents)[] = [
+  'hover',
+  'click',
+  'legend-toggle',
+  'render',
+]
+
 type Handler<T> = (event: T) => void
 
 /** Where the current highlight came from. */
