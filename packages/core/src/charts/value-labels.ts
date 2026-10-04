@@ -11,7 +11,7 @@ import type { ChartConfig, RenderContext } from '../chart.ts'
 import type { PostStep } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
-import { estimateTextWidth, type Rect } from '../layout.ts'
+import { estimateTextWidth, type Rect, round } from '../layout.ts'
 import { h, type VNode } from '../vnode.ts'
 
 export interface ValueLabelOptions {
@@ -166,7 +166,7 @@ export function valueLabels(
         {
           key: p.key,
           class: ['tc-value-label', p.inside && 'tc-value-label-inside'],
-          style: `transform:translate(${Math.round(p.x * 100) / 100}px,${Math.round(p.y * 100) / 100}px)`,
+          style: `transform:translate(${round(p.x)}px,${round(p.y)}px)`,
           'text-anchor': 'middle',
           dy: '0.35em',
         },

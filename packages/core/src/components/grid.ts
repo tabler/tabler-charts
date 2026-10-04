@@ -1,4 +1,5 @@
 import type { Rect } from '../layout.ts'
+import { round } from '../layout.ts'
 import { h, type VNode } from '../vnode.ts'
 import type { Tick } from './axis.ts'
 
@@ -19,7 +20,7 @@ export function grid(options: GridOptions): VNode {
     'g',
     { key: `grid-${direction}`, class: ['tc-grid', `tc-grid-${direction}`], 'aria-hidden': 'true' },
     ticks.map((tick) => {
-      const p = Math.round(tick.position * 100) / 100
+      const p = round(tick.position)
       return h('line', {
         key: tick.value,
         class: ['tc-grid-line', tick.value === 0 && 'tc-grid-line-zero'],

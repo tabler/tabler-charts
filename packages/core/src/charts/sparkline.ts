@@ -1,7 +1,8 @@
 import type { ChartType, RenderContext } from '../chart.ts'
+import { fadeMask } from '../components/fade.ts'
 import { formatNumber, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
-import { type InsetsInput, innerRect, insets } from '../layout.ts'
+import { type InsetsInput, innerRect, insets, round } from '../layout.ts'
 import { linear } from '../scales/linear.ts'
 import { barPath } from '../shapes/bar.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
@@ -37,7 +38,6 @@ export interface SparklineOptions {
   padding?: InsetsInput
 }
 
-const round = (value: number): number => Math.round(value * 100) / 100
 const circlePath = (r: number): string => `M${r},0A${r},${r},0,1,1,${-r},0A${r},${r},0,1,1,${r},0Z`
 
 function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
@@ -210,22 +210,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
   }
 
   return [
-    variant === 'area' &&
-      h(
-        'defs',
-        null,
-        h(
-          'mask',
-          { id: `${ctx.id}-fade`, maskContentUnits: 'objectBoundingBox' },
-          h(
-            'linearGradient',
-            { id: `${ctx.id}-fade-gradient`, x1: 0, y1: 0, x2: 0, y2: 1 },
-            h('stop', { class: 'tc-fade-start', offset: 0 }),
-            h('stop', { class: 'tc-fade-end', offset: 1 }),
-          ),
-          h('rect', { width: 1, height: 1, fill: `url(#${ctx.id}-fade-gradient)` }),
-        ),
-      ),
+    variant === 'area' && h('defs', null, fadeMask(`${ctx.id}-fade`)),
     h(
       'g',
       { class: 'tc-series tc-series-1 tc-sparkline' },

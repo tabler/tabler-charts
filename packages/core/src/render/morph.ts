@@ -7,6 +7,8 @@
  * path whose commands changed jumps, as it would in CSS too.
  */
 
+import { round } from '../layout.ts'
+
 const NUMBER = /-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi
 
 /** The running morph of each path: its frame request and the numbers drawn now. */
@@ -51,7 +53,7 @@ export function morph(el: Element, from: string, to: string): boolean {
     end.forEach((value, i) => {
       const v = (origin[i] as number) + (value - (origin[i] as number)) * k
       state.now[i] = v
-      d += Math.round(v * 100) / 100 + (text[i + 1] as string)
+      d += round(v) + (text[i + 1] as string)
     })
     el.setAttribute('d', t < 1 ? d : to)
     if (t < 1) state.frame = requestAnimationFrame(step)

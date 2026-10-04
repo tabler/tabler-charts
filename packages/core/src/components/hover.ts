@@ -1,7 +1,6 @@
 import type { Hit } from '../interaction.ts'
+import { round } from '../layout.ts'
 import { h, type VNode } from '../vnode.ts'
-
-const round = (value: number): number => Math.round(value * 100) / 100
 
 /** Series wrapper so hover marks pick up the series color from CSS. */
 function seriesGroup(seriesIndex: number, color: string | undefined, child: VNode): VNode {

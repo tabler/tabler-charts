@@ -6,6 +6,7 @@
  * otherwise. Legend and tooltip swatches take the same shapes in CSS.
  */
 import type { PostStep } from '../features.ts'
+import { round } from '../layout.ts'
 import type { Child, ChildInput, VNode } from '../vnode.ts'
 
 /**
@@ -39,8 +40,6 @@ const SHAPES: readonly (readonly number[])[] = [
     -1.33, -0.43, -0.32, -0.44,
   ],
 ]
-
-const round = (value: number): number => Math.round(value * 100) / 100
 
 /** The path of slot `slot`'s marker of radius `r` around (`x`, `y`). */
 export function markerPath(slot: number, x: number, y: number, r: number): string {

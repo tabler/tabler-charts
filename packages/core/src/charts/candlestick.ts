@@ -1,6 +1,7 @@
 import type { ChartType } from '../chart.ts'
 import type { Hit, Interaction } from '../interaction.ts'
 import type { InsetsInput } from '../layout.ts'
+import { round } from '../layout.ts'
 import { h } from '../vnode.ts'
 import type { Annotation } from './annotations.ts'
 import {
@@ -51,8 +52,6 @@ export interface CandlestickOptions {
   /** Reference lines and bands, e.g. a price target or a trading halt. */
   annotations?: readonly Annotation[]
 }
-
-const round = (value: number): number => Math.round(value * 100) / 100
 
 const UP = 'var(--tc-up-color,var(--tc-color-6))'
 const DOWN = 'var(--tc-negative-color,var(--tc-color-8))'

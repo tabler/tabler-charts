@@ -93,5 +93,8 @@ const ASCII = /* @__PURE__ */ Array.from({ length: 128 }, (_, code) =>
   charWidth(String.fromCharCode(code)),
 )
 
+/** A pixel value rounded to two decimals, as written into attributes and path data. */
+export const round = (value: number): number => Math.round(value * 100) / 100
+
 /** Line height used for single-line labels, relative to the font size. */
 export const LINE_HEIGHT = 1.25
