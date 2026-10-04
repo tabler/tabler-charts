@@ -395,6 +395,18 @@ type Source =
   | { kind: 'pointer'; x: number; y: number }
   | { kind: 'index'; index: number; seriesIndex?: number }
 
+/** The output of a chart type, with what it was built for. */
+interface Content<O extends object> {
+  cfg: ChartConfig<O>
+  width: number
+  height: number
+  hidden: string
+  fontSize: number | undefined
+  content: ChildInput
+  /** Whether the content renders without transitions. */
+  still: boolean
+}
+
 /** The chart on each element. */
 const mounted = /* @__PURE__ */ new WeakMap<Element, Chart<object>>()
 
@@ -441,18 +453,7 @@ export class Chart<O extends object = object> {
   #hovered = ''
   #hit: Hit | null = null
   /** Chart type output of the last render, reused while only the highlight changes. */
-  #cache:
-    | {
-        cfg: ChartConfig<O>
-        width: number
-        height: number
-        hidden: string
-        fontSize: number | undefined
-        content: ChildInput
-        /** Whether the content renders without transitions. */
-        still: boolean
-      }
-    | undefined
+  #cache: Content<O> | undefined
   #resizeTimer: ReturnType<typeof setTimeout> | undefined
   /** Visibility set by the user, overriding each entry's default. */
   readonly #toggled = new Map<string, boolean>()
@@ -640,14 +641,39 @@ export class Chart<O extends object = object> {
     assertType(config)
     const legend = resolveLegend(cfg)
     const hidden = this.#hiddenSet(legend.items)
-    const hiddenKey = [...hidden].sort().join('\u0000')
     for (const plugin of this.#plugins) plugin.beforeRender?.({ config, legend, hidden })
     const size = this.size
+    const { content, stale, changed } = this.#content(size, hidden)
+    if (stale) this.#refreshHighlight()
+
+    const adopted = this.#adopt
+    render(this.element, this.#compose(content, size), adopted)
+    this.#adopt = null
+    // The server markup was hydrated in place: snap it to the real size and
+    // data instead of morphing (the server could not measure the container).
+    if (adopted) this.#markResizing()
+
+    for (const plugin of this.#plugins)
+      plugin.afterRender?.({ config, legend, hidden, size, stale, changed })
+    if (stale) this.emit('render', { size })
+    return this
+  }
+
+  /**
+   * The chart type's output for the current config, size, hidden series and
+   * font size: built again when one of them changed (`stale`; `changed` when
+   * it is what the chart shows, not only its size), else the one of the last render.
+   */
+  #content(
+    size: Size,
+    hidden: ReadonlySet<string>,
+  ): { content: Content<O>; stale: boolean; changed: boolean } {
+    const cfg = this.#cfg
+    const hiddenKey = [...hidden].sort().join('\u0000')
     this.#font ??= cfg.fontSize ?? this.#measureFontSize()
     const fontSize = cfg.fontSize ?? this.#font
 
     let cache = this.#cache
-    // What the chart shows changed, not only its size.
     const changed = !cache || cache.cfg !== cfg || cache.hidden !== hiddenKey
     const stale =
       changed ||
@@ -673,21 +699,27 @@ export class Chart<O extends object = object> {
         hidden: hiddenKey,
         fontSize,
         content,
-        still: isStatic(config, content),
+        still: isStatic(cfg as ChartConfig<object>, content),
       }
       this.#cache = cache
     }
+    return { content: cache, stale, changed }
+  }
 
-    // Keep the highlight (and its consumers, like tooltips) in sync with new data or layout.
+  /** Keep the highlight (and its consumers, like tooltips) in sync with new data or layout. */
+  #refreshHighlight(): void {
     const source = this.#source
-    if (stale && source) {
-      const next =
-        source.kind === 'pointer'
-          ? this.hitTest(source.x, source.y)
-          : (this.#current?.hitIndex(source.index, source.seriesIndex) ?? null)
-      this.#setHover(next, undefined, true, false)
-    }
+    if (!source) return
+    const next =
+      source.kind === 'pointer'
+        ? this.hitTest(source.x, source.y)
+        : (this.#current?.hitIndex(source.index, source.seriesIndex) ?? null)
+    this.#setHover(next, undefined, true, false)
+  }
 
+  /** The root svg: the content, with the plugins' hover layers and attributes. */
+  #compose(content: Content<O>, size: Size): VNode {
+    const config = this.#cfg as ChartConfig<object>
     const hit = this.#hit
     const under: ChildInput[] = []
     const over: ChildInput[] = []
@@ -701,31 +733,17 @@ export class Chart<O extends object = object> {
       const extra = plugin.svgAttrs?.(config)
       if (extra) attrs = { ...attrs, ...extra }
     }
-    const adopted = this.#adopt
-    render(
-      this.element,
-      // Hover layers only while something is highlighted (an empty list would still render).
-      composeChart(
-        config,
-        size,
-        this.id,
-        cache.still,
-        cache.content,
-        under.length ? under : undefined,
-        over.length ? over : undefined,
-        attrs,
-      ),
-      adopted,
+    // Hover layers only while something is highlighted (an empty list would still render).
+    return composeChart(
+      config,
+      size,
+      this.id,
+      content.still,
+      content.content,
+      under.length ? under : undefined,
+      over.length ? over : undefined,
+      attrs,
     )
-    this.#adopt = null
-    // The server markup was hydrated in place: snap it to the real size and
-    // data instead of morphing (the server could not measure the container).
-    if (adopted) this.#markResizing()
-
-    for (const plugin of this.#plugins)
-      plugin.afterRender?.({ config, legend, hidden, size, stale, changed })
-    if (stale) this.emit('render', { size })
-    return this
   }
 
   /** What lies at a point in chart pixels, or `null`. */
