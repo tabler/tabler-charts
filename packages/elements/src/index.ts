@@ -17,40 +17,13 @@
  * </tabler-chart>
  * ```
  */
-import {
-  area,
-  bar,
-  Chart,
-  type ChartType,
-  candlestick,
-  donut,
-  gauge,
-  heatmap,
-  line,
-  pie,
-  radar,
-  scatter,
-  sparkline,
-} from '@tabler/charts'
+import { Chart, type ChartType, types } from '@tabler/charts'
 import { type DefineOptions, define } from './element.ts'
 
 export type { ChartElement, ChartElementSetup, DefineOptions, ShadowMode } from './element.ts'
 export { createChartElement } from './element.ts'
-
 /** Every built-in chart type, by its `type` attribute name. */
-export const types: Readonly<Record<string, ChartType<never>>> = {
-  line,
-  area,
-  bar,
-  pie,
-  donut,
-  scatter,
-  sparkline,
-  gauge,
-  heatmap,
-  candlestick,
-  radar,
-} as Record<string, ChartType<never>>
+export { types }
 
 export interface FullDefineOptions extends DefineOptions {
   /** Extra or replacement chart types, merged over the built-in ones. */

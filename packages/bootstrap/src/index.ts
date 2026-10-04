@@ -15,38 +15,10 @@
  * `data-tc-*` attribute is an option (`data-tc-aspect-ratio="3"`), and
  * `data-tc-options` takes a JSON object for the rest.
  */
-import {
-  area,
-  bar,
-  Chart,
-  type ChartConfig,
-  type ChartEvents,
-  type ChartType,
-  candlestick,
-  donut,
-  gauge,
-  heatmap,
-  line,
-  pie,
-  radar,
-  scatter,
-  sparkline,
-} from '@tabler/charts'
+import { Chart, type ChartConfig, type ChartEvents, type ChartType, types } from '@tabler/charts'
 
 /** Every built-in chart type, by its `data-tc-chart` name. */
-export const types: Readonly<Record<string, ChartType<never>>> = {
-  line,
-  area,
-  bar,
-  pie,
-  donut,
-  scatter,
-  sparkline,
-  gauge,
-  heatmap,
-  candlestick,
-  radar,
-} as Record<string, ChartType<never>>
+export { types }
 
 export interface InitOptions {
   /** Extra or replacement chart types, merged over the built-in ones. */
