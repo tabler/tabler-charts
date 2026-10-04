@@ -59,21 +59,22 @@ export interface TooltipPlacement {
 }
 
 /**
- * Place a `width × height` tooltip next to an anchor inside a
- * `bounds.width × bounds.height` container: right of the anchor, or left
- * when it would overflow, vertically centered on the pointer and clamped.
+ * Place a `width × height` tooltip next to an anchor within `bounds` (from
+ * `bounds.x`, `bounds.y`, 0 by default): right of the anchor, or left when it
+ * would overflow, vertically centered on the pointer and clamped.
  */
 export function placeTooltip(
   anchor: { x: number; y: number },
   size: { width: number; height: number },
-  bounds: { width: number; height: number },
+  bounds: { x?: number; y?: number; width: number; height: number },
   offset = 12,
 ): TooltipPlacement {
-  const fitsRight = anchor.x + offset + size.width <= bounds.width
-  const fitsLeft = anchor.x - offset - size.width >= 0
+  const { x: left = 0, y: top = 0 } = bounds
+  const fitsRight = anchor.x + offset + size.width <= left + bounds.width
+  const fitsLeft = anchor.x - offset - size.width >= left
   const side = fitsRight || !fitsLeft ? 'right' : 'left'
   const rawX = side === 'right' ? anchor.x + offset : anchor.x - offset - size.width
-  const x = Math.max(0, Math.min(rawX, bounds.width - size.width))
-  const y = Math.max(0, Math.min(anchor.y - size.height / 2, bounds.height - size.height))
+  const x = Math.max(left, Math.min(rawX, left + bounds.width - size.width))
+  const y = Math.max(top, Math.min(anchor.y - size.height / 2, top + bounds.height - size.height))
   return { x: Math.round(x), y: Math.round(y), side }
 }
