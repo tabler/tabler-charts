@@ -320,6 +320,20 @@ describe('Chart', () => {
     chart.destroy()
   })
 
+  test('setConfig() replaces the options, update() merges them', () => {
+    const chart = new Chart(el, { type: dots, data: [1], title: 'Sales', width: 300 })
+    chart.update({ data: [1, 2] })
+    flush()
+    expect(chart.config.title).toBe('Sales')
+    chart.setConfig({ type: dots, data: [1, 2, 3] })
+    flush()
+    expect(chart.config.title).toBeUndefined()
+    expect(chart.config.width).toBeUndefined()
+    expect(el.querySelector('svg')?.getAttribute('aria-label')).not.toBe('Sales')
+    expect(el.querySelectorAll('circle')).toHaveLength(3)
+    chart.destroy()
+  })
+
   test('a new chart on an element replaces the one already there', () => {
     const first = new Chart(el, { type: dots, data: [1] })
     const second = new Chart(el, { type: dots, data: [1, 2, 3] })

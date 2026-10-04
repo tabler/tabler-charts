@@ -110,7 +110,7 @@ export function useChart<O extends object>(
   useEffect(() => {
     if (chart && applied.current && !shallowEqual(applied.current, config)) {
       applied.current = config
-      chart.update(config)
+      chart.setConfig(config)
     }
   })
 

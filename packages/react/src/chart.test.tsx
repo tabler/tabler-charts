@@ -100,6 +100,23 @@ describe('@tabler/charts-react', () => {
     expect(el.querySelectorAll('.tc-bar')).toHaveLength(2)
   })
 
+  test('a prop that is no longer passed leaves the chart', () => {
+    const ref = createRef<Chart<BarOptions> | null>()
+    let setStacked: (stacked: boolean) => void = () => {}
+    function App() {
+      const [stacked, set] = useState(true)
+      setStacked = set
+      return (
+        <BarChart ref={ref} data={data} width={300} height={150} {...(stacked && { stacked })} />
+      )
+    }
+    mount(<App />)
+    expect(ref.current?.config.stacked).toBe(true)
+    act(() => setStacked(false))
+    flush()
+    expect(ref.current?.config.stacked).toBeUndefined()
+  })
+
   test('re-renders with equal props do not update the chart', () => {
     const ref = createRef<Chart<LineOptions> | null>()
     let bump: () => void = () => {}
@@ -109,7 +126,7 @@ describe('@tabler/charts-react', () => {
       return <LineChart ref={ref} data={data} width={300} height={150} />
     }
     mount(<App />)
-    const update = vi.spyOn(ref.current as Chart<LineOptions>, 'update')
+    const update = vi.spyOn(ref.current as Chart<LineOptions>, 'setConfig')
     act(() => bump())
     expect(update).not.toHaveBeenCalled()
   })

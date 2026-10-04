@@ -127,6 +127,27 @@ describe('@tabler/charts-vue', () => {
     expect(host.querySelector('svg')).not.toBeNull()
   })
 
+  test('an attribute that is no longer passed leaves the chart', async () => {
+    const exposed = ref<{ chart: Chart<object> | null } | null>(null)
+    const stacked = ref(true)
+    const fixed = data()
+    mount(() =>
+      h(BarChart, {
+        ref: exposed,
+        data: fixed,
+        width: 300,
+        height: 150,
+        ...(stacked.value ? { stacked: true } : {}),
+      }),
+    )
+    const config = () => exposed.value?.chart?.config as { stacked?: boolean } | undefined
+    expect(config()?.stacked).toBe(true)
+    stacked.value = false
+    await nextTick()
+    flush()
+    expect(config()?.stacked).toBeUndefined()
+  })
+
   test('re-renders with equal props do not update the chart', async () => {
     const exposed = ref<{ chart: Chart<object> | null } | null>(null)
     const tick = ref(0)
@@ -136,8 +157,8 @@ describe('@tabler/charts-vue', () => {
         h(LineChart, { ref: exposed, data: fixed, width: 300, height: 150 }),
       ]),
     )
-    const target = exposed.value?.chart as unknown as { update: () => void }
-    const update = vi.spyOn(target, 'update')
+    const target = exposed.value?.chart as unknown as { setConfig: () => void }
+    const update = vi.spyOn(target, 'setConfig')
     tick.value++
     await nextTick()
     expect(update).not.toHaveBeenCalled()

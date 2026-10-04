@@ -146,6 +146,7 @@ Data, annotations and axis bounds often come from users, APIs or JSON and are no
 
 ```js
 chart.update({ stacked: true })       // merge options, re-render in the next frame
+chart.setConfig({ type: bar, data })  // replace every option: the ones left out go back to defaults
 chart.setData(data)
 chart.toggleSeries('Costs')           // by key, name or index
 chart.highlightIndex(2)               // as keyboard navigation does
