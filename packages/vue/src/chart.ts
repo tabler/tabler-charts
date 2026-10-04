@@ -91,7 +91,7 @@ function setup<O extends object>(fixedType: ChartType<O> | undefined) {
       const next = config()
       if (!chart.value || (!force && shallowEqual(applied, next))) return
       applied = next
-      chart.value.update(next)
+      chart.value.setConfig(next)
     }
 
     onMounted(() => {
@@ -189,7 +189,7 @@ export function useChart<O extends object>(
   })
   watch(
     () => toValue(config),
-    () => chart.value?.update(read()),
+    () => chart.value?.setConfig(read()),
     { deep: true },
   )
   onActivated(() => chart.value?.resize())

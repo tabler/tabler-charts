@@ -577,6 +577,17 @@ export class Chart<O extends object = object> {
     return this
   }
 
+  /**
+   * Replace the whole configuration and re-render in the next frame: options
+   * left out go back to their defaults (`update()` would keep them).
+   */
+  setConfig(config: ChartConfig<O>): this {
+    this.#cfg = cleanData(config)
+    this.#font = undefined
+    this.#schedule()
+    return this
+  }
+
   /** Replace the data and re-render in the next frame. */
   setData(data: O extends { data: infer D } ? D : never): this {
     return this.update({ data } as unknown as Partial<ChartConfig<O>>)

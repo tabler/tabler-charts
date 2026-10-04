@@ -65,6 +65,23 @@ describe('<tabler-chart>', () => {
     expect(el.querySelectorAll('.tc-bar')).toHaveLength(2)
   })
 
+  test('removing an attribute or an option takes it out of the chart', async () => {
+    const el = await mount(
+      `<tabler-chart type="bar" width="400" height="200" label="Sales" legend="false"></tabler-chart>`,
+    )
+    el.options = { stacked: true }
+    el.data = data
+    flush()
+    expect(el.chart?.config).toMatchObject({ title: 'Sales', legend: false, stacked: true })
+    el.removeAttribute('label')
+    el.removeAttribute('legend')
+    el.options = {}
+    flush()
+    expect(el.chart?.config.title).toBeUndefined()
+    expect(el.chart?.config.legend).toBeUndefined()
+    expect(el.chart?.config).not.toHaveProperty('stacked')
+  })
+
   test('maps attributes and the options JSON into the config', async () => {
     const el = await mount(
       `<tabler-chart type="bar" width="400" aspect-ratio="4" legend="bottom" tooltip="false" animate="false" table="visible" patterns value-labels="all" shapes sync="board" locale="de-DE" options='{"stacked":true,"radius":0}'></tabler-chart>`,

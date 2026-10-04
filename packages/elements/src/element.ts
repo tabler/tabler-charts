@@ -153,7 +153,7 @@ export function createChartElement(setup: ChartElementSetup): new () => ChartEle
         return
       }
       if (this.#chart && this.#chart.config.type === config.type) {
-        this.#chart.update(config)
+        this.#chart.setConfig(config)
         return
       }
       this.#chart?.destroy()
