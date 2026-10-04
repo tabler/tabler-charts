@@ -149,7 +149,7 @@ const options = (name: string): Record<string, unknown> => {
   const out: Record<string, unknown> = {}
   if (name === 'bar' || name === 'line' || name === 'area') {
     if (chance(0.3)) out.stacked = pick([true, 'percent'])
-    if (chance(0.2)) out.horizontal = name === 'bar'
+    if (chance(0.2) && name === 'bar') out.orientation = 'horizontal'
   }
   if (chance(0.15)) out.y = { scale: 'log' }
   // Junk in the options that bound the axes, and in annotations.
