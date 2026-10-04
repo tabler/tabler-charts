@@ -70,6 +70,17 @@ describe('sync', () => {
     expect(b.active).toBeNull()
   })
 
+  test('a chart destroyed before it joined its new group leaves that group alone', () => {
+    const lone = make({ sync: 'old' })
+    const a = make({ sync: 'new' })
+    // The config says 'new', but the chart is still in 'old' until it renders.
+    lone.update({ sync: 'new' } as never)
+    lone.destroy()
+    const b = make({ sync: 'new' })
+    hover(a, 1)
+    expect(b.active?.label).toBe('Tue')
+  })
+
   test('a chart leaves its group when it is destroyed or its sync changes', () => {
     const a = make({ sync: 'd' })
     const b = make({ sync: 'd' })
