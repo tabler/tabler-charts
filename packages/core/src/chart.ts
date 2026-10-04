@@ -414,7 +414,7 @@ export class Chart<O extends object = object> {
   #measured: Partial<Size> = {}
   readonly #handlers = new Map<keyof ChartEvents, Set<Handler<never>>>()
   #unobserve: () => void
-  readonly #plugins: PluginInstance[]
+  readonly #plugins: PluginInstance[] = []
   #destroyed = false
   #current: Interaction | undefined
   #source: Source | undefined
@@ -460,11 +460,16 @@ export class Chart<O extends object = object> {
     this.#adopt = element.querySelector(':scope > svg.tc-chart')
     this.#measure()
     this.#unobserve = observeResize(element, this.#onResize)
-    const self = this as unknown as Chart<object>
-    this.#plugins = [...defaultPlugins, ...(config.plugins ?? [])].map((plugin) =>
-      plugin.install(self),
-    )
-    this.render()
+    try {
+      for (const plugin of [...defaultPlugins, ...(config.plugins ?? [])]) {
+        this.#plugins.push(plugin.install(this as unknown as Chart<object>))
+      }
+      this.render()
+    } catch (error) {
+      // Nobody gets this chart to destroy it: leave the element as it was found.
+      this.destroy()
+      throw error
+    }
   }
 
   /** Current configuration. */
