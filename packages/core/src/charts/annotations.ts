@@ -2,6 +2,7 @@ import { estimateTextWidth, type Rect } from '../layout.ts'
 import type { BandKey, BandScale } from '../scales/band.ts'
 import { type ClassValue, h, type VNode } from '../vnode.ts'
 import { labelKey, toMs } from './cartesian.ts'
+import { finite, label, records, text } from './clean.ts'
 
 /** A category label, a number, or a date (on a time axis). */
 type AnnotationLabel = string | number | Date
@@ -59,6 +60,25 @@ function categorySpan(
   return i < 0 ? undefined : [scales.band.at(i), scales.band.at(i) + scales.band.bandwidth]
 }
 
+/** A value or a [from, to] pair, cleaned by `f`; `null` when anything is off. */
+const span = <T>(v: unknown, f: (x: unknown) => T | null): T | readonly T[] | null => {
+  if (!Array.isArray(v)) return f(v)
+  const pair = v.map(f)
+  return pair.length === 2 && !pair.includes(null) ? (pair as T[]) : null
+}
+
+/** Annotations from outside: lines or bands at finite values or labels, with text labels. */
+export const cleanAnnotations = (v: unknown): Annotation[] | undefined =>
+  v === undefined
+    ? v
+    : (records(v, (a) => ({
+        ...a,
+        y: a.y === undefined ? a.y : span(a.y, finite),
+        x: a.x === undefined ? a.x : span(a.x, label),
+        label: a.label == null ? undefined : text(a.label),
+        color: typeof a.color === 'string' ? a.color : undefined,
+      })).filter((a) => a.y !== null && a.x !== null && (a.x ?? a.y) !== undefined) as Annotation[])
+
 const round = (value: number): number => Math.round(value * 100) / 100
 
 const isPair = <T>(v: T | readonly [T, T]): v is readonly [T, T] => Array.isArray(v)
@@ -66,7 +86,7 @@ const isPair = <T>(v: T | readonly [T, T]): v is readonly [T, T] => Array.isArra
 /** Values the value axis should include so every annotation shows. */
 export function annotationValues(annotations: readonly Annotation[] | undefined): number[] {
   const out: number[] = []
-  for (const a of annotations ?? []) {
+  for (const a of cleanAnnotations(annotations) ?? []) {
     if (a.y === undefined) continue
     for (const v of isPair(a.y) ? a.y : [a.y]) if (Number.isFinite(v)) out.push(v)
   }
@@ -81,6 +101,8 @@ export function annotationLayers(
   annotations: readonly Annotation[] | undefined,
   scales: AnnotationScales,
 ): { under: VNode | null; over: VNode | null } {
+  // Annotations may come from outside (thresholds from an API).
+  annotations = cleanAnnotations(annotations)
   if (!annotations?.length) return { under: null, over: null }
   const { area, horizontal, fontSize } = scales
   const bands: VNode[] = []

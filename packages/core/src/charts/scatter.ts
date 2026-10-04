@@ -10,6 +10,7 @@ import { extent } from '../scales/extent.ts'
 import { linear } from '../scales/linear.ts'
 import { type ClassValue, h } from '../vnode.ts'
 import { domainOf, plottable, type ValueAxisOptions } from './cartesian.ts'
+import { cleanAxes, finite, isRecord, named, records, text } from './clean.ts'
 
 /** A point of a scatter or bubble chart. */
 export interface ScatterPoint {
@@ -343,6 +344,19 @@ function scatterTable(
  */
 export const scatter: ChartType<ScatterOptions> = {
   name: 'scatter',
+  clean: cleanAxes((data) => ({
+    ...(isRecord(data) ? data : {}),
+    series: records(isRecord(data) && data.series, (s) => ({
+      ...named(s),
+      points: records(s.points, (p) => ({
+        ...p,
+        x: finite(p.x),
+        y: finite(p.y),
+        size: finite(p.size) ?? undefined,
+        label: p.label == null ? undefined : text(p.label),
+      })).filter((p) => p.x !== null && p.y !== null),
+    })),
+  })),
   render: renderScatter,
   legend: scatterLegend,
   table: scatterTable,

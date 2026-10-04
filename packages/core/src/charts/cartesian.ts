@@ -209,8 +209,8 @@ export function labelFormatter(
 }
 
 /** A label as a timestamp: dates, numbers, or parseable strings (ISO); `NaN` otherwise. */
-export const toMs = (label: Label): number =>
-  label instanceof Date ? label.getTime() : typeof label === 'number' ? label : Date.parse(label)
+// Through Date, so timestamps out of its range are NaN too.
+export const toMs = (label: Label): number => new Date(label).getTime()
 
 /** Value scale for a domain: linear, or logarithmic with positive-only ticks. */
 export function valueScale(

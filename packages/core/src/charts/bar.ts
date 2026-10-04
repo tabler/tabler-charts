@@ -16,6 +16,7 @@ import {
   seriesLegend,
   seriesTable,
 } from './cartesian.ts'
+import { cleanAxes, cleanSeries } from './clean.ts'
 import { horizontalLayout } from './horizontal.ts'
 import { type Segment, type StackMode, stackBounds, stackSeries } from './stack.ts'
 
@@ -57,6 +58,7 @@ export interface BarOptions extends CartesianOptions {
  */
 export const bar: ChartType<BarOptions> = {
   name: 'bar',
+  clean: cleanAxes(cleanSeries),
   render(options, ctx) {
     const {
       radius = 4,

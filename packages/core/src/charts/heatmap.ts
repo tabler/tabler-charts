@@ -16,6 +16,7 @@ import {
   seriesLegend,
   seriesTable,
 } from './cartesian.ts'
+import { cleanAxes, cleanSeries } from './clean.ts'
 
 /** A band of values drawn in one color, with its own legend entry. */
 export interface HeatmapRange {
@@ -345,6 +346,7 @@ function heatmapLegend(options: HeatmapOptions): LegendItem[] {
  */
 export const heatmap: ChartType<HeatmapOptions> = {
   name: 'heatmap',
+  clean: cleanAxes(cleanSeries),
   render: renderHeatmap,
   legend: heatmapLegend,
   table: (options, ctx, limit) => seriesTable(options, ctx, limit),

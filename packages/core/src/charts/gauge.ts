@@ -6,6 +6,7 @@ import { type InsetsInput, innerRect, insets } from '../layout.ts'
 import type { LegendItem } from '../legend.ts'
 import { arcCentroid, arcPathStable } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { cleanData, cleanItems, isRecord } from './clean.ts'
 
 /** One ring of a gauge. */
 export interface GaugeRing {
@@ -297,6 +298,11 @@ function gaugeTable(options: GaugeOptions, ctx: RenderContext): DataTable {
  */
 export const gauge: ChartType<GaugeOptions> = {
   name: 'gauge',
+  clean: cleanData((data) =>
+    cleanItems(
+      typeof data === 'number' ? [{ name: '', value: data }] : isRecord(data) ? [data] : data,
+    ),
+  ),
   render: renderGauge,
   legend: gaugeLegend,
   table: gaugeTable,

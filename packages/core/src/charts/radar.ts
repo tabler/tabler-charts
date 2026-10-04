@@ -16,6 +16,7 @@ import {
   seriesLegend,
   seriesTable,
 } from './cartesian.ts'
+import { cleanAxes, cleanSeries } from './clean.ts'
 
 /** Options for the radial value axis. */
 export interface RadialAxisOptions {
@@ -339,6 +340,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
  */
 export const radar: ChartType<RadarOptions> = {
   name: 'radar',
+  clean: cleanAxes(cleanSeries),
   render: renderRadar,
   legend: (options) => seriesLegend(options.data),
   table: (options, ctx, limit) =>

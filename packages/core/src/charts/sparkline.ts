@@ -7,6 +7,7 @@ import { barPath } from '../shapes/bar.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { h } from '../vnode.ts'
 import { domainOf, type Label, labelKey } from './cartesian.ts'
+import { cleanData, numbers } from './clean.ts'
 
 export interface SparklineOptions {
   /** The values; `null` leaves a gap. */
@@ -244,6 +245,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
  */
 export const sparkline: ChartType<SparklineOptions> = {
   name: 'sparkline',
+  clean: cleanData(numbers),
   render: renderSparkline,
   // Decorative by default: opt in with `keyboard: true`.
   keyboard: false,

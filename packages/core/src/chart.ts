@@ -31,6 +31,12 @@ export interface RenderContext {
  */
 export interface ChartType<O extends object = object> {
   readonly name: string
+  /**
+   * Clean options that may come from outside (data, annotations, axis
+   * bounds from users, APIs, JSON) into the shape `render()` expects; called
+   * as the config comes in, before anything reads it.
+   */
+  clean?(options: O): unknown
   render(options: O, context: RenderContext): ChildInput
   /** Entries for the legend (series, slices); charts without it get no legend. */
   legend?(options: O): LegendItem[]
@@ -171,6 +177,10 @@ export function renderContext<O extends object>(
   }
 }
 
+/** The config as cleaned by its chart type. */
+const cleanData = <O extends object>(config: ChartConfig<O>): ChartConfig<O> =>
+  config.type?.clean ? (config.type.clean(config) as ChartConfig<O>) : config
+
 function assertType(config: ChartConfig<object>): void {
   if (!config.type || typeof config.type.render !== 'function') {
     throw new TypeError('@tabler/charts: `type` must be a chart type such as line.')
@@ -268,6 +278,7 @@ export function buildChart<O extends object>(
   onHitTest: (interaction: Interaction) => void = () => {},
 ): VNode {
   assertType(config as ChartConfig<object>)
+  config = cleanData(config)
   const hidden = defaultHidden(resolveLegend(config).items)
   const content = renderContent(config, size, id, onHitTest, hidden)
   const base = config as ChartConfig<object>
@@ -366,7 +377,7 @@ export class Chart<O extends object = object> {
     const element = typeof target === 'string' ? document.querySelector(target) : target
     if (!element) throw new Error(`@tabler/charts: element "${String(target)}" not found.`)
     this.element = element
-    this.#cfg = config
+    this.#cfg = cleanData(config)
     this.id = config.id ?? nextId()
     this.#adopt = element.querySelector(':scope > svg.tc-chart')
     this.#measure()
@@ -493,7 +504,7 @@ export class Chart<O extends object = object> {
 
   /** Merge `options` into the configuration and re-render in the next frame. */
   update(options: Partial<ChartConfig<O>>): this {
-    this.#cfg = { ...this.#cfg, ...options }
+    this.#cfg = cleanData({ ...this.#cfg, ...options })
     // Options such as `class` may change the font size; new data does not.
     for (const key in options) if (key !== 'data') this.#font = undefined
     this.#schedule()

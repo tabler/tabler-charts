@@ -98,6 +98,10 @@ annotations: [
 ]
 ```
 
+### Data from outside
+
+Data, annotations and axis bounds often come from users, APIs or JSON and are not always what the types say. Charts take them as they are and never throw or draw `NaN` over them: a value that is not a finite number (`null`, `'42'`, `NaN`, `Infinity`, an object) is a gap, as are numbers too large to plot (beyond ±1e300); names become text; a color that is not a string falls back to the palette; series, slices, points or annotations that are not objects are left out. Numbers in strings are not parsed: convert them first if your API sends them.
+
 ## Options every chart takes
 
 | Option | Default | |

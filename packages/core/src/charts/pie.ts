@@ -6,6 +6,7 @@ import { type InsetsInput, innerRect, insets } from '../layout.ts'
 import type { LegendItem } from '../legend.ts'
 import { arcCentroid, arcPathStable, padAngleForGap } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { cleanData, cleanItems } from './clean.ts'
 
 /** One slice of a pie or donut. */
 export interface PieSlice {
@@ -256,6 +257,7 @@ function pieTable(options: PieOptions, ctx: RenderContext): DataTable {
 function pieType(name: string, defaults: { inner: number; corner: number }): ChartType<PieOptions> {
   return {
     name,
+    clean: cleanData(cleanItems),
     render: (options, ctx): ChildInput => renderPie(options, ctx, defaults),
     legend: pieLegend,
     table: pieTable,
