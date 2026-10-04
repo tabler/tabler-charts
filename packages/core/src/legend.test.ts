@@ -146,6 +146,20 @@ describe('Chart legend', () => {
     height.mockRestore()
   })
 
+  test('takes its margin from the container too, with height: "container"', () => {
+    const style = document.createElement('style')
+    style.textContent = '.tc-legend { margin-bottom: 8px }'
+    document.head.append(style)
+    const legend = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(20)
+    const height = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300)
+    chart = new Chart(el, { ...base, height: 'container' })
+    // 300 less the legend and the gap under it: the chart ends where the container does.
+    expect(chart.size.height).toBe(272)
+    legend.mockRestore()
+    height.mockRestore()
+    style.remove()
+  })
+
   test('toggles series on click and emits legend-toggle', () => {
     chart = new Chart(el, base)
     const spy = vi.fn()

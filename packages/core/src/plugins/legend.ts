@@ -64,7 +64,16 @@ export function legend(): ChartPlugin {
           adopt = null
           place()
         },
-        reservedHeight: () => (el?.isConnected ? el.offsetHeight : 0),
+        // With its margin: the gap to the chart is taken from the container too.
+        reservedHeight() {
+          if (!el?.isConnected) return 0
+          const { marginTop, marginBottom } = getComputedStyle(el)
+          return (
+            el.offsetHeight +
+            (Number.parseFloat(marginTop) || 0) +
+            (Number.parseFloat(marginBottom) || 0)
+          )
+        },
         afterRender: place,
         destroy: remove,
       }
