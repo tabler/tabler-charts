@@ -81,8 +81,10 @@ code {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
   min-height: 56px;
+  padding-block: 8px;
 }
 
 .brand {
@@ -127,6 +129,16 @@ code {
 .site-nav a {
   color: var(--muted);
   text-decoration: none;
+  white-space: nowrap;
+}
+
+/* On a phone the links get a row of their own, below the logo and the theme switch. */
+@media (max-width: 560px) {
+  .site-nav {
+    order: 1;
+    width: 100%;
+    margin-left: 0;
+  }
 }
 
 .site-nav a:hover,
