@@ -123,6 +123,7 @@ function legendLayer(
   const items = legend ? Array.from(legend.querySelectorAll('.tc-legend-item')) : []
   if (!legend || !items.length) return undefined
   const doc = container.ownerDocument
+  const patterned = container.querySelector(':scope > svg.tc-patterned')
   const box = legend.getBoundingClientRect()
   const g = doc.createElementNS(SVG_NS, 'g')
   for (const item of items) {
@@ -132,6 +133,11 @@ function legendLayer(
     const s = swatch.getBoundingClientRect()
     const n = name.getBoundingClientRect()
     const color = getComputedStyle(swatch).getPropertyValue('--tc-series-color').trim()
+    // A chart that wears its patterns has them in the copied svg: the swatch takes its slot's.
+    const slot = /\btc-series-([1-8])\b/.exec(item.getAttribute('class') ?? '')?.[1] ?? 'other'
+    const fill = patterned
+      ? getComputedStyle(patterned).getPropertyValue(`--tc-pattern-${slot}`).trim()
+      : ''
     const hidden = item.classList.contains('tc-legend-item-hidden')
     const dot = doc.createElementNS(SVG_NS, 'circle')
     dot.setAttribute('cx', String(round(s.left - box.left + s.width / 2)))
@@ -139,7 +145,9 @@ function legendLayer(
     dot.setAttribute('r', String(round(s.width / 2 - (hidden ? 0.75 : 0))))
     dot.setAttribute(
       'style',
-      hidden ? `fill:none;stroke:${color};stroke-width:1.5px` : `fill:${color}`,
+      hidden
+        ? `fill:none;stroke:${color};stroke-width:1.5px`
+        : `fill:${fill.startsWith('url(') ? fill : color}`,
     )
     const text = getComputedStyle(name)
     const label = doc.createElementNS(SVG_NS, 'text')

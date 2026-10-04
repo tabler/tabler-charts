@@ -135,32 +135,73 @@
 
 /* -- Series colors ---------------------------------------------------------- */
 
+/* Each slot also names its pattern fill and line dash, used with patterns. */
+
 .tc-series {
   --tc-series-color: var(--tc-color-other);
+  --tc-series-pattern: var(--tc-pattern-other);
+  --tc-pattern-dash: 1 3;
+  /* Lines and dots of pattern fills (--tc-pattern-color, or the surface). */
+  --tc-pattern-ink: var(--tc-pattern-color, var(--tc-surface));
+  --tc-swatch-pattern: repeating-linear-gradient(45deg, var(--tc-pattern-ink) 0 1px, #0000 0 3px);
 }
 .tc-series-1 {
   --tc-series-color: var(--tc-color-1);
+  --tc-series-pattern: var(--tc-pattern-1);
+  --tc-pattern-dash: none;
+  --tc-swatch-pattern: repeating-linear-gradient(45deg, var(--tc-pattern-ink) 0 1.5px, #0000 0 4px);
 }
 .tc-series-2 {
   --tc-series-color: var(--tc-color-2);
+  --tc-series-pattern: var(--tc-pattern-2);
+  --tc-pattern-dash: 6 3;
+  --tc-swatch-pattern: radial-gradient(var(--tc-pattern-ink) 0.8px, #0000 1.2px) 0 0 / 4px 4px;
 }
 .tc-series-3 {
   --tc-series-color: var(--tc-color-3);
+  --tc-series-pattern: var(--tc-pattern-3);
+  --tc-pattern-dash: 2 3;
+  --tc-swatch-pattern: repeating-linear-gradient(
+    -45deg,
+    var(--tc-pattern-ink) 0 1.5px,
+    #0000 0 4px
+  );
 }
 .tc-series-4 {
   --tc-series-color: var(--tc-color-4);
+  --tc-series-pattern: var(--tc-pattern-4);
+  --tc-pattern-dash: 10 3 2 3;
+  --tc-swatch-pattern: repeating-linear-gradient(var(--tc-pattern-ink) 0 1.5px, #0000 0 4px);
 }
 .tc-series-5 {
   --tc-series-color: var(--tc-color-5);
+  --tc-series-pattern: var(--tc-pattern-5);
+  --tc-pattern-dash: 4 4;
+  --tc-swatch-pattern:
+    repeating-linear-gradient(45deg, var(--tc-pattern-ink) 0 1px, #0000 0 4px),
+    repeating-linear-gradient(-45deg, var(--tc-pattern-ink) 0 1px, #0000 0 4px);
 }
 .tc-series-6 {
   --tc-series-color: var(--tc-color-6);
+  --tc-series-pattern: var(--tc-pattern-6);
+  --tc-pattern-dash: 12 4;
+  --tc-swatch-pattern: repeating-linear-gradient(90deg, var(--tc-pattern-ink) 0 1.5px, #0000 0 4px);
 }
 .tc-series-7 {
   --tc-series-color: var(--tc-color-7);
+  --tc-series-pattern: var(--tc-pattern-7);
+  --tc-pattern-dash: 2 2 6 2;
+  --tc-swatch-pattern:
+    repeating-linear-gradient(var(--tc-pattern-ink) 0 1px, #0000 0 4px),
+    repeating-linear-gradient(90deg, var(--tc-pattern-ink) 0 1px, #0000 0 4px);
 }
 .tc-series-8 {
   --tc-series-color: var(--tc-color-8);
+  --tc-series-pattern: var(--tc-pattern-8);
+  --tc-pattern-dash: 8 2 2 2;
+  --tc-swatch-pattern:
+    linear-gradient(90deg, #0000 50%, var(--tc-series-color) 0) 0 0 / 4px 4px,
+    repeating-linear-gradient(var(--tc-pattern-ink) 0 1.5px, #0000 0 4px);
 }
 
 /* -- Axes & grid ------------------------------------------------------------ */
@@ -336,6 +377,42 @@
 
 .tc-annotations {
   pointer-events: none;
+}
+
+/* -- Patterns --------------------------------------------------------------- */
+
+/*
+ * With `patterns: true` (or `'auto'` in forced colors) series do not depend
+ * on color alone: fills wear a pattern of their slot (the series color with
+ * lines or dots in --tc-pattern-color over it), lines a dash of their slot.
+ */
+.tc-pattern-bg {
+  fill: var(--tc-series-color);
+}
+
+.tc-pattern-ink {
+  fill: none;
+  stroke: var(--tc-pattern-ink);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+}
+
+.tc-patterned :is(.tc-bar, .tc-area, .tc-slice, .tc-gauge-arc, .tc-bubble) {
+  fill: var(--tc-series-pattern, var(--tc-series-color));
+}
+
+/* Faint areas would hide the pattern. */
+.tc-patterned .tc-area {
+  fill-opacity: max(var(--tc-area-opacity), 0.4);
+}
+
+.tc-patterned .tc-line {
+  stroke-dasharray: var(--tc-series-dash, var(--tc-pattern-dash));
+}
+
+/* Swatches in the legend and tooltip show the pattern too, drawn in CSS. */
+:has(> .tc-patterned) > :is(.tc-legend, .tc-tooltip) :is(.tc-legend-swatch, .tc-tooltip-swatch) {
+  background: var(--tc-swatch-pattern), var(--tc-series-color);
 }
 
 /* -- Motion ----------------------------------------------------------------- */
@@ -795,5 +872,34 @@
   .tc-legend-item-hidden .tc-legend-swatch {
     background: transparent;
     box-shadow: inset 0 0 0 1.5px CanvasText;
+  }
+  /* Patterns carry the series there: Canvas tiles with CanvasText lines. */
+  .tc-pattern-bg {
+    fill: Canvas;
+  }
+  .tc-pattern-ink {
+    stroke: CanvasText;
+  }
+  :is(.tc-patterned, .tc-patterns-auto)
+    :is(.tc-bar, .tc-area, .tc-slice, .tc-gauge-arc, .tc-bubble) {
+    fill: var(--tc-series-pattern, CanvasText);
+    fill-opacity: 1;
+    stroke: CanvasText;
+    stroke-width: 1px;
+  }
+  .tc-patterns-auto .tc-line {
+    stroke-dasharray: var(--tc-series-dash, var(--tc-pattern-dash));
+  }
+  /* Set on the entry: its swatch pattern is computed there. */
+  :has(> :is(.tc-patterned, .tc-patterns-auto)) > :is(.tc-legend, .tc-tooltip) .tc-series {
+    --tc-pattern-color: CanvasText;
+    --tc-series-color: Canvas;
+  }
+  :has(> :is(.tc-patterned, .tc-patterns-auto))
+    > :is(.tc-legend, .tc-tooltip)
+    :is(.tc-legend-swatch, .tc-tooltip-swatch) {
+    forced-color-adjust: none;
+    background: var(--tc-swatch-pattern), Canvas;
+    box-shadow: inset 0 0 0 1px CanvasText;
   }
 }

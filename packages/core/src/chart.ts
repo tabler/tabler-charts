@@ -1,4 +1,5 @@
 import type { DataTable } from './a11y.ts'
+import { feature, features } from './features.ts'
 import type { Locale } from './format.ts'
 import { type Hit, hitKey, type Interaction } from './interaction.ts'
 import { defaultHidden, type LegendItem, type LegendOptions } from './legend.ts'
@@ -95,6 +96,14 @@ export interface BaseOptions {
    * time than they show; `true` animates those too.
    */
   animate?: boolean
+  /**
+   * Fill bars, areas, slices, rings and bubbles with patterns (and dash
+   * lines), so series do not depend on color alone: `true` always, `'auto'`
+   * (the default) only in forced colors (Windows High Contrast), where the
+   * colors are gone, `false` never. Needs `@tabler/charts/patterns` on the
+   * core (`@tabler/charts` includes it).
+   */
+  patterns?: boolean | 'auto'
   /**
    * Render the data as an HTML table: visually hidden for screen readers
    * (`true`, the default), shown below the chart (`'visible'`), or not at all.
@@ -245,10 +254,22 @@ function composeChart(
 ): VNode {
   const { width, height } = size
   const descId = config.description ? `${id}-desc` : undefined
+  const { patterns } = config
+  // [class, root style, defs] of the pattern fills, when the chart has them.
+  const fills =
+    patterns !== false &&
+    (patterns === true ? feature('patterns') : features.patterns)?.(config, id)
   return h(
     'svg',
     {
-      class: ['tc-chart', `tc-chart-${config.type.name}`, still && 'tc-static', config.class],
+      class: [
+        'tc-chart',
+        `tc-chart-${config.type.name}`,
+        still && 'tc-static',
+        fills && fills[0],
+        config.class,
+      ],
+      style: fills ? fills[1] : undefined,
       viewBox: `0 0 ${width} ${height}`,
       width,
       height,
@@ -261,6 +282,7 @@ function composeChart(
     // Keyed, so their coming and going never shifts the (unkeyed) chart
     // content in the DOM patcher: that would recreate it and restart animations.
     descId && h('desc', { key: 'desc', id: descId }, config.description),
+    fills && fills[2],
     underlay && h('g', { key: 'hover-under', class: 'tc-hover-layer' }, underlay),
     content,
     overlay && h('g', { key: 'hover-over', class: 'tc-hover-layer' }, overlay),

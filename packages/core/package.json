@@ -39,6 +39,9 @@
     "./dist/annotations.js",
     "./dist/annotations.cjs",
     "./src/annotations.ts",
+    "./dist/patterns.js",
+    "./dist/patterns.cjs",
+    "./src/patterns.ts",
     "./dist/candlestick.js",
     "./dist/candlestick.cjs",
     "./src/candlestick.ts",
@@ -201,6 +204,16 @@
       "require": {
         "types": "./dist/annotations.d.cts",
         "default": "./dist/annotations.cjs"
+      }
+    },
+    "./patterns": {
+      "import": {
+        "types": "./dist/patterns.d.ts",
+        "default": "./dist/patterns.js"
+      },
+      "require": {
+        "types": "./dist/patterns.d.cts",
+        "default": "./dist/patterns.cjs"
       }
     },
     "./hydrate": {

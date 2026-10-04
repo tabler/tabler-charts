@@ -118,6 +118,7 @@ Data, annotations and axis bounds often come from users, APIs or JSON and are no
 | `table` | `true` | Hidden data table for screen readers; `'visible'` shows it |
 | `keyboard` | `true` | Arrow keys walk the data; sparklines opt out |
 | `animate` | `true` | Charts with more than 1000 elements skip transitions unless `true` |
+| `patterns` | `'auto'` | Pattern fills: `true` always, `'auto'` in forced colors only, `false` never |
 | `class` | | Extra classes on the `<svg>` |
 | `plugins` | | Extra plugins |
 
@@ -193,6 +194,7 @@ The export copies the computed styles into the SVG, so CSS theming comes along. 
 - **Data table:** a data table is there for screen readers; it is visually hidden unless `table: 'visible'`.
 - **Keyboard:** Left and Right walk the categories, Up and Down the series, Home and End jump to the ends, and Escape clears the highlight. The tooltip follows.
 - **Palette:** the default palette is checked for colorblind separation, and the legend gives every series a name, never color alone.
+- **Patterns:** with `patterns: true`, bars, areas, slices, rings and bubbles wear a pattern of their color slot (diagonal lines, dots, hatching, grid…) and lines a dash, so series do not depend on color at all (color vision deficiency, grayscale print). The legend and tooltip swatches match, and exports keep them. By default (`'auto'`) they appear only in forced colors (Windows High Contrast), where the colors are gone. `--tc-pattern-color` sets the color of the lines and dots (the surface by default). On the core, `import '@tabler/charts/patterns'` enables them.
 
 ## License
 

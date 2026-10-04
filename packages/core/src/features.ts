@@ -1,6 +1,7 @@
 import type { annotationLayers, annotationValues } from './charts/annotations.ts'
 import type { dateLabels } from './charts/dates.ts'
 import type { logDomain, logTicks } from './charts/log-axis.ts'
+import type { patternFills } from './charts/patterns.ts'
 import type { timeAxis } from './charts/time-axis.ts'
 import type { hydrate } from './render/hydrate.ts'
 import type { morph } from './render/morph.ts'
@@ -34,6 +35,8 @@ export interface Features {
   line?: { linePath: typeof linePath; areaPath: typeof areaPath }
   /** Reference lines and bands behind `annotations` in cartesian charts. */
   annotations?: { layers: typeof annotationLayers; values: typeof annotationValues }
+  /** Pattern fills behind `patterns` (and forced colors, with `'auto'`). */
+  patterns?: typeof patternFills
 }
 
 export const features: Features = {}

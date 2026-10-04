@@ -15,6 +15,7 @@ export default defineConfig({
     'src/heatmap.ts',
     'src/candlestick.ts',
     'src/annotations.ts',
+    'src/patterns.ts',
     'src/hydrate.ts',
     'src/morph.ts',
     'src/export.ts',

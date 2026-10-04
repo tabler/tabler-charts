@@ -40,7 +40,7 @@ afterEach(() => {
 describe('@tabler/charts-react', () => {
   test('renders the chart on the server, with ids from useId', () => {
     const html = renderToString(<LineChart data={data} width={400} height={200} locale="en-US" />)
-    expect(html).toMatch(/^<div class="tc-container"><svg [^>]*class="tc-chart tc-chart-line"/)
+    expect(html).toMatch(/^<div class="tc-container"><svg [^>]*class="tc-chart tc-chart-line[ "]/)
     expect(html).toContain('viewBox="0 0 400 200"')
     // React ids contain colons or other marks; the chart ids stay plain.
     const clip = html.match(/clipPath id="([^"]+)"/)?.[1] ?? ''
