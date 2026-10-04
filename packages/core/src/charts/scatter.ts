@@ -12,9 +12,9 @@ import {
   LINE_HEIGHT,
   round,
 } from '../layout.ts'
-import type { LegendItem } from '../legend.ts'
 import { extent } from '../scales/extent.ts'
 import type { LinearScale } from '../scales/linear.ts'
+import { circlePath } from '../shapes/circle.ts'
 import { type ClassValue, h } from '../vnode.ts'
 import {
   domainOf,
@@ -27,6 +27,7 @@ import {
   valueTicks,
 } from './cartesian.ts'
 import { cleanData, finite, isRecord, named, records, text } from './clean.ts'
+import { groupAttrs, keyOf, legendItems } from './named.ts'
 
 /** A point of a scatter or bubble chart. */
 export interface ScatterPoint {
@@ -81,21 +82,16 @@ interface Placed {
   r: number
 }
 
-const seriesKey = (series: ScatterSeries): string => series.id ?? series.name
-
 /** A point's bubble size, or `undefined` when it has none (or an invalid one). */
 const sizeOf = (p: ScatterPoint): number | undefined =>
   p.size != null && Number.isFinite(p.size) && p.size > 0 ? p.size : undefined
-
-/** SVG path of a circle of radius `r` around the origin. */
-const circlePath = (r: number): string => `M${r},0A${r},${r},0,1,1,${-r},0A${r},${r},0,1,1,${r},0Z`
 
 function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   const { width, height, fontSize, locale } = ctx
   const xOptions = options.x ?? {}
   const yOptions = options.y ?? {}
   const radius = options.radius ?? 4
-  const visible = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
+  const visible = options.data.series.filter((s) => !ctx.hidden.has(keyOf(s)))
   const points = visible.flatMap((s) => s.points)
   const sizes = points.map(sizeOf).filter((v): v is number => v !== undefined)
   const maxSize = extent(sizes)?.[1] ?? 0
@@ -156,7 +152,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   // Every visible point in pixels, sorted by x for fast nearest-point lookups.
   const placed: Placed[] = []
   options.data.series.forEach((series, seriesIndex) => {
-    if (ctx.hidden.has(seriesKey(series))) return
+    if (ctx.hidden.has(keyOf(series))) return
     series.points.forEach((point, pointIndex) => {
       if (!usable(point)) return
       placed.push({
@@ -254,15 +250,10 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   const clip = plotClip(ctx, area, sizes.length ? 0 : overhang)
   const groups = options.data.series.map(
     (series, seriesIndex) =>
-      !ctx.hidden.has(seriesKey(series)) &&
+      !ctx.hidden.has(keyOf(series)) &&
       h(
         'g',
-        {
-          key: seriesKey(series),
-          class: ['tc-series', `tc-series-${seriesIndex + 1}`, series.class],
-          'data-series': series.name,
-          style: { '--tc-series-color': series.color },
-        },
+        groupAttrs(series, seriesIndex),
         // Plain points share one path per series: thousands of circles would
         // each cost the browser style and layout work. The path keeps its
         // commands while the point count does, so new data morphs. Bubbles
@@ -295,15 +286,6 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   ]
 }
 
-function scatterLegend(options: ScatterOptions): LegendItem[] {
-  return options.data.series.map((series, index) => {
-    const item: LegendItem = { key: seriesKey(series), name: series.name, index }
-    if (series.color) item.color = series.color
-    if (series.hidden) item.hidden = true
-    return item
-  })
-}
-
 function scatterTable(
   options: ScatterOptions,
   ctx: RenderContext,
@@ -312,7 +294,7 @@ function scatterTable(
   const fx = formatDetail(options.x?.format, ctx.locale)
   const fy = formatDetail(options.y?.format, ctx.locale)
   const fs = formatNumber(undefined, ctx.locale)
-  const series = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
+  const series = options.data.series.filter((s) => !ctx.hidden.has(keyOf(s)))
   const withSize = series.some((s) => s.points.some((p) => p.size != null))
   const withLabel = series.some((s) => s.points.some((p) => p.label != null))
   const total = series.reduce((sum, s) => sum + s.points.length, 0)
@@ -361,7 +343,7 @@ export const scatter: ChartType<ScatterOptions> = {
     })),
   })),
   render: renderScatter,
-  legend: scatterLegend,
+  legend: (options) => legendItems(options.data.series),
   table: scatterTable,
   valueLabels: { format: (options) => options.y?.format },
 }
