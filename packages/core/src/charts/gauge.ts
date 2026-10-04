@@ -102,8 +102,10 @@ function fitGauge(
   const unit: [number, number][] = [[0, 0]]
   const end = start + sweep
   unit.push([Math.sin(start), -Math.cos(start)], [Math.sin(end), -Math.cos(end)])
-  for (let a = Math.ceil(start / HALF_PI) * HALF_PI; a <= end + 1e-9; a += HALF_PI) {
+  // (At most a full turn of them: a huge start angle is beyond what adding a quarter turn changes.)
+  for (let a = Math.ceil(start / HALF_PI) * HALF_PI, n = 0; n < 5 && a <= end + 1e-9; n++) {
     unit.push([Math.sin(a), -Math.cos(a)])
+    a += HALF_PI
   }
   let outer = Math.min(area.width, area.height) / 2
   let box = { x0: 0, y0: 0, x1: 0, y1: 0 }

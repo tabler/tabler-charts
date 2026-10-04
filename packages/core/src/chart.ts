@@ -172,18 +172,24 @@ const nextId = (): string => `tc-${++uid}`
 /** Resolve the final pixel size from options and the measured container size. */
 export function resolveSize(options: BaseOptions, measured?: Partial<Size>): Size {
   const measuredWidth = measured?.width ?? 0
+  // (Sizes that are not finite numbers count as not set.)
   const width = Math.max(
     0,
-    Math.round(options.width ?? (measuredWidth > 0 ? measuredWidth : DEFAULT_WIDTH)),
+    Math.round(
+      Number.isFinite(options.width)
+        ? (options.width as number)
+        : measuredWidth > 0
+          ? measuredWidth
+          : DEFAULT_WIDTH,
+    ),
   )
   const ratio =
     options.aspectRatio && options.aspectRatio > 0 ? options.aspectRatio : DEFAULT_ASPECT_RATIO
-  const height =
-    typeof options.height === 'number'
-      ? options.height
-      : options.height === 'container' && (measured?.height ?? 0) > 0
-        ? (measured?.height as number)
-        : width / ratio
+  const height = Number.isFinite(options.height)
+    ? (options.height as number)
+    : options.height === 'container' && (measured?.height ?? 0) > 0
+      ? (measured?.height as number)
+      : width / ratio
   return { width, height: Math.max(0, Math.round(height)) }
 }
 
@@ -233,9 +239,20 @@ export function renderContext<O extends object>(
   }
 }
 
-/** The config as cleaned by its chart type. */
-const cleanData = <O extends object>(config: ChartConfig<O>): ChartConfig<O> =>
-  config.type?.clean ? (config.type.clean(config) as ChartConfig<O>) : config
+/**
+ * The config as cleaned by its chart type, without the options that are
+ * numbers nothing can be drawn with (NaN, ±Infinity, from a division or a
+ * parse gone wrong outside): their defaults apply, as if they were left out.
+ */
+function cleanData<O extends object>(config: ChartConfig<O>): ChartConfig<O> {
+  const out = {
+    ...(config.type?.clean ? (config.type.clean(config) as object) : config),
+  } as Record<string, unknown>
+  for (const key in out) {
+    if (typeof out[key] === 'number' && !Number.isFinite(out[key])) delete out[key]
+  }
+  return out as ChartConfig<O>
+}
 
 function assertType(config: ChartConfig<object>): void {
   if (!config.type || typeof config.type.render !== 'function') {

@@ -19,13 +19,12 @@ export type InsetsInput = number | Partial<Insets>
 
 /** Normalize an {@link InsetsInput}; missing sides fall back to `fallback`. */
 export function insets(value: InsetsInput | undefined, fallback = 0): Insets {
-  if (typeof value === 'number') return { top: value, right: value, bottom: value, left: value }
-  return {
-    top: value?.top ?? fallback,
-    right: value?.right ?? fallback,
-    bottom: value?.bottom ?? fallback,
-    left: value?.left ?? fallback,
+  // A side that is not a finite number (left out, or junk from outside) takes the fallback.
+  const side = (key: keyof Insets): number => {
+    const v = typeof value === 'number' ? value : value?.[key]
+    return Number.isFinite(v) ? (v as number) : fallback
   }
+  return { top: side('top'), right: side('right'), bottom: side('bottom'), left: side('left') }
 }
 
 /** Rectangle left inside `width × height` after `margins`; never negative. */
