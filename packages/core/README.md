@@ -148,6 +148,8 @@ Everything visual is CSS. The stylesheet defines tokens on `:root` (light and da
 
 Tokens include `--tc-color-1` … `--tc-color-8`, `--tc-surface`, `--tc-text-color`, `--tc-text-muted`, `--tc-grid-color`, `--tc-baseline-color`, `--tc-font-family`, `--tc-font-size`, `--tc-stroke-width`, `--tc-area-opacity`, `--tc-duration`, `--tc-easing` and the `--tc-tooltip-*` set.
 
+Colors given in data (`series.color`, slice, ring, heatmap and annotation colors, `series.dash`) may come from users: any CSS color works, `var(--…)` and `color-mix()` included, but a value that could inject CSS (a `;`, quotes, `url()` and the like) is ignored and the palette color stays.
+
 Dark mode follows `prefers-color-scheme`, and `data-theme="dark"` / `"light"` on any ancestor overrides it. `prefers-reduced-motion` turns animations off, and forced colors (Windows High Contrast) are supported.
 
 ## Server-side rendering

@@ -23,7 +23,10 @@ export interface HeatmapRange {
   from?: number
   /** Value where the band ends (exclusive). Leave it out on the last band. */
   to?: number
-  /** Any CSS color, including `var(--tc-color-3)`. */
+  /**
+   * Any CSS color, including `var(--tc-color-3)`.
+   * Values that could inject CSS (`;`, quotes, `url()` …) are ignored, so colors from user data are safe.
+   */
   color: string
   /** Legend and tooltip name, e.g. `'High'`. Defaults to the range, e.g. `10–30`. */
   name?: string
@@ -46,6 +49,7 @@ export interface HeatmapOptions {
    * `var(--tc-…)`), from `min` to `max`. For values around a reference
    * point, use two hues with a neutral middle, e.g.
    * `['var(--tc-color-1)', 'var(--tc-grid-color)', 'var(--tc-color-8)']`.
+   * Values that could inject CSS are ignored, as for series colors.
    */
   colors?: readonly string[]
   /** Value placed on the middle color of `colors` (e.g. `0` for changes). Defaults to halfway. */

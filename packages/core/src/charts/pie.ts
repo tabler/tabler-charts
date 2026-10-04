@@ -14,7 +14,10 @@ export interface PieSlice {
   value: number
   /** Stable identity for keyed updates and legend toggles. Defaults to `name`. */
   id?: string
-  /** Custom color; overrides the palette slot via `--tc-series-color`. */
+  /**
+   * Custom color; overrides the palette slot via `--tc-series-color`.
+   * Values that could inject CSS (`;`, quotes, `url()` …) are ignored, so colors from user data are safe.
+   */
   color?: string
   /** Extra classes on the slice group. */
   class?: ClassValue

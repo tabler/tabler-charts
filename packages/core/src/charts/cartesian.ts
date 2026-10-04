@@ -34,11 +34,15 @@ export interface Series {
   values: readonly (number | null | undefined)[]
   /** Stable identity for keyed updates. Defaults to `name`. */
   id?: string
-  /** Custom color; overrides the palette slot via `--tc-series-color`. */
+  /**
+   * Custom color; overrides the palette slot via `--tc-series-color`.
+   * Values that could inject CSS (`;`, quotes, `url()` …) are ignored, so colors from user data are safe.
+   */
   color?: string
   /**
    * Dashed line: dash and gap length in pixels, or a full `stroke-dasharray`
-   * such as `'6 3'`. Sets `--tc-series-dash` on the series group.
+   * such as `'6 3'`. Sets `--tc-series-dash` on the series group; values
+   * that could inject CSS are ignored, as for `color`.
    */
   dash?: number | string
   /** Line width in pixels; overrides `--tc-stroke-width` via `--tc-series-width`. */

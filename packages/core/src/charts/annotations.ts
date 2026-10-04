@@ -20,7 +20,10 @@ export interface Annotation {
   label?: string
   /** Where the label sits along the line or band. Defaults to `'end'` (right, or top). */
   position?: 'start' | 'end'
-  /** Any CSS color; sets `--tc-annotation-color`. */
+  /**
+   * Any CSS color; sets `--tc-annotation-color`.
+   * Values that could inject CSS (`;`, quotes, `url()` …) are ignored, so colors from user data are safe.
+   */
   color?: string
   /** Extra classes on the annotation group. */
   class?: ClassValue
