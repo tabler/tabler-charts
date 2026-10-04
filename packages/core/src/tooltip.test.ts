@@ -191,6 +191,43 @@ describe('Chart hover rendering', () => {
     expect(el.querySelector('.tc-tooltip')?.textContent).toContain('77')
   })
 
+  test('charts sharing a hover measure all their tooltips before moving any', () => {
+    mount({ sync: 'batch' } as never)
+    const first = chart
+    const firstEl = el
+    el = document.createElement('div')
+    document.body.appendChild(el)
+    mount({ sync: 'batch' } as never)
+    // Reads of the layout and the write that shows a tooltip, in the order they happen.
+    const order: string[] = []
+    const rect = Element.prototype.getBoundingClientRect
+    const reads = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      order.push('read')
+      return rect.call(this)
+    })
+    const set = Element.prototype.setAttribute
+    const writes = vi.spyOn(Element.prototype, 'setAttribute').mockImplementation(function (
+      this: Element,
+      name: string,
+      value: string,
+    ) {
+      if (name === 'data-visible') order.push('write')
+      set.call(this, name, value)
+    })
+    move(150)
+    flush()
+    reads.mockRestore()
+    writes.mockRestore()
+    expect(firstEl.querySelector('.tc-tooltip')?.hasAttribute('data-visible')).toBe(true)
+    expect(el.querySelector('.tc-tooltip')?.hasAttribute('data-visible')).toBe(true)
+    expect(order.filter((step) => step === 'write')).toHaveLength(2)
+    expect(order.lastIndexOf('read')).toBeLessThan(order.indexOf('write'))
+    first.destroy()
+    firstEl.remove()
+  })
+
   test('destroy() removes the tooltip', () => {
     mount()
     move(200)
