@@ -57,6 +57,8 @@ const SELECTOR = '[data-tc-chart]'
 const EVENTS: readonly (keyof ChartEvents)[] = ['hover', 'click', 'legend-toggle', 'render']
 /** Attributes that are not chart options. */
 const RESERVED = new Set(['chart', 'src', 'data', 'options'])
+/** Options that are text, whatever it spells: a title "2024" is not a number. */
+const TEXT = new Set(['title', 'description', 'locale', 'sync', 'id', 'class'])
 
 const charts = new WeakMap<Element, Chart<object>>()
 /** Elements whose data is still loading, so a second init() does not fetch twice. */
@@ -102,7 +104,12 @@ function optionsOf(element: HTMLElement): Record<string, unknown> {
     // dataset turns data-tc-aspect-ratio into tcAspectRatio.
     const name = key.charAt(2).toLowerCase() + key.slice(3)
     if (RESERVED.has(name)) continue
-    out[name] = name === 'legend' && value === 'bottom' ? { position: 'bottom' } : parseValue(value)
+    out[name] =
+      name === 'legend' && value === 'bottom'
+        ? { position: 'bottom' }
+        : TEXT.has(name)
+          ? value
+          : parseValue(value)
   }
   return out
 }

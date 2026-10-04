@@ -40,6 +40,19 @@ describe('data API', () => {
     expect(document.querySelectorAll('#b .tc-slice')).toHaveLength(2)
   })
 
+  test('text options stay text, whatever they spell', async () => {
+    document.body.innerHTML = `<div data-tc-chart="line" data-tc-title="2024" data-tc-description="true"
+      data-tc-sync="1" data-tc-width="400" data-tc-data='${JSON.stringify(data)}'></div>`
+    const [chart] = await init()
+    expect(chart?.config).toMatchObject({
+      title: '2024',
+      description: 'true',
+      sync: '1',
+      width: 400,
+    })
+    expect(document.querySelector('svg')?.getAttribute('aria-label')).toBe('2024')
+  })
+
   test('knows every built-in type, e.g. radar', async () => {
     document.body.innerHTML = `<div data-tc-chart="radar" data-tc-width="400" data-tc-data='${JSON.stringify(data)}'></div>`
     await init()
