@@ -29,7 +29,7 @@ new Chart('#visitors', {
 
 ## Why
 
-- **Small.** No runtime dependencies, and every chart type, plugin and feature is tree-shakeable: a line chart with the core is about 10 KB gzipped.
+- **Small.** No runtime dependencies, and every chart type, plugin and feature is tree-shakeable: a line chart with the core is about 11 KB gzipped.
 - **Plain SVG.** The same render tree goes to the DOM and to a string, so charts render on the server and the browser takes the markup over without re-creating it.
 - **Styled with CSS.** Semantic `.tc-*` classes and `--tc-*` custom properties for colors, sizes, fonts and timing. Dark mode follows `prefers-color-scheme` or `data-theme`.
 - **Accessible.** An accessible name and a data table for screen readers on every chart, keyboard navigation, reduced motion, forced colors, and a colorblind-checked palette.
