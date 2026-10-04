@@ -1131,6 +1131,26 @@ const groups: [string, () => Case[]][] = [
         },
       },
       {
+        title: 'Colors from user data',
+        expect:
+          'A color that tries to inject CSS is ignored: the palette color, nothing over the page.',
+        config: {
+          type: bar,
+          ...base,
+          data: {
+            labels: ['a', 'b', 'c'],
+            series: [
+              {
+                name: 'Hostile',
+                color: 'red;position:fixed;inset:0;z-index:9999;background:url(/injected.png)',
+                values: [3, 5, 4],
+              },
+              { name: 'Fine', color: 'var(--tc-color-6)', values: [2, 3, 5] },
+            ],
+          },
+        },
+      },
+      {
         title: 'Hidden series only',
         expect:
           'Every series hidden from the start: an empty plot and a legend to bring them back.',

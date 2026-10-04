@@ -88,6 +88,11 @@ async function findings(page: Page): Promise<string[]> {
           found.push(`tooltip: ${tip.textContent}`)
       }
       if (card.scrollWidth > card.clientWidth + 2) found.push('card overflows')
+      // Nothing may escape the card: an injected style would pin it over the page.
+      for (const el of card.querySelectorAll('*')) {
+        if (getComputedStyle(el).position === 'fixed')
+          found.push(`${el.localName} is position: fixed`)
+      }
       const marks = svg.querySelectorAll(
         '.tc-line, .tc-area, .tc-bar, .tc-slice, .tc-point, .tc-dots, .tc-cell, .tc-candle-body, .tc-gauge-arc',
       ).length
