@@ -94,6 +94,7 @@ export {
   keyboard,
   legend,
   pointer,
+  sync,
   tooltip,
 } from './plugins/index.ts'
 export { render } from './render/dom.ts'

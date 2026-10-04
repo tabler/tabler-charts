@@ -106,6 +106,15 @@ annotations: [
 new Chart('#el', { type: bar, data, valueLabels: true })
 ```
 
+### Synced hover
+
+Charts with the same `sync` group share the hover: the category under the pointer is highlighted in every chart of the group, with its crosshair and tooltip, and they clear together. Categories are matched by label, so the charts need not have the same data; a chart without that label clears. Keyboard highlights stay in their own chart. On the core, add the `sync()` plugin.
+
+```js
+new Chart('#visitors', { type: line, data: visitors, sync: 'week' })
+new Chart('#signups', { type: bar, data: signups, sync: 'week' })
+```
+
 ### Data from outside
 
 Data, annotations and axis bounds often come from users, APIs or JSON and are not always what the types say. Charts take them as they are and never throw or draw `NaN` over them: a value that is not a finite number (`null`, `'42'`, `NaN`, `Infinity`, an object) is a gap, as are numbers too large to plot (beyond ±1e300); names become text; a color that is not a string falls back to the palette; series, slices, points or annotations that are not objects are left out. Numbers in strings are not parsed: convert them first if your API sends them.
@@ -128,6 +137,7 @@ Data, annotations and axis bounds often come from users, APIs or JSON and are no
 | `animate` | `true` | Charts with more than 1000 elements skip transitions unless `true` |
 | `patterns` | `'auto'` | Pattern fills: `true` always, `'auto'` in forced colors only, `false` never |
 | `valueLabels` | `false` | Values on the marks: `true`, or `{ points: 'all', format }` (see below) |
+| `sync` | | A group name: charts of the same group share the hover (see below) |
 | `class` | | Extra classes on the `<svg>` |
 | `plugins` | | Extra plugins |
 

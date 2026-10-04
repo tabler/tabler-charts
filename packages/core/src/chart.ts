@@ -114,6 +114,12 @@ export interface BaseOptions {
    */
   valueLabels?: boolean | ValueLabelOptions
   /**
+   * Share the hover with the other charts of this group: the category under
+   * the pointer is highlighted in all of them (matched by label), with its
+   * tooltip. Needs the `sync()` plugin (the `Chart` of `@tabler/charts` has it).
+   */
+  sync?: string
+  /**
    * Render the data as an HTML table: visually hidden for screen readers
    * (`true`, the default), shown below the chart (`'visible'`), or not at all.
    * An object sets `visible` and `maxRows` (default 1000; longer data is cut
