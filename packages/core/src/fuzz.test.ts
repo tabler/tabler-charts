@@ -284,7 +284,9 @@ const seriesNodes = (el: HTMLElement) =>
 
 describe('randomized DOM sessions', () => {
   test(`survive ${ITERATIONS} sessions of ${STEPS} steps`, {
-    timeout: ITERATIONS * STEPS * 10,
+    // Only there to end a run that hangs: the sessions take about a second, but
+    // many times that when every test file starts at once on a busy machine.
+    timeout: ITERATIONS * STEPS * 100,
   }, () => {
     for (let i = 0; i < ITERATIONS; i++) {
       const el = document.createElement('div')
