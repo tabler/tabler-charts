@@ -49,7 +49,7 @@ export default defineConfig({
     // the page (edge cases, axe, export), with export baselines of their own.
     ...(['firefox', 'webkit'] as const).map((name) => ({
       name,
-      testMatch: /(cases|a11y|export|environments)\.spec\.ts/,
+      testMatch: /(cases|a11y|export|environments|csp)\.spec\.ts/,
       snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{projectName}/{arg}{ext}',
       use: {
         ...devices[name === 'firefox' ? 'Desktop Firefox' : 'Desktop Safari'],
