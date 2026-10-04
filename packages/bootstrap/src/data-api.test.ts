@@ -142,4 +142,19 @@ describe('data API', () => {
     expect(getChart(el)).toBeUndefined()
     stop()
   })
+
+  test('observe() does not look for charts in what a chart renders', async () => {
+    document.body.innerHTML = `<div data-tc-chart="bar" data-tc-width="300" data-tc-data='${JSON.stringify(data)}'></div>`
+    const stop = observe(document.body)
+    const el = document.body.firstElementChild as HTMLElement
+    await settle()
+    const search = vi.spyOn(Element.prototype, 'querySelectorAll')
+    // New bars and a tooltip: nodes added inside the chart.
+    getChart(el)?.setData({ labels: ['a', 'b'], series: [{ name: 'X', values: [1, 2] }] } as never)
+    getChart(el)?.highlightIndex(0)
+    flush()
+    await settle()
+    expect(search.mock.calls.filter(([selector]) => selector === '[data-tc-chart]')).toEqual([])
+    stop()
+  })
 })
