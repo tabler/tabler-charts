@@ -43,6 +43,14 @@ describe('estimateTextWidth()', () => {
     expect(estimateTextWidth('🍎', 12)).toBe(12)
   })
 
+  test('counts a character once, whatever it takes to encode', () => {
+    // Accented letters are average ones; an emoji (two code units) is one em, not two.
+    expect(estimateTextWidth('é', 100)).toBeCloseTo(57)
+    expect(estimateTextWidth('a🍎a', 100)).toBeCloseTo(214)
+    // Half of a pair on its own is still one character.
+    expect(estimateTextWidth('\ud83d', 100)).toBeCloseTo(57)
+  })
+
   test('is in a realistic range for UI fonts', () => {
     // "Revenue" in a 12px system font renders at roughly 45–50px.
     const width = estimateTextWidth('Revenue', 12)

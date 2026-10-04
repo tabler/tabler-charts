@@ -58,9 +58,9 @@ const isWide = (code: number): boolean =>
     (code >= 0xff00 && code <= 0xff60) ||
     code >= 0x1f300)
 
+/** The width of an ASCII character, in em. */
 function charWidth(char: string): number {
   if (char >= '0' && char <= '9') return char === '1' ? 0.45 : 0.63
-  if (isWide(char.codePointAt(0) as number)) return 1
   if (THIN.includes(char)) return 0.27
   if (NARROW.includes(char)) return 0.38
   if (WIDE.includes(char)) return 0.88
@@ -76,9 +76,22 @@ function charWidth(char: string): number {
  */
 export function estimateTextWidth(text: string, fontSize: number): number {
   let em = 0
-  for (const char of text) em += charWidth(char)
+  for (let i = 0; i < text.length; i++) {
+    const point = text.codePointAt(i) as number
+    // Beyond ASCII a character is a whole em or an average one; a pair of surrogates is one.
+    em += ASCII[point] ?? (isWide(point) ? 1 : 0.57)
+    if (point > 0xffff) i++
+  }
   return em * fontSize
 }
+
+/**
+ * The width of every ASCII character, looked up instead of worked out: an
+ * axis of 100,000 long labels estimates millions of characters per render.
+ */
+const ASCII = /* @__PURE__ */ Array.from({ length: 128 }, (_, code) =>
+  charWidth(String.fromCharCode(code)),
+)
 
 /** Line height used for single-line labels, relative to the font size. */
 export const LINE_HEIGHT = 1.25
