@@ -328,6 +328,13 @@ code {
   gap: 16px;
 }
 
+/* Four charts in a grid (value labels demo). */
+.demo-quad {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 16px;
+}
+
 /* Stat tiles for the sparkline demo. */
 .tiles {
   display: grid;

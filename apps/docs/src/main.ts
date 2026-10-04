@@ -21,6 +21,7 @@ import { scatterDemo } from './demos/scatter.ts'
 import { sparklineDemo } from './demos/sparkline.ts'
 import { tablerDemo } from './demos/tabler.ts'
 import { timeDemo } from './demos/time.ts'
+import { valueLabelsDemo } from './demos/value-labels.ts'
 import { vueDemo } from './demos/vue.ts'
 import { setupThemeSwitch } from './theme.ts'
 
@@ -38,6 +39,7 @@ const demos: Demo[] = [
   candlestickDemo,
   scatterDemo,
   patternsDemo,
+  valueLabelsDemo,
   exportDemo,
   customType,
   elementDemo,
