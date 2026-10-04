@@ -311,6 +311,86 @@ export interface CategoryAxis {
   readonly time?: ((date: Date) => number) | undefined
 }
 
+/**
+ * The value axis of a cartesian layout, before the plot area is known: its
+ * scale over a pixel range, the ticks of that scale, and `probe`, ticks to
+ * measure the labels with (their positions mean nothing). `auto` is the
+ * tick count the plot has room for, unless the axis asks for its own.
+ */
+export function valueAxis(
+  options: CartesianOptions,
+  ctx: RenderContext,
+  layout: CartesianLayoutOptions,
+  auto: number,
+): {
+  scale(range: [number, number]): LinearScale
+  ticks(scale: LinearScale): Tick[]
+  probe: Tick[]
+} {
+  const axis = options.y ?? {}
+  const count = tickCount(axis, Math.max(2, auto))
+  const domain = valueDomain(
+    options.data,
+    axis,
+    layout.zero,
+    count,
+    ctx.hidden,
+    layout.values,
+    notesFeature(options)?.values(options.annotations),
+  )
+  const format = layout.tickFormat ?? axis.format
+  const scale = (range: [number, number]) => valueScale(domain, range, axis)
+  const ticks = (of: LinearScale) => valueTicks(of, axis, count, format, ctx.locale)
+  return { scale, ticks, probe: ticks(scale([0, 1])) }
+}
+
+/**
+ * Finish a layout that has its plot area, scales and ticks with what is
+ * drawn around the marks: grid lines and annotation bands below them,
+ * annotation lines and the axes above. Values run along y and categories
+ * along x, or the other way round when `horizontal`.
+ */
+export function finishLayout(
+  options: CartesianOptions,
+  ctx: RenderContext,
+  overhang: number,
+  plot: Omit<CartesianLayout, 'background' | 'foreground' | 'clip'>,
+  keys: readonly BandKey[],
+  time?: (date: Date) => number,
+): CartesianLayout {
+  const { area, x, y, xTicks, yTicks, horizontal: flip } = plot
+  const xOptions = options.x ?? {}
+  // Annotations: bands under the series, lines above them (and below the axes).
+  const notes = notesFeature(options)?.layers(options.annotations, {
+    area,
+    horizontal: flip,
+    fontSize: ctx.fontSize,
+    value: y,
+    band: x,
+    keys,
+    time,
+  })
+  const values = options.y?.show !== false && [
+    axis({ position: flip ? 'bottom' : 'left', ticks: yTicks, area }),
+  ]
+  const categories = ((xOptions.show !== false && plot.labels.length > 0) || xOptions.line) && [
+    axis({ position: flip ? 'left' : 'bottom', ticks: xTicks, area, line: xOptions.line === true }),
+  ]
+  const present = (parts: (VNode | VNode[] | null | false | undefined)[]): VNode[] =>
+    parts.flatMap((part) => part || [])
+  return {
+    ...plot,
+    background: present([
+      options.y?.grid !== false && grid({ direction: flip ? 'x' : 'y', ticks: yTicks, area }),
+      xOptions.grid && grid({ direction: flip ? 'y' : 'x', ticks: xTicks, area }),
+      notes?.under,
+    ]),
+    // The axis on the left first, then the one at the bottom.
+    foreground: present([notes?.over, flip ? categories : values, flip ? values : categories]),
+    clip: plotClip(ctx, area, overhang),
+  }
+}
+
 /** Compute scales, ticks, grid and axes shared by line, area and bar charts. */
 export function cartesianLayout(
   options: CartesianOptions,
@@ -329,24 +409,8 @@ export function cartesianLayout(
   const showX = xOptions.show !== false && labels.length > 0
   const timed = isTimeAxis(options) && layout.scale === 'point'
 
-  const count = tickCount(yOptions, Math.max(2, Math.round(height / TICK_SPACING)))
-  const domain = valueDomain(
-    data,
-    yOptions,
-    layout.zero,
-    count,
-    ctx.hidden,
-    layout.values,
-    notesFeature(options)?.values(options.annotations),
-  )
-  const tickFormat = layout.tickFormat ?? yOptions.format
-  const probeY = valueTicks(
-    valueScale(domain, [1, 0], yOptions),
-    yOptions,
-    count,
-    tickFormat,
-    locale,
-  )
+  const value = valueAxis(options, ctx, layout, Math.round(height / TICK_SPACING))
+  const probeY = value.probe
   const countX = Math.max(2, Math.round(width / TICK_SPACING_X))
   const keys = labels.map(labelKey)
   const labelAt = (i: number) => format(labels[i] as Label, i)
@@ -376,17 +440,17 @@ export function cartesianLayout(
   // On bands a label is centered half a step from the edge: only what is wider
   // than that needs margin (long labels on narrow bands, e.g. dates on candles).
   // The step depends on the margins, so they are worked out twice.
-  const valueAxis = showY ? axisSize('left', probeY, fontSize) : 0
+  const valueWidth = showY ? axisSize('left', probeY, fontSize) : 0
   const side = (halfStep: number) => {
     const overflow = (label: number) =>
       edgeX ? Math.ceil(label / 2) : Math.max(0, Math.ceil(label / 2 - halfStep))
     return {
       right: pad.right + Math.max(overflow(lastLabel), overhang, EDGE),
-      left: pad.left + Math.max(valueAxis, overflow(firstLabel), overhang, showY ? 0 : EDGE),
+      left: pad.left + Math.max(valueWidth, overflow(firstLabel), overhang, showY ? 0 : EDGE),
     }
   }
   const steps = Math.max(1, labels.length) * 2
-  let sides = side((width - pad.left - pad.right - valueAxis) / steps)
+  let sides = side((width - pad.left - pad.right - valueWidth) / steps)
   if (!edgeX) sides = side((width - sides.left - sides.right) / steps)
   const margins = {
     top: pad.top + Math.max(showY ? halfLine : 0, overhang, EDGE / 2),
@@ -403,48 +467,21 @@ export function cartesianLayout(
   const area = innerRect(width, height, margins)
 
   const x = xAxis.scale([area.x, area.x + area.width])
-  const y = valueScale(domain, [area.y + area.height, area.y], yOptions)
+  const y = value.scale([area.y + area.height, area.y])
 
   // Nice ticks can outnumber the count asked for: on a short plot, thin them
   // like category labels so none overlap (the grid follows the ticks kept).
-  const yTicks = thinTicks(valueTicks(y, yOptions, count, tickFormat, locale), 'left', fontSize, 4)
+  const yTicks = thinTicks(value.ticks(y), 'left', fontSize, 4)
   const xTicks = showX ? thinTicks(xAxis.ticks(x), 'bottom', fontSize) : []
 
-  const background: VNode[] = []
-  if (yOptions.grid !== false) background.push(grid({ direction: 'y', ticks: yTicks, area }))
-  if (xOptions.grid) background.push(grid({ direction: 'x', ticks: xTicks, area }))
-
-  // Annotations: bands under the series, lines above them (and below the axes).
-  const notes = notesFeature(options)?.layers(options.annotations, {
-    area,
-    horizontal: false,
-    fontSize,
-    value: y,
-    band: x,
+  return finishLayout(
+    options,
+    ctx,
+    overhang,
+    { area, labels, x, y, horizontal: false, xTicks, yTicks },
     keys,
-    time: xAxis.time,
-  })
-  if (notes?.under) background.push(notes.under)
-
-  const foreground: VNode[] = []
-  if (notes?.over) foreground.push(notes.over)
-  if (showY) foreground.push(axis({ position: 'left', ticks: yTicks, area }))
-  if (showX || xOptions.line) {
-    foreground.push(axis({ position: 'bottom', ticks: xTicks, area, line: xOptions.line === true }))
-  }
-
-  return {
-    area,
-    labels,
-    x,
-    y,
-    horizontal: false,
-    xTicks,
-    yTicks,
-    background,
-    foreground,
-    clip: plotClip(ctx, area, overhang),
-  }
+    xAxis.time,
+  )
 }
 
 /** Clip path around the plot area, a little larger so strokes and dots are not cut. */

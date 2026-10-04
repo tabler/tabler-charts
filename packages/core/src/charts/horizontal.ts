@@ -1,25 +1,19 @@
 import type { RenderContext } from '../chart.ts'
-import { axis, axisSize, bandTicks, type Tick, thinTicks } from '../components/axis.ts'
-import { grid } from '../components/grid.ts'
+import { axisSize, bandTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { estimateTextWidth, innerRect, insets } from '../layout.ts'
 import { type BandKey, band } from '../scales/band.ts'
-import type { VNode } from '../vnode.ts'
 import {
   type CartesianLayout,
   type CartesianLayoutOptions,
   type CartesianOptions,
   EDGE,
+  finishLayout,
   type Label,
   labelFormatter,
   labelKey,
-  notesFeature,
-  plotClip,
   resolveLabels,
   TICK_SPACING_X,
-  tickCount,
-  valueDomain,
-  valueScale,
-  valueTicks,
+  valueAxis,
 } from './cartesian.ts'
 
 /**
@@ -34,32 +28,16 @@ export function horizontalLayout(
 ): CartesianLayout {
   const yOptions = options.y ?? {}
   const xOptions = options.x ?? {}
-  const { fontSize, locale, width, height } = ctx
+  const { fontSize, width, height } = ctx
   const overhang = layout.overhang ?? 0
   const pad = insets(options.padding)
   const labels = resolveLabels(options.data)
   const format = labelFormatter(options, ctx)
-  const count = tickCount(yOptions, Math.max(2, Math.round(width / TICK_SPACING_X)))
-  const domain = valueDomain(
-    options.data,
-    yOptions,
-    layout.zero,
-    count,
-    ctx.hidden,
-    layout.values,
-    notesFeature(options)?.values(options.annotations),
-  )
-  const tickFormat = layout.tickFormat ?? yOptions.format
+  const value = valueAxis(options, ctx, layout, Math.round(width / TICK_SPACING_X))
+  const probeValues = value.probe
   const showValues = yOptions.show !== false
   const showCategories = xOptions.show !== false && labels.length > 0
 
-  const probeValues = valueTicks(
-    valueScale(domain, [0, 1], yOptions),
-    yOptions,
-    count,
-    tickFormat,
-    locale,
-  )
   const probeCategories: Tick[] = labels.map((label, i) => ({
     value: labelKey(label),
     position: 0,
@@ -85,12 +63,13 @@ export function horizontalLayout(
   }
   const area = innerRect(width, height, margins)
 
-  const x = band(labels.map(labelKey), [area.y, area.y + area.height], {
+  const keys = labels.map(labelKey)
+  const x = band(keys, [area.y, area.y + area.height], {
     paddingInner: layout.paddingInner ?? 0.3,
     paddingOuter: layout.paddingOuter ?? 0.15,
   })
-  const y = valueScale(domain, [area.x, area.x + area.width], yOptions)
-  const yTicks = thinTicks(valueTicks(y, yOptions, count, tickFormat, locale), 'bottom', fontSize)
+  const y = value.scale([area.x, area.x + area.width])
+  const yTicks = thinTicks(value.ticks(y), 'bottom', fontSize)
   const xTicks = showCategories
     ? thinTicks(
         bandTicks(x, (_: BandKey, i) => format(labels[i] as Label, i)),
@@ -99,38 +78,12 @@ export function horizontalLayout(
       )
     : []
 
-  const background: VNode[] = []
-  if (yOptions.grid !== false) background.push(grid({ direction: 'x', ticks: yTicks, area }))
-  if (xOptions.grid) background.push(grid({ direction: 'y', ticks: xTicks, area }))
-
-  // Annotations: the value axis runs along x here, categories along y.
-  const notes = notesFeature(options)?.layers(options.annotations, {
-    area,
-    horizontal: true,
-    fontSize,
-    value: y,
-    band: x,
-    keys: labels.map(labelKey),
-  })
-  if (notes?.under) background.push(notes.under)
-
-  const foreground: VNode[] = []
-  if (notes?.over) foreground.push(notes.over)
-  if (showCategories || xOptions.line) {
-    foreground.push(axis({ position: 'left', ticks: xTicks, area, line: xOptions.line === true }))
-  }
-  if (showValues) foreground.push(axis({ position: 'bottom', ticks: yTicks, area }))
-
-  return {
-    area,
-    labels,
-    x,
-    y,
-    horizontal: true,
-    xTicks,
-    yTicks,
-    background,
-    foreground,
-    clip: plotClip(ctx, area, overhang),
-  }
+  // The value axis runs along x here, categories along y.
+  return finishLayout(
+    options,
+    ctx,
+    overhang,
+    { area, labels, x, y, horizontal: true, xTicks, yTicks },
+    keys,
+  )
 }
