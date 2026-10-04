@@ -30,7 +30,8 @@
       "style": {
         "useImportType": "error",
         "useExportType": "error",
-        "noNonNullAssertion": "warn"
+        "noNonNullAssertion": "warn",
+        "noDescendingSpecificity": "off"
       },
       "correctness": {
         "noUnusedImports": "error",

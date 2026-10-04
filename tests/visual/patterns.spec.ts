@@ -7,11 +7,17 @@ import { expect, type Page, test } from '@playwright/test'
  * where patterns use system colors; `false` never.
  */
 
+/** The library as the sandbox page puts it on `window.tc`: what these tests call, and the chart types by name. */
+type Sandbox = Record<string, unknown> & {
+  Chart: new (el: Element, config: object) => object
+  exportSVG(chart: object): string
+}
+
 async function build(page: Page, patterns: unknown) {
   await page.goto('/sandbox.html')
   await page.locator('body[data-ready]').waitFor({ state: 'attached' })
   return page.evaluate(async (patterns) => {
-    const tc = (window as unknown as { tc: Record<string, any> }).tc
+    const tc = (window as unknown as { tc: Sandbox }).tc
     const labels = ['Q1', 'Q2', 'Q3']
     const series = (n: number) =>
       Array.from({ length: n }, (_, i) => ({ name: `S${i}`, values: [3 + i, 5, 4] }))
@@ -138,7 +144,7 @@ test('an export keeps the patterns, in the chart and its legend', async ({ page 
   await page.goto('/sandbox.html')
   await page.locator('body[data-ready]').waitFor({ state: 'attached' })
   const svg = await page.evaluate(() => {
-    const tc = (window as unknown as { tc: Record<string, any> }).tc
+    const tc = (window as unknown as { tc: Sandbox }).tc
     const el = document.createElement('div')
     el.style.width = '360px'
     document.body.append(el)
