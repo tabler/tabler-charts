@@ -4,7 +4,9 @@ name: Visual
 # in the Playwright image so fonts and rendering match from run to run.
 # Run it by hand with "update snapshots" to (re)create every baseline after an
 # intended visual change: they are uploaded as the `visual-baselines` artifact
-# to commit.
+# to commit (the summary of the run says how). Such a run compares nothing, so
+# it has a name and a queue of its own: it is not the check of its commit, and
+# it leaves the comparison of the same branch running.
 on:
   push:
     branches: [main]
@@ -20,12 +22,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: visual-${{ github.ref }}
+  group: visual-${{ github.ref }}-${{ inputs.update-snapshots && 'update' || 'compare' }}
   cancel-in-progress: true
 
 jobs:
   visual:
-    name: Visual regression
+    name: ${{ inputs.update-snapshots && 'Update baselines' || 'Visual regression' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
@@ -65,3 +67,19 @@ jobs:
           name: visual-baselines
           path: tests/visual/__screenshots__/linux/
           retention-days: 7
+
+      - name: Say how to commit the new baselines
+        if: always() && inputs.update-snapshots
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ### New baselines, not committed yet
+
+          This run recreated the Linux baselines and compared nothing. Until they are
+          committed, the Visual check of this branch still uses the old ones:
+
+          ```sh
+          gh run download ${{ github.run_id }} -n visual-baselines -D tests/visual/__screenshots__/linux
+          git add tests/visual/__screenshots__/linux
+          git commit -m "test: update the Linux baselines"
+          ```
+          EOF
