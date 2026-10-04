@@ -17,6 +17,7 @@ export type {
 export {
   buildChart,
   Chart,
+  chartEvents,
   chartLabel,
   chartToString,
   renderContext,

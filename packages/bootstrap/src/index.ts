@@ -15,7 +15,7 @@
  * `data-tc-*` attribute is an option (`data-tc-aspect-ratio="3"`), and
  * `data-tc-options` takes a JSON object for the rest.
  */
-import { Chart, type ChartConfig, type ChartEvents, type ChartType, types } from '@tabler/charts'
+import { Chart, type ChartConfig, type ChartType, chartEvents, types } from '@tabler/charts'
 
 /** Every built-in chart type, by its `data-tc-chart` name. */
 export { types }
@@ -26,7 +26,6 @@ export interface InitOptions {
 }
 
 const SELECTOR = '[data-tc-chart]'
-const EVENTS: readonly (keyof ChartEvents)[] = ['hover', 'click', 'legend-toggle', 'render']
 /** Attributes that are not chart options. */
 const RESERVED = new Set(['chart', 'src', 'data', 'options'])
 /** Options that are text, whatever it spells: a title "2024" is not a number. */
@@ -102,7 +101,7 @@ function emit(element: Element, name: string, detail: unknown): void {
 function create(element: HTMLElement, type: ChartType<object>, data: unknown): Chart<object> {
   const config = { ...optionsOf(element), type, data } as ChartConfig<object>
   const chart = new Chart(element, config)
-  for (const name of EVENTS) chart.on(name, (detail) => emit(element, name, detail))
+  for (const name of chartEvents) chart.on(name, (detail) => emit(element, name, detail))
   charts.set(element, chart)
   // The first render ran in the constructor, before anyone could listen.
   emit(element, 'render', { size: chart.size })
