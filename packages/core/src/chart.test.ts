@@ -334,6 +334,23 @@ describe('Chart', () => {
     chart.destroy()
   })
 
+  test('a chart that fails to render first leaves the element as it found it', () => {
+    const destroyed = vi.fn()
+    const added = { name: 'added', install: () => ({ destroy: destroyed }) }
+    const broken: ChartType<DotsOptions> = {
+      name: 'broken',
+      render() {
+        throw new Error('boom')
+      },
+    }
+    expect(() => new Chart(el, { type: broken, data: [], plugins: [added] })).toThrow('boom')
+    expect(destroyed).toHaveBeenCalledOnce()
+    expect(el.innerHTML).toBe('')
+    // It stopped observing: a resize renders nothing.
+    resizeTo(el, 500)
+    expect(flush()).toBe(0)
+  })
+
   test('a new chart on an element replaces the one already there', () => {
     const first = new Chart(el, { type: dots, data: [1] })
     const second = new Chart(el, { type: dots, data: [1, 2, 3] })
