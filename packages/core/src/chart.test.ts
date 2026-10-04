@@ -319,4 +319,20 @@ describe('Chart', () => {
     expect(el.innerHTML).toBe('')
     chart.destroy()
   })
+
+  test('a new chart on an element replaces the one already there', () => {
+    const first = new Chart(el, { type: dots, data: [1] })
+    const second = new Chart(el, { type: dots, data: [1, 2, 3] })
+    // The first is destroyed: its updates draw nothing any more.
+    first.update({ data: [1] })
+    first.render()
+    flush()
+    expect(el.querySelectorAll('svg')).toHaveLength(1)
+    expect(el.querySelectorAll('circle')).toHaveLength(3)
+    // Destroying the first again leaves the second alone.
+    first.destroy()
+    expect(el.querySelectorAll('circle')).toHaveLength(3)
+    second.destroy()
+    expect(el.innerHTML).toBe('')
+  })
 })

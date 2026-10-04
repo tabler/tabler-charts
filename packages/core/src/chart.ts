@@ -317,6 +317,9 @@ type Source =
   | { kind: 'pointer'; x: number; y: number }
   | { kind: 'index'; index: number; seriesIndex?: number }
 
+/** The chart on each element. */
+const mounted = /* @__PURE__ */ new WeakMap<Element, Chart<object>>()
+
 /**
  * A chart bound to a DOM element: measures its container, renders SVG into
  * it and re-renders on `update()` and resize (batched per animation frame).
@@ -376,6 +379,9 @@ export class Chart<O extends object = object> {
   ) {
     const element = typeof target === 'string' ? document.querySelector(target) : target
     if (!element) throw new Error(`@tabler/charts: element "${String(target)}" not found.`)
+    // One chart per element: a new one replaces the chart already there.
+    mounted.get(element)?.destroy()
+    mounted.set(element, this as unknown as Chart<object>)
     this.element = element
     this.#cfg = cleanData(config)
     this.id = config.id ?? nextId()
@@ -643,6 +649,8 @@ export class Chart<O extends object = object> {
   destroy(): void {
     if (this.#destroyed) return
     this.#destroyed = true
+    if (mounted.get(this.element) === (this as unknown as Chart<object>))
+      mounted.delete(this.element)
     cancel(this)
     clearTimeout(this.#resizeTimer)
     this.#unobserve()
