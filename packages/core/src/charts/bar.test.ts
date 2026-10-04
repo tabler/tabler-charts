@@ -30,19 +30,19 @@ interface Bounds {
   bottom: number
 }
 
-/** Bounding box of a bar path built by barPath() (M, V, H and A commands). */
+/** Bounding box of a bar path built by barPath() (M, L, V, H and A commands). */
 function bounds(d: unknown): Bounds {
   const xs: number[] = []
   const ys: number[] = []
-  for (const [, cmd, args] of String(d).matchAll(/([MVHA])([^MVHAZ]*)/g)) {
+  for (const [, cmd, args] of String(d).matchAll(/([MLVHA])([^MLVHAZ]*)/g)) {
     const n = (args ?? '').split(',').map(Number)
     if (cmd === 'V') {
       ys.push(n[0] ?? 0)
     } else if (cmd === 'H') {
       xs.push(n[0] ?? 0)
     } else {
-      // M x,y  or  A rx,ry,rotation,large,sweep,x,y
-      const offset = cmd === 'M' ? 0 : 5
+      // M x,y, L x,y  or  A rx,ry,rotation,large,sweep,x,y
+      const offset = cmd === 'A' ? 5 : 0
       xs.push(n[offset] ?? 0)
       ys.push(n[offset + 1] ?? 0)
     }

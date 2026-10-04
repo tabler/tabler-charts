@@ -8,8 +8,10 @@ const round = (value: number): number => {
  * `x`…`x + width` wide. Only the data end is rounded, with `radius` clamped
  * to half the width and to the bar height; the baseline end stays square.
  * Works for bars growing up (value above baseline) and down (negative values).
- * Square corners are zero-radius arcs, so every bar path has the same
- * commands and CSS can transition `d` between rounded and square (stacking).
+ * Square corners are zero-radius arcs and every side is an `L`, so every
+ * bar path, vertical or horizontal, has the same commands and CSS can
+ * transition `d` between rounded and square (stacking) and between
+ * orientations.
  */
 export function barPath(
   x: number,
@@ -31,11 +33,11 @@ export function barPath(
   const sweep = up ? 1 : 0
   const rr = round(r)
   return (
-    `M${x0},${b}V${edge}` +
+    `M${x0},${b}L${x0},${edge}` +
     `A${rr},${rr},0,0,${sweep},${round(x + r)},${v}` +
-    `H${round(x + w - r)}` +
+    `L${round(x + w - r)},${v}` +
     `A${rr},${rr},0,0,${sweep},${x1},${edge}` +
-    `V${b}Z`
+    `L${x1},${b}Z`
   )
 }
 
@@ -44,6 +46,7 @@ export function barPath(
  * `y`…`y + height` tall. Only the data end is rounded, with `radius` clamped
  * to half the height and to the bar length; the baseline end stays square.
  * Works for bars growing right (positive values) and left (negative values).
+ * Same commands as `barPath`, so a chart can morph between orientations.
  */
 export function hbarPath(
   y: number,
@@ -65,10 +68,10 @@ export function hbarPath(
   const sweep = right ? 1 : 0
   const rr = round(r)
   return (
-    `M${b},${y0}H${edge}` +
+    `M${b},${y0}L${edge},${y0}` +
     `A${rr},${rr},0,0,${sweep},${v},${round(y + r)}` +
-    `V${round(y + hgt - r)}` +
+    `L${v},${round(y + hgt - r)}` +
     `A${rr},${rr},0,0,${sweep},${edge},${y1}` +
-    `H${b}Z`
+    `L${b},${y1}Z`
   )
 }
