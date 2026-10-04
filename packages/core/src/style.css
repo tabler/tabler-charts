@@ -124,6 +124,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Labels take the chart's font, even when the page styles every `text`. */
+.tc-chart :where(text) {
+  font: inherit;
+}
+
 /* -- Series colors ---------------------------------------------------------- */
 
 .tc-series {
