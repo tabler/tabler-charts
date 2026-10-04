@@ -78,6 +78,24 @@ for (const item of ENVIRONMENTS) {
           const dy = Math.max(t.y - y, 0, y - (t.y + t.height))
           if (Math.hypot(dx, dy) > 140)
             hover.push(`tooltip ${Math.round(Math.hypot(dx, dy))} px from the pointer`)
+          // Never cut off by an ancestor that clips its overflow.
+          const cut = await page.evaluate(() => {
+            const tip = document.querySelector('.tc-tooltip[data-visible]') as HTMLElement
+            const t = tip.getBoundingClientRect()
+            for (let node = tip.parentElement; node; node = node.parentElement) {
+              const style = getComputedStyle(node)
+              if (style.overflowX === 'visible' && style.overflowY === 'visible') continue
+              const c = node.getBoundingClientRect()
+              return (
+                t.left < c.left - 1 ||
+                t.right > c.right + 1 ||
+                t.top < c.top - 1 ||
+                t.bottom > c.bottom + 1
+              )
+            }
+            return false
+          })
+          if (cut) hover.push('tooltip cut off by a clipping parent')
         }
       }
     }

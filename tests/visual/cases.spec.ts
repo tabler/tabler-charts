@@ -4,7 +4,7 @@ import { installTextChecks } from './text-checks.ts'
 /**
  * The edge cases page (cases.html): every card must render without errors,
  * without NaN or Infinity in the SVG, with every label inside the chart and
- * none on top of another of its kind, and with its tooltip inside the card.
+ * none on top of another of its kind, and with its tooltip in the viewport.
  * Runs on a desktop in light mode and on a phone in dark mode.
  */
 
@@ -41,15 +41,18 @@ async function findings(page: Page): Promise<string[]> {
       const check = (window as unknown as { __tcTextIssues: (svg: Element) => string[] })
         .__tcTextIssues
       found.push(...check(svg))
-      const tip = card.querySelector('.tc-tooltip[data-visible]')
+      const tip = card.querySelector<HTMLElement>('.tc-tooltip[data-visible]')
       if (tip) {
-        const c = card.getBoundingClientRect()
+        // The tooltip may leave the card (it does not clip), never the viewport.
         const t = tip.getBoundingClientRect()
-        if (t.left < c.left - 2 || t.right > c.right + 2) found.push('tooltip outside the card')
+        if (t.left < -1 || t.right > innerWidth + 1) found.push('tooltip outside the viewport')
         if (/NaN|undefined|Infinity/.test(tip.textContent ?? ''))
           found.push(`tooltip: ${tip.textContent}`)
       }
+      // The card's own content must fit it (the tooltip aside).
+      if (tip) tip.style.display = 'none'
       if (card.scrollWidth > card.clientWidth + 2) found.push('card overflows')
+      if (tip) tip.style.display = ''
       // Nothing may escape the card: an injected style would pin it over the page.
       for (const el of card.querySelectorAll('*')) {
         if (getComputedStyle(el).position === 'fixed')
