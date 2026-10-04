@@ -234,6 +234,39 @@ describe('render() keyed children', () => {
   })
 })
 
+describe('render() under a strict CSP', () => {
+  // style-src without 'unsafe-inline' blocks style attributes set with
+  // setAttribute (and in markup), but not styles set through the CSSOM.
+  test('sets styles through the CSSOM, never as an attribute', () => {
+    const spy = vi.spyOn(Element.prototype, 'setAttribute')
+    try {
+      render(container, h('svg', null, h('g', { class: 'a', style: { '--c': 'red' } })))
+      render(container, h('svg', null, h('g', { class: 'a', style: { '--c': 'blue' } })))
+      // (happy-dom serializes a CSSOM change through setAttribute, in its own spelling.)
+      const raw = spy.mock.calls.filter(
+        ([name, value]) => name === 'style' && /^--c:\w/.test(value),
+      )
+      expect(raw).toEqual([])
+      expect((container.querySelector('g') as SVGElement).style.getPropertyValue('--c')).toBe(
+        'blue',
+      )
+    } finally {
+      spy.mockRestore()
+    }
+  })
+
+  test('hydration sets the server styles again, as the CSP ignored them in markup', () => {
+    const box = document.createElement('div')
+    box.innerHTML = '<svg><g style="--c:red"></g></svg>'
+    const root = box.firstElementChild as Element
+    const g = root.querySelector('g') as SVGElement
+    const set = vi.spyOn(g.style, 'cssText', 'set')
+    render(box, h('svg', null, h('g', { style: { '--c': 'red' } })), root)
+    expect(root.querySelector('g')).toBe(g)
+    expect(set).toHaveBeenCalledWith('--c:red')
+  })
+})
+
 describe('render() hydrating existing markup', () => {
   /** Server markup in a fresh container, and its root element. */
   function server(markup: string): [HTMLElement, Element] {

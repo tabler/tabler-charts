@@ -79,11 +79,20 @@ export function createNode(child: Child, ns: string, doc: Document): Node | null
   return createElement(child, child.tag === 'svg' ? SVG_NS : ns, doc)
 }
 
+/**
+ * Styles go through the CSSOM: a strict CSP (`style-src` without
+ * 'unsafe-inline') blocks style attributes set with setAttribute, not these.
+ */
+function setAttr(el: Element, name: string, value: string): void {
+  if (name === 'style') (el as HTMLElement).style.cssText = value
+  else el.setAttribute(name, value)
+}
+
 function createElement(vnode: VNode, ns: string, doc: Document): Element {
   const el = doc.createElementNS(ns, vnode.tag)
   const { attrs } = vnode
   for (const name in attrs) {
-    if (isValidAttr(name)) el.setAttribute(name, String(attrs[name]))
+    if (isValidAttr(name)) setAttr(el, name, String(attrs[name]))
   }
   const childNs = childNamespace(el)
   for (const child of vnode.children) {
@@ -128,7 +137,7 @@ export function patchAttrs(el: Element, prev: Attrs, next: Attrs, update = false
     if (update && name === 'd' && features.morph?.(el, String(prev[name] ?? ''), String(value))) {
       continue
     }
-    el.setAttribute(name, String(value))
+    setAttr(el, name, String(value))
   }
   for (const name in prev) {
     if (!(name in next) && isValidAttr(name)) el.removeAttribute(name)

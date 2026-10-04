@@ -21,6 +21,8 @@ export function hydrateElement(el: Element, vnode: VNode): void {
   // The server attributes are the previous state to patch from.
   const current: Attrs = {}
   for (const name of el.getAttributeNames()) current[name] = el.getAttribute(name) as string
+  // A strict CSP ignores style attributes in markup: set them again, through the CSSOM.
+  if (current.style) current.style = ''
   patchAttrs(el, current, vnode.attrs)
 
   // Comments never stand for anything, and neither does text where the tree has none

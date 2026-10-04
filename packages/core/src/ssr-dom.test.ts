@@ -4,7 +4,7 @@
  * for the same config: hydration then has nothing to patch. Random configs
  * of every type are rendered both ways and compared, after normalizing what
  * only differs in spelling (self-closing tags, `<` escaped in attributes, the
- * xmlns attribute) or only exists in the browser (tabindex, the transient
+ * xmlns attribute, the spacing of styles) or only exists in the browser (tabindex, the transient
  * resize flag). FUZZ_ITERATIONS and FUZZ_SEED dig deeper locally.
  */
 import { expect, test } from 'vitest'
@@ -159,6 +159,11 @@ test('the string and DOM renderers agree on random configs', () => {
         .replace(/ class="tc-chart( [^"]*)?"/, '')
         .replace(/ data-resizing=""/g, '')
         .replace(/ tabindex="0"/g, '')
+        // The DOM sets styles through the CSSOM, which spells them its own way.
+        .replace(/ style="([^"]*)"/g, (_, style: string) => {
+          const rules = style.split(';').map((rule) => rule.trim().replace(/:\s*/, ':'))
+          return ` style="${rules.filter(Boolean).join(';')}"`
+        })
     if (norm(ssr) !== norm(dom)) {
       const a = norm(ssr),
         b = norm(dom)
