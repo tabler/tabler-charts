@@ -15,8 +15,9 @@ import {
   seriesKey,
   seriesLegend,
   seriesTable,
+  tickCount,
 } from './cartesian.ts'
-import { cleanAxes, cleanSeries } from './clean.ts'
+import { cleanData, cleanSeries } from './clean.ts'
 
 /** Options for the radial value axis. */
 export interface RadialAxisOptions {
@@ -139,7 +140,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
     return truncate(text, room, fontSize)
   })
 
-  const count = axis.ticks ?? Math.max(2, Math.round(radius / 40))
+  const count = tickCount(axis, Math.max(2, Math.round(radius / 40)))
   const values = visible.flatMap((s) => s.values)
   const domain = domainOf(values, axis, true, count)
   const scale = linear(domain, [0, radius], { clamp: true })
@@ -340,7 +341,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
  */
 export const radar: ChartType<RadarOptions> = {
   name: 'radar',
-  clean: cleanAxes(cleanSeries),
+  clean: cleanData(cleanSeries),
   render: renderRadar,
   legend: (options) => seriesLegend(options.data),
   table: (options, ctx, limit) =>

@@ -16,6 +16,7 @@ import {
   plotClip,
   resolveLabels,
   TICK_SPACING_X,
+  tickCount,
   valueDomain,
   valueScale,
   valueTicks,
@@ -38,7 +39,7 @@ export function horizontalLayout(
   const pad = insets(options.padding)
   const labels = resolveLabels(options.data)
   const format = labelFormatter(options, ctx)
-  const count = yOptions.ticks ?? Math.max(2, Math.round(width / TICK_SPACING_X))
+  const count = tickCount(yOptions, Math.max(2, Math.round(width / TICK_SPACING_X)))
   const domain = valueDomain(
     options.data,
     yOptions,

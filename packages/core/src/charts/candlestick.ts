@@ -15,7 +15,7 @@ import {
   seriesTable,
   type ValueAxisOptions,
 } from './cartesian.ts'
-import { cleanAxes, finite, label, records } from './clean.ts'
+import { cleanData, finite, label, records } from './clean.ts'
 
 /** One period: where the price opened, its range and where it closed. */
 export interface Candle {
@@ -97,7 +97,7 @@ function asCartesian(options: CandlestickOptions): CartesianOptions {
  */
 export const candlestick: ChartType<CandlestickOptions> = {
   name: 'candlestick',
-  clean: cleanAxes((data) =>
+  clean: cleanData((data) =>
     records(data, (c) => ({
       ...c,
       x: label(c.x),

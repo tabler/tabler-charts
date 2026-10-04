@@ -1,6 +1,6 @@
 /**
  * Data from users, APIs and JSON is often not what the types say. Each chart
- * type cleans its data and axis bounds as they come in, annotations as they render
+ * type cleans its data as it comes in, annotations as they render, axis bounds where read
  * (`ChartType.clean`): numbers
  * that are not finite become gaps, names become text, colors that are not
  * strings are dropped, and lists or records of the wrong kind are left out.
@@ -31,9 +31,7 @@ export const text = (v: unknown): string =>
 
 /** A category label: a string, a finite number or a valid date; else ''. */
 export const label = (v: unknown): Label =>
-  typeof v === 'string' || finite(v) !== null || (v instanceof Date && finite(+v) !== null)
-    ? (v as Label)
-    : ''
+  typeof v === 'string' || finite(v instanceof Date ? +v : v) !== null ? (v as Label) : ''
 
 /** Values with gaps for anything that is not a finite number (the same array when clean). */
 export const numbers = (v: unknown): readonly (number | null)[] => {
@@ -63,37 +61,11 @@ export const cleanSeries = (data: unknown): unknown => {
     series: records(d.series, (s) => ({
       ...named(s),
       values: numbers(s.values),
-      dash: typeof s.dash === 'string' ? s.dash : optional(s.dash),
     })),
   }
 }
 
-/** Axis bounds and tick count: finite, with at most 100 ticks. */
-const axis = (v: unknown): unknown => {
-  if (!isRecord(v)) return undefined
-  const ticks = optional(v.ticks)
-  return {
-    ...v,
-    min: optional(v.min),
-    max: optional(v.max),
-    ticks: ticks === undefined ? undefined : Math.min(Math.max(ticks, 0), 100),
-  }
-}
-
-/** Options of the types with axes: their data cleaned by `data`, and the axes (annotations clean themselves). */
-export const cleanAxes =
-  (data: (v: unknown) => unknown) =>
-  <O>(options: O): O => {
-    const o = options as Rec
-    return {
-      ...o,
-      data: data(o.data),
-      x: axis(o.x),
-      y: axis(o.y),
-    } as O
-  }
-
-/** Options of the other types: only their data, cleaned by `data`. */
+/** Options with their data cleaned by `data` (axis bounds are checked where they are read). */
 export const cleanData =
   (data: (v: unknown) => unknown) =>
   <O>(options: O): O => ({ ...options, data: data((options as Rec).data) })

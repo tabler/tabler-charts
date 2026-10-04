@@ -6,6 +6,7 @@ import { toMs } from './cartesian.ts'
 import { cleanSeries, finite, numbers } from './clean.ts'
 import { gauge } from './gauge.ts'
 import { line } from './line.ts'
+import '../log.ts'
 import { pie } from './pie.ts'
 import { scatter } from './scatter.ts'
 
@@ -29,7 +30,7 @@ describe('clean data', () => {
     expect(
       cleanSeries({
         labels: ['a', null, 3, new Date(Number.NaN)],
-        series: [{ name: 5, values: [1, 'x'], color: 3, dash: Number.NaN }, null, 'abc'],
+        series: [{ name: 5, values: [1, 'x'], color: 3 }, null, 'abc'],
       }),
     ).toEqual({
       labels: ['a', '', 3, ''],
@@ -39,7 +40,6 @@ describe('clean data', () => {
           id: undefined,
           values: [1, null],
           color: undefined,
-          dash: undefined,
         },
       ],
     })
@@ -100,6 +100,22 @@ describe('clean data', () => {
     // The label became text; the broken band and the string were left out.
     expect(svg.match(/class="tc-annotation /g)).toHaveLength(2)
     expect(svg).toContain('>7</text>')
+    // Tick counts below zero or too big, and bounds of a log axis from outside.
+    for (const y of [
+      { ticks: -5 },
+      { ticks: 1e308 },
+      { scale: 'log', min: 'Infinity', max: Number.NaN },
+    ]) {
+      const out = chartToString(
+        {
+          type: line,
+          data: { labels: ['a', 'b'], series: [{ name: 'A', values: [1, 20] }] },
+          y,
+        } as never,
+        { width: 300, height: 150 },
+      )
+      expect(out, JSON.stringify(y)).not.toMatch(/NaN|Infinity|undefined/)
+    }
   })
 
   test('timestamps out of the Date range are not dates', () => {

@@ -18,6 +18,7 @@ import { type LinearScale, linear } from '../scales/linear.ts'
 import { niceDomain } from '../scales/ticks.ts'
 import { type ClassValue, h, type Props, type VNode } from '../vnode.ts'
 import type { Annotation } from './annotations.ts'
+import { finite } from './clean.ts'
 
 /** Category label on the x axis. */
 export type Label = string | number | Date
@@ -234,6 +235,10 @@ export function valueTicks(
     : linearTicks(scale, { count, format, locale })
 }
 
+/** The tick count asked for on an axis (a number up to 100), or `auto`. */
+export const tickCount = (axis: { ticks?: number } | undefined, auto: number): number =>
+  Math.min(finite(axis?.ticks) ?? auto, 100)
+
 /** Y domain from the data and axis options. */
 export function valueDomain(
   data: CartesianData,
@@ -258,6 +263,9 @@ export function domainOf(
   count: number,
 ): [number, number] {
   if (options.scale === 'log') return feature('log').domain(values, options)
+  // Bounds may come from outside: only numbers count.
+  const min = finite(options.min)
+  const max = finite(options.max)
   let [lo, hi] = extent(values) ?? [0, 1]
   if (options.zero ?? zeroDefault) {
     lo = Math.min(lo, 0)
@@ -273,12 +281,12 @@ export function domainOf(
       hi += pad
     }
   }
-  if (options.min !== undefined) lo = options.min
-  if (options.max !== undefined) hi = options.max
+  if (min !== null) lo = min
+  if (max !== null) hi = max
   if (options.nice !== false) {
     const [nlo, nhi] = niceDomain(lo, hi, count)
-    if (options.min === undefined) lo = nlo
-    if (options.max === undefined) hi = nhi
+    if (min === null) lo = nlo
+    if (max === null) hi = nhi
   }
   return [lo, hi]
 }
@@ -320,7 +328,7 @@ export function cartesianLayout(
   const showX = xOptions.show !== false && labels.length > 0
   const timed = isTimeAxis(options) && layout.scale === 'point'
 
-  const count = yOptions.ticks ?? Math.max(2, Math.round(height / TICK_SPACING))
+  const count = tickCount(yOptions, Math.max(2, Math.round(height / TICK_SPACING)))
   const domain = valueDomain(
     data,
     yOptions,
@@ -472,7 +480,7 @@ export function seriesAttrs(series: Series, index: number): Props {
     // A map, so values from data cannot inject CSS (see normalizeStyle).
     style: {
       '--tc-series-color': series.color,
-      '--tc-series-dash': typeof dash === 'number' ? `${dash}px` : dash,
+      '--tc-series-dash': Number.isFinite(dash) ? `${dash}px` : dash,
       '--tc-series-width': Number.isFinite(width) ? `${width}px` : undefined,
     },
   }

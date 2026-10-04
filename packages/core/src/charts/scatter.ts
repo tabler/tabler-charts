@@ -9,8 +9,8 @@ import type { LegendItem } from '../legend.ts'
 import { extent } from '../scales/extent.ts'
 import { linear } from '../scales/linear.ts'
 import { type ClassValue, h } from '../vnode.ts'
-import { domainOf, plottable, type ValueAxisOptions } from './cartesian.ts'
-import { cleanAxes, finite, isRecord, named, records, text } from './clean.ts'
+import { domainOf, plottable, tickCount, type ValueAxisOptions } from './cartesian.ts'
+import { cleanData, finite, isRecord, named, records, text } from './clean.ts'
 
 /** A point of a scatter or bubble chart. */
 export interface ScatterPoint {
@@ -93,8 +93,8 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
       : radius
   const overhang = Math.max(radius, sizes.length ? rMax : 0) + 2
 
-  const countY = yOptions.ticks ?? Math.max(2, Math.round(height / 60))
-  const countX = xOptions.ticks ?? Math.max(2, Math.round(width / 80))
+  const countY = tickCount(yOptions, Math.max(2, Math.round(height / 60)))
+  const countX = tickCount(xOptions, Math.max(2, Math.round(width / 80)))
   // Only points that can be plotted on both axes take part.
   const usable = (p: ScatterPoint) => plottable(p.x, xOptions) && plottable(p.y, yOptions)
   const shown = points.filter(usable)
@@ -344,7 +344,7 @@ function scatterTable(
  */
 export const scatter: ChartType<ScatterOptions> = {
   name: 'scatter',
-  clean: cleanAxes((data) => ({
+  clean: cleanData((data) => ({
     ...(isRecord(data) ? data : {}),
     series: records(isRecord(data) && data.series, (s) => ({
       ...named(s),

@@ -4,6 +4,7 @@ import { extent } from '../scales/extent.ts'
 import type { LinearScale } from '../scales/linear.ts'
 import { log } from '../scales/log.ts'
 import type { ValueAxisOptions } from './cartesian.ts'
+import { finite } from './clean.ts'
 
 /** Domain of a log axis: positive values only, niced to whole powers of ten. */
 export function logDomain(
@@ -12,13 +13,16 @@ export function logDomain(
 ): [number, number] {
   const positive = values.filter((v): v is number => v != null && v > 0 && Number.isFinite(v))
   let [lo, hi] = extent(positive) ?? [1, 10]
-  if (options.min !== undefined && options.min > 0) lo = options.min
-  if (options.max !== undefined && options.max > 0) hi = options.max
+  // Bounds may come from outside: only positive numbers count.
+  const min = finite(options.min)
+  const max = finite(options.max)
+  if (min !== null && min > 0) lo = min
+  if (max !== null && max > 0) hi = max
   if (lo === hi) hi = lo * 10
   if (options.nice !== false) {
     const niced = log([lo, hi], [0, 1]).nice().domain
-    if (options.min === undefined) lo = niced[0]
-    if (options.max === undefined) hi = niced[1]
+    if (min === null) lo = niced[0]
+    if (max === null) hi = niced[1]
   }
   return [lo, hi]
 }

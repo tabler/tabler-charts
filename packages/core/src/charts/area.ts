@@ -1,6 +1,6 @@
 import type { ChartType } from '../chart.ts'
 import { seriesLegend, seriesTable } from './cartesian.ts'
-import { cleanAxes, cleanSeries } from './clean.ts'
+import { cleanData, cleanSeries } from './clean.ts'
 import { type LineOptions, renderLines } from './line.ts'
 
 /** Options of the area chart: line options with the fill always on. */
@@ -19,7 +19,7 @@ export type AreaOptions = Omit<LineOptions, 'area'>
  */
 export const area: ChartType<AreaOptions> = {
   name: 'area',
-  clean: cleanAxes(cleanSeries),
+  clean: cleanData(cleanSeries),
   render: (options, ctx) => renderLines(options, ctx, true),
   legend: (options) => seriesLegend(options.data),
   table: (options, ctx, limit) => seriesTable(options, ctx, limit),

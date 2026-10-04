@@ -14,7 +14,7 @@ import {
   seriesLegend,
   seriesTable,
 } from './cartesian.ts'
-import { cleanAxes, cleanSeries } from './clean.ts'
+import { cleanData, cleanSeries } from './clean.ts'
 import { type StackMode, stackBounds, stackSeries } from './stack.ts'
 
 export interface LineOptions extends CartesianOptions {
@@ -233,7 +233,7 @@ function fadeMask(id: string) {
  */
 export const line: ChartType<LineOptions> = {
   name: 'line',
-  clean: cleanAxes(cleanSeries),
+  clean: cleanData(cleanSeries),
   render: (options, ctx) => renderLines(options, ctx, false),
   legend: (options) => seriesLegend(options.data),
   table: (options, ctx, limit) => seriesTable(options, ctx, limit),
