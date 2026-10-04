@@ -9,7 +9,7 @@ import type { LegendItem } from '../legend.ts'
 import { extent } from '../scales/extent.ts'
 import { linear } from '../scales/linear.ts'
 import { type ClassValue, h } from '../vnode.ts'
-import { domainOf, plottable, tickCount, type ValueAxisOptions } from './cartesian.ts'
+import { domainOf, markerShape, plottable, tickCount, type ValueAxisOptions } from './cartesian.ts'
 import { cleanData, finite, isRecord, named, records, text } from './clean.ts'
 
 /** A point of a scatter or bubble chart. */
@@ -220,15 +220,18 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   }
   ctx.onHitTest(interaction)
 
-  /** One path drawing a dot of `radius` at every point (two arcs each). */
-  const dotsPath = (dots: readonly ScatterPoint[]) => {
+  /** One path drawing a dot of `radius` at every point (two arcs each, or the series' shape). */
+  const shape = markerShape(options)
+  const dotsPath = (dots: readonly ScatterPoint[], slot: number) => {
     if (!dots.length) return null
     const r = round(radius)
     let d = ''
     for (const p of dots) {
-      d += `M${round(x(p.x) - radius)},${round(y(p.y))}a${r},${r},0,1,0,${2 * r},0a${r},${r},0,1,0,${-2 * r},0`
+      d += shape
+        ? shape(slot, x(p.x), y(p.y), r)
+        : `M${round(x(p.x) - radius)},${round(y(p.y))}a${r},${r},0,1,0,${2 * r},0a${r},${r},0,1,0,${-2 * r},0`
     }
-    return h('path', { key: 'dots', class: 'tc-point tc-dots', d })
+    return h('path', { key: 'dots', class: ['tc-point tc-dots', shape && 'tc-marker'], d })
   }
 
   const background = []
@@ -254,7 +257,10 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
         // each cost the browser style and layout work. The path keeps its
         // commands while the point count does, so new data morphs. Bubbles
         // stay circles: each is see-through over the others.
-        dotsPath(series.points.filter((p) => usable(p) && sizeOf(p) === undefined)),
+        dotsPath(
+          series.points.filter((p) => usable(p) && sizeOf(p) === undefined),
+          seriesIndex,
+        ),
         series.points.map(
           (point, i) =>
             usable(point) &&

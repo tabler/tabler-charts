@@ -17,6 +17,7 @@ export default defineConfig({
     'src/annotations.ts',
     'src/patterns.ts',
     'src/value-labels.ts',
+    'src/point-shapes.ts',
     'src/hydrate.ts',
     'src/morph.ts',
     'src/export.ts',

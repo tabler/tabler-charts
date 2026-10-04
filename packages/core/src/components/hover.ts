@@ -59,9 +59,13 @@ export function hoverUnderlay(hit: Hit, crosshair = true): VNode {
 
 /**
  * Hover marks drawn above the series: the hit's own mark (pie slices), or
- * an active dot on every point of point charts.
+ * an active dot on every point of point charts (of the series' `shape`, if given).
  */
-export function hoverOverlay(hit: Hit, radius = 4): VNode {
+export function hoverOverlay(
+  hit: Hit,
+  radius = 4,
+  shape?: (slot: number, x: number, y: number, r: number) => string,
+): VNode {
   const { mark } = hit
   if (mark) {
     const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
@@ -90,12 +94,17 @@ export function hoverOverlay(hit: Hit, radius = 4): VNode {
           seriesGroup(
             item.seriesIndex,
             item.color,
-            h('circle', {
-              class: 'tc-point tc-point-active',
-              cx: round(item.x),
-              cy: round(item.y),
-              r: radius,
-            }),
+            shape
+              ? h('path', {
+                  class: 'tc-point tc-point-active tc-marker',
+                  d: shape(item.seriesIndex, item.x, item.y, radius),
+                })
+              : h('circle', {
+                  class: 'tc-point tc-point-active',
+                  cx: round(item.x),
+                  cy: round(item.y),
+                  r: radius,
+                }),
           ),
       ),
   )

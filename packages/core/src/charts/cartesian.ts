@@ -1,7 +1,7 @@
 import type { DataTable, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
-import { type Features, feature } from '../features.ts'
+import { type Features, feature, features } from '../features.ts'
 import { formatDetail, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import {
@@ -233,6 +233,13 @@ export function valueTicks(
   return options.scale === 'log'
     ? feature('log').ticks(scale, count, format, locale)
     : linearTicks(scale, { count, format, locale })
+}
+
+/** The point shapes of a chart (`shapes`, or with `patterns: true`), if it has them. */
+export const markerShape = (options: object): NonNullable<Features['point-shapes']> | undefined => {
+  const { shapes, patterns } = options as { shapes?: boolean; patterns?: unknown }
+  // On the core, the shapes come with their module (like the points of line charts).
+  return (shapes ?? patterns === true) ? features['point-shapes'] : undefined
 }
 
 /** The tick count asked for on an axis (a number up to 100), or `auto`. */

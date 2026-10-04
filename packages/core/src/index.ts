@@ -2,16 +2,17 @@
  * `@tabler/charts`: everything from `@tabler/charts/core`, with a `Chart`
  * that installs the built-in plugins (tooltip, legend, keyboard, …) and
  * every optional feature registered (time and log axes, decimation,
- * annotations, pattern fills, value labels).
+ * annotations, pattern fills, value labels, point shapes).
  */
 
 import { annotationLayers, annotationValues } from './charts/annotations.ts'
 import { dateLabels } from './charts/dates.ts'
 import { logDomain, logTicks } from './charts/log-axis.ts'
 import { patternFills } from './charts/patterns.ts'
+import { markerPath, shapesStep } from './charts/point-shapes.ts'
 import { timeAxis } from './charts/time-axis.ts'
-import { valueLabels } from './charts/value-labels.ts'
-import { register } from './features.ts'
+import { labelsStep } from './charts/value-labels.ts'
+import { addPost, register } from './features.ts'
 import { hydrate } from './render/hydrate.ts'
 import { morph } from './render/morph.ts'
 import { log } from './scales/log.ts'
@@ -28,10 +29,14 @@ register({
   line: { linePath, areaPath },
   annotations: { layers: annotationLayers, values: annotationValues },
   patterns: patternFills,
-  'value-labels': valueLabels,
+  'point-shapes': markerPath,
   hydrate,
   morph,
 })
+
+// Steps that finish the content: shapes first, then the labels over them.
+addPost(shapesStep)
+addPost(labelsStep)
 
 export { Chart } from './chart-default.ts'
 export * from './core.ts'

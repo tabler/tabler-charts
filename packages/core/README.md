@@ -138,6 +138,7 @@ Data, annotations and axis bounds often come from users, APIs or JSON and are no
 | `patterns` | `'auto'` | Pattern fills: `true` always, `'auto'` in forced colors only, `false` never |
 | `valueLabels` | `false` | Values on the marks: `true`, or `{ points: 'all', format }` (see below) |
 | `sync` | | A group name: charts of the same group share the hover (see below) |
+| `shapes` | with `patterns: true` | A point shape per series in line, radar and scatter charts |
 | `class` | | Extra classes on the `<svg>` |
 | `plugins` | | Extra plugins |
 
@@ -213,6 +214,7 @@ The export copies the computed styles into the SVG, so CSS theming comes along. 
 - **Data table:** a data table is there for screen readers; it is visually hidden unless `table: 'visible'`.
 - **Keyboard:** Left and Right walk the categories, Up and Down the series, Home and End jump to the ends, and Escape clears the highlight. The tooltip follows.
 - **Palette:** the default palette is checked for colorblind separation, and the legend gives every series a name, never color alone.
+- **Point shapes:** with `shapes: true` (and with `patterns: true`), the points of line, radar and scatter charts and the active points of the hover take a shape per series (circle, square, triangle, diamond, triangle down, plus, cross, star), and so do the legend and tooltip swatches. On the core, `import '@tabler/charts/point-shapes'` enables them.
 - **Patterns:** with `patterns: true`, bars, areas, slices, rings and bubbles wear a pattern of their color slot (diagonal lines, dots, hatching, grid…) and lines a dash, so series do not depend on color at all (color vision deficiency, grayscale print). The legend and tooltip swatches match, and exports keep them. By default (`'auto'`) they appear only in forced colors (Windows High Contrast), where the colors are gone. `--tc-pattern-color` sets the color of the lines and dots (the surface by default). On the core, `import '@tabler/charts/patterns'` enables them.
 
 ## License

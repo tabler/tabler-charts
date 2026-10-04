@@ -8,6 +8,7 @@
  * or that would cover another one, is left out: labels never overlap.
  */
 import type { ChartConfig, RenderContext } from '../chart.ts'
+import type { PostStep } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type Rect } from '../layout.ts'
@@ -189,3 +190,7 @@ function sliceFits(item: HitItem, area: Rect, share: number, label: Rect): boole
   const depth = 2 * (outer - radius)
   return label.width <= share * 2 * Math.PI * radius && label.height <= depth
 }
+
+/** The step that adds the labels over the content of charts with `valueLabels`. */
+export const labelsStep: PostStep = (config, content, interaction, ctx) =>
+  config.valueLabels && interaction ? [content, valueLabels(config, interaction, ctx)] : content

@@ -120,6 +120,13 @@ export interface BaseOptions {
    */
   sync?: string
   /**
+   * Give the points of each series a shape of their own (circle, square,
+   * triangle, diamond…) in line, radar and scatter charts, so they do not
+   * depend on color alone. Defaults to `patterns === true`. Needs
+   * `@tabler/charts/point-shapes` on the core (`@tabler/charts` includes it).
+   */
+  shapes?: boolean
+  /**
    * Render the data as an HTML table: visually hidden for screen readers
    * (`true`, the default), shown below the chart (`'visible'`), or not at all.
    * An object sets `visible` and `maxRows` (default 1000; longer data is cut
@@ -191,10 +198,8 @@ function renderContent<O extends object>(
     fontSize,
   )
   const content = config.type.render(config, ctx)
-  // Value labels go over the content, worked out from its interaction.
-  return config.valueLabels && found
-    ? [content, feature('value-labels')(config as ChartConfig<object>, found, ctx)]
-    : content
+  // Optional features finish the content (point shapes, value labels).
+  return features.post ? features.post(config as ChartConfig<object>, content, found, ctx) : content
 }
 
 /** Render context for a config and size (also used by plugins such as the data table). */

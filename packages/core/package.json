@@ -45,6 +45,9 @@
     "./dist/value-labels.js",
     "./dist/value-labels.cjs",
     "./src/value-labels.ts",
+    "./dist/point-shapes.js",
+    "./dist/point-shapes.cjs",
+    "./src/point-shapes.ts",
     "./dist/candlestick.js",
     "./dist/candlestick.cjs",
     "./src/candlestick.ts",
@@ -227,6 +230,16 @@
       "require": {
         "types": "./dist/value-labels.d.cts",
         "default": "./dist/value-labels.cjs"
+      }
+    },
+    "./point-shapes": {
+      "import": {
+        "types": "./dist/point-shapes.d.ts",
+        "default": "./dist/point-shapes.js"
+      },
+      "require": {
+        "types": "./dist/point-shapes.d.cts",
+        "default": "./dist/point-shapes.cjs"
       }
     },
     "./hydrate": {

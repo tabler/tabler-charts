@@ -146,18 +146,18 @@ describe('value labels', () => {
     }
   })
 
-  test('off by default and with false; the core names its import', () => {
+  test('off by default and with false; on the core, only with its import', () => {
     const data = { labels, series: series(2) }
     expect(render({ type: bar, data, valueLabels: false })).not.toContain('tc-value-label')
     expect(chartToString({ type: bar, data } as ChartConfig<object>, size)).not.toContain(
       'tc-value-label',
     )
-    const saved = features['value-labels']
-    delete features['value-labels']
+    const saved = features.post
+    delete features.post
     try {
-      expect(() => render({ type: bar, data })).toThrow('@tabler/charts/value-labels')
+      expect(render({ type: bar, data })).not.toContain('tc-value-label')
     } finally {
-      features['value-labels'] = saved
+      features.post = saved
     }
   })
 })

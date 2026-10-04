@@ -1,3 +1,4 @@
+import { markerShape } from '../charts/cartesian.ts'
 import { hoverOverlay, hoverUnderlay } from '../components/hover.ts'
 import type { ChartPlugin } from '../plugin.ts'
 import { listenPointer } from './pointer.ts'
@@ -14,7 +15,7 @@ export function highlight(): ChartPlugin {
       return {
         layers: (hit, config) => ({
           under: hoverUnderlay(hit, config.crosshair !== false),
-          over: hoverOverlay(hit),
+          over: hoverOverlay(hit, 4, markerShape(config)),
         }),
         ...(stop ? { destroy: stop } : {}),
       }

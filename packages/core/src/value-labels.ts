@@ -2,10 +2,10 @@
  * Standalone entry: `import '@tabler/charts/value-labels'` enables
  * `valueLabels` (values written on the marks) on the core.
  */
-import { valueLabels } from './charts/value-labels.ts'
-import { register } from './features.ts'
+import { labelsStep, valueLabels } from './charts/value-labels.ts'
+import { addPost } from './features.ts'
 
-register({ 'value-labels': valueLabels })
+addPost(labelsStep)
 
 export type { ValueLabelOptions } from './charts/value-labels.ts'
-export { valueLabels }
+export { labelsStep, valueLabels }
