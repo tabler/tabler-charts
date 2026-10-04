@@ -321,6 +321,13 @@ code {
   font-variant-numeric: tabular-nums;
 }
 
+/* Three charts side by side (pattern fills demo). */
+.demo-trio {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
 /* Stat tiles for the sparkline demo. */
 .tiles {
   display: grid;
