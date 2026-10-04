@@ -229,10 +229,12 @@ export function areaPath(
     )
 
     const bottom = run.map((i) => [(points[i] as Pt)[0], baseAt(i)] as const).reverse()
-    // Walking backwards mirrors step curves, so stacked steps line up.
+    // Walking backwards mirrors step curves, so stacked steps line up. A flat
+    // baseline takes the same curve (it stays straight) so that the path keeps
+    // its commands between flat and stacked, and CSS can morph one into the other.
     const back =
       curve === 'step-before' ? 'step-after' : curve === 'step-after' ? 'step-before' : curve
-    emit(path, bottom, typeof baseline === 'number' ? 'linear' : back, false)
+    emit(path, bottom, back, false)
     path.close()
   }
   return path.d

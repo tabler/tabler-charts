@@ -106,10 +106,20 @@ describe('areaPath()', () => {
     expect(areaPath(pts, 30)).toBe('M0,10L10,20L20,5L20,30L10,30L0,30Z')
   })
 
-  test('uses a straight baseline even for curved tops', () => {
-    expect(areaPath(pts, 30, { curve: 'step' })).toBe(
-      'M0,10L5,10L5,20L15,20L15,5L20,5L20,30L10,30L0,30Z',
-    )
+  test('a flat baseline keeps the commands of a stacked one, so CSS can morph between them', () => {
+    const commands = (d: string) => d.replace(/[^A-Z]/g, '')
+    for (const curve of ['linear', 'monotone', 'step', 'step-before', 'step-after'] as const) {
+      const flat = areaPath(pts, 30, { curve })
+      expect(commands(flat), curve).toBe(commands(areaPath(pts, [30, 25, 20], { curve })))
+      // Still straight along the baseline.
+      expect(
+        flat
+          .split(/[A-Z]/)
+          .filter(Boolean)
+          .slice(-3)
+          .every((p) => p.endsWith(',30')),
+      ).toBe(true)
+    }
   })
 
   test('follows a per-point baseline for stacked areas', () => {
