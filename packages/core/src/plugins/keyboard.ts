@@ -17,8 +17,12 @@ export function keyboard(): ChartPlugin {
       const host = chart.element
       let live: HTMLElement | undefined
 
-      const announce = (text: string) => {
-        if (typeof document === 'undefined') return
+      /**
+       * The live region, added when the chart takes focus: screen readers only
+       * announce changes of a region that was already there, so one created
+       * with its first message would stay silent for that message.
+       */
+      const region = (): HTMLElement => {
         if (!live) {
           live = host.ownerDocument.createElement('div')
           live.className = 'tc-sr-only'
@@ -26,7 +30,10 @@ export function keyboard(): ChartPlugin {
           live.setAttribute('aria-atomic', 'true')
           host.appendChild(live)
         }
-        live.textContent = text
+        return live
+      }
+      const announce = (text: string) => {
+        region().textContent = text
       }
 
       const go = (index: number, seriesIndex?: number) => {
@@ -88,13 +95,18 @@ export function keyboard(): ChartPlugin {
       const onBlur = (event: Event) => {
         if (isChart(event.target) && chart.highlightSource === 'index') chart.clearHighlight()
       }
+      const onFocus = (event: Event) => {
+        if (enabled(chart.config) && isChart(event.target)) region()
+      }
       host.addEventListener('keydown', onKey)
+      host.addEventListener('focusin', onFocus)
       host.addEventListener('focusout', onBlur)
 
       return {
         svgAttrs: (config) => (enabled(config) ? { tabindex: 0 } : undefined),
         destroy() {
           host.removeEventListener('keydown', onKey)
+          host.removeEventListener('focusin', onFocus)
           host.removeEventListener('focusout', onBlur)
           live?.remove()
         },

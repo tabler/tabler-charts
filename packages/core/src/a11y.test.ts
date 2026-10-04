@@ -232,6 +232,16 @@ describe('Chart accessibility', () => {
     expect(el.querySelector('.tc-tooltip')?.textContent).toContain('2')
   })
 
+  test('the live region is there from focus on, before the first announcement', () => {
+    chart = new Chart(el, base)
+    expect(el.querySelector('[aria-live]')).toBeNull()
+    svg().dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+    expect(el.querySelector('[aria-live]')?.textContent).toBe('')
+    key('ArrowRight')
+    expect(live()).toContain('Jan')
+    expect(el.querySelectorAll('[aria-live]')).toHaveLength(1)
+  })
+
   test('removes table and live region on destroy', () => {
     chart = new Chart(el, base)
     key('ArrowRight')
