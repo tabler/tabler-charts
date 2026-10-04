@@ -1,5 +1,4 @@
-import { Chart } from '@tabler/charts'
-import { candlestick } from '@tabler/charts/candlestick'
+import { Chart, candlestick } from '@tabler/charts'
 import '@tabler/charts/style.css'
 
 new Chart('#chart', {
