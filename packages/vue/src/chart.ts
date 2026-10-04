@@ -11,6 +11,7 @@ import {
   defineComponent,
   h,
   type MaybeRefOrGetter,
+  onActivated,
   onBeforeUnmount,
   onMounted,
   onUpdated,
@@ -110,6 +111,8 @@ function setup<O extends object>(fixedType: ChartType<O> | undefined) {
       () => push(true),
       { deep: true },
     )
+    // Back from <KeepAlive>, which kept the container out of the page: observe it again.
+    onActivated(() => chart.value?.resize())
     onBeforeUnmount(() => {
       chart.value?.destroy()
       chart.value = null
@@ -189,6 +192,7 @@ export function useChart<O extends object>(
     () => chart.value?.update(read()),
     { deep: true },
   )
+  onActivated(() => chart.value?.resize())
   onBeforeUnmount(() => {
     chart.value?.destroy()
     chart.value = null

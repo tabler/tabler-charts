@@ -339,9 +339,22 @@ export class Chart<O extends object = object> {
   /** Id prefix used for elements inside the chart. */
   readonly id: string
   #cfg: ChartConfig<O>
+  /** Container size changes, from the shared ResizeObserver. */
+  #onResize = (width: number, height: number): void => {
+    // Our own SVG sets the container height unless it follows the container.
+    const followsHeight = this.#cfg.height === 'container'
+    const changed =
+      width !== this.#measured.width || (followsHeight && height !== this.#measured.height)
+    this.#measured = { width, height }
+    if (changed) {
+      this.#font = undefined
+      this.#markResizing()
+      this.#schedule()
+    }
+  }
   #measured: Partial<Size> = {}
   readonly #handlers = new Map<keyof ChartEvents, Set<Handler<never>>>()
-  readonly #unobserve: () => void
+  #unobserve: () => void
   readonly #plugins: PluginInstance[]
   #destroyed = false
   #current: Interaction | undefined
@@ -387,18 +400,7 @@ export class Chart<O extends object = object> {
     this.id = config.id ?? nextId()
     this.#adopt = element.querySelector(':scope > svg.tc-chart')
     this.#measure()
-    this.#unobserve = observeResize(element, (width, height) => {
-      // Our own SVG sets the container height unless it follows the container.
-      const followsHeight = this.#cfg.height === 'container'
-      const changed =
-        width !== this.#measured.width || (followsHeight && height !== this.#measured.height)
-      this.#measured = { width, height }
-      if (changed) {
-        this.#font = undefined
-        this.#markResizing()
-        this.#schedule()
-      }
-    })
+    this.#unobserve = observeResize(element, this.#onResize)
     const self = this as unknown as Chart<object>
     this.#plugins = [...defaultPlugins, ...(config.plugins ?? [])].map((plugin) =>
       plugin.install(self),
@@ -522,8 +524,13 @@ export class Chart<O extends object = object> {
     return this.update({ data } as unknown as Partial<ChartConfig<O>>)
   }
 
-  /** Re-measure the container and re-render in the next frame. */
+  /**
+   * Re-measure the container and re-render in the next frame. Call it when a
+   * container taken out of the page without `destroy()` comes back.
+   */
   resize(): this {
+    // A container taken out of the page and put back is observed again.
+    if (!this.#destroyed) this.#unobserve = observeResize(this.element, this.#onResize)
     this.#measure()
     this.#font = undefined
     this.#schedule()

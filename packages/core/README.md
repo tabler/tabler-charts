@@ -137,6 +137,8 @@ const off = chart.on('hover', ({ hit }) => {}) // also: click, legend-toggle, re
 
 Updates are batched into one animation frame for every chart on the page. `flush()` runs them right away (useful in tests).
 
+An element holds one chart: a new `Chart` on it replaces the one already there. Call `destroy()` when the chart goes away (the React, Vue, element and data API wrappers do it for you). A container taken out of the page without it is still let go, and if you put the same container back, call `chart.resize()` so it follows its size again.
+
 ## Theming
 
 Everything visual is CSS. The stylesheet defines tokens on `:root` (light and dark), and every element has semantic classes:
