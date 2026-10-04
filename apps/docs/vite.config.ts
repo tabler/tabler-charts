@@ -36,6 +36,7 @@ export default defineConfig({
         cases: fileURLToPath(new URL('./cases.html', import.meta.url)),
         environments: fileURLToPath(new URL('./environments.html', import.meta.url)),
         environment: fileURLToPath(new URL('./environment.html', import.meta.url)),
+        sandbox: fileURLToPath(new URL('./sandbox.html', import.meta.url)),
       },
     },
   },
