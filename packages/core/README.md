@@ -165,6 +165,10 @@ const svg = chartToString(
 
 Put the SVG in the chart's container. A `Chart` created on the same element later takes the markup over node by node (with `@tabler/charts`, or `@tabler/charts/hydrate` on the core). Set `id`, `locale` and `fontSize` explicitly so the server and browser layouts match. The React and Vue adapters do all of this for you.
 
+## Content Security Policy
+
+Charts work under a strict CSP (`style-src 'self'`, no `'unsafe-inline'`): the browser renderer sets styles through the CSSOM, which such a policy allows, and injects no `<style>` elements. Server-rendered markup is the exception: the browser blocks (and reports) its style attributes as it parses the page, and hydration then sets them again, so the chart still ends up right. The React and Vue components always start from that markup. To keep the reports out, allow style attributes only: `style-src 'self'; style-src-attr 'unsafe-inline'`.
+
 ## Export
 
 ```js

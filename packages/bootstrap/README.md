@@ -98,7 +98,8 @@ One classic script with the library, the chart stylesheet with the Bootstrap map
 
 It injects the styles and initializes every `[data-tc-chart]` on load; everything is also on the `TablerCharts` global. On the script tag:
 - `data-observe` also handles charts added later;
-- `data-no-styles` skips the styles, so you can load them yourself.
+- `data-no-styles` skips the styles, so you can load them yourself;
+- `nonce` (under a strict CSP) is passed on to the injected styles.
 
 ## License
 

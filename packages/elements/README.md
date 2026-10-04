@@ -100,7 +100,7 @@ One classic script with the library, the stylesheet and the element, which regis
 <script src="https://cdn.jsdelivr.net/npm/@tabler/charts-elements/dist/tabler-charts.min.js"></script>
 ```
 
-The library is also on the `TablerCharts` global. Add `data-no-styles` to the script tag to load the stylesheet yourself.
+The library is also on the `TablerCharts` global. Add `data-no-styles` to the script tag to load the stylesheet yourself. Under a strict CSP, give the script a `nonce`: the injected styles take it over.
 
 ## License
 

@@ -51,11 +51,13 @@ defineChartElement({ tag: 'tabler-chart-shadow', shadow })
 ${PART_STYLES}`
     shadowCode.append(shadowInner)
     shadowCode.style.overflowX = 'auto'
-    const style = document.createElement('style')
-    style.textContent = PART_STYLES
+    // A constructable stylesheet, which the CSP check of the playground allows.
+    const sheet = new CSSStyleSheet()
+    sheet.replaceSync(PART_STYLES)
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet]
     const shadowHost = document.createElement('div')
     shadowHost.innerHTML = `<tabler-chart-shadow type="line" label="Visitors, shadow DOM" aspect-ratio="3" locale="en-US" options='{"points":"last"}'><script type="application/json">${JSON.stringify(randomData())}</script></tabler-chart-shadow>`
-    el.append(code, host, shadowCode, style, shadowHost)
+    el.append(code, host, shadowCode, shadowHost)
     const chart = host.firstElementChild as ChartElement
     const shadowChart = shadowHost.firstElementChild as ChartElement
 

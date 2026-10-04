@@ -45,6 +45,7 @@ Every chart option is an attribute, in kebab-case or camelCase: `:data`, `title`
 - `class` and `style` go to the container `<div>`, as usual in Vue.
 - `data` is watched deeply, so changing it in place (`data.series[0].values.push(…)`) updates the chart, and new data animates from the old.
 - For SSR, pass `locale` so the server and browser format numbers the same. Ids come from `useId()`, so hydration lines up.
+- The chart starts from server-rendered markup, also in the browser. Under a strict CSP (`style-src` without `'unsafe-inline'`) its style attributes are reported, then set again on mount; allow `style-src-attr 'unsafe-inline'` to keep the reports out (see the core README).
 
 ## Events
 

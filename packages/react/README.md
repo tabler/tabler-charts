@@ -44,6 +44,7 @@ Every chart option is a prop: `data`, `title`, `locale`, `aspectRatio`, `legend`
 - `className` and `style` go to the container `<div>`, while `class` goes to the `<svg>`.
 - Options are compared key by key, so keep `data` and nested options referentially stable (`useMemo`) to avoid needless updates.
 - For SSR, pass `locale` so the server and browser format numbers the same. Ids come from `useId()`, so hydration lines up.
+- The chart starts from server-rendered markup, also in the browser. Under a strict CSP (`style-src` without `'unsafe-inline'`) its style attributes are reported, then set again on mount; allow `style-src-attr 'unsafe-inline'` to keep the reports out (see the core README).
 
 ## Events
 
