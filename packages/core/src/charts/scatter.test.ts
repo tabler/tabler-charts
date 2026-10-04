@@ -197,6 +197,39 @@ describe('scatter', () => {
     expect(hit?.items[0]?.text).toBe('1, 1')
   })
 
+  test('log axes place points and ticks by magnitude', () => {
+    const points = [1, 10, 100, 1000].map((v) => ({ x: v, y: v }))
+    const config = {
+      data: { series: [{ name: 'S', points }] },
+      x: { scale: 'log' },
+      y: { scale: 'log' },
+    } as const
+    const labels = (axis: string) =>
+      findByClass(findByClass(render(config), axis)[0] as never, 'tc-tick-label').map((t) =>
+        t.children.join(''),
+      )
+    expect(labels('tc-axis-left')).toEqual(['1', '10', '100', '1,000'])
+    // The wider axis has room for 2 and 5 of each decade too.
+    expect(labels('tc-axis-bottom')).toEqual([
+      '1',
+      '2',
+      '5',
+      '10',
+      '20',
+      '50',
+      '100',
+      '200',
+      '500',
+      '1,000',
+    ])
+    // Each decade takes the same room on both axes.
+    const hits = [0, 1, 2, 3].map((i) => interactionOf(config).hitIndex(i)?.items[0])
+    const steps = (key: 'x' | 'y') =>
+      hits.slice(1).map((hit, i) => Math.round((hit?.[key] ?? 0) - (hits[i]?.[key] ?? 0)))
+    expect(new Set(steps('x')).size).toBe(1)
+    expect(new Set(steps('y')).size).toBe(1)
+  })
+
   test('finds the nearest of many points quickly', () => {
     const many = {
       series: [

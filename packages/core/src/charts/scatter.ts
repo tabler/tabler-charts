@@ -1,15 +1,23 @@
 import type { DataTable } from '../a11y.ts'
 import type { ChartType, RenderContext } from '../chart.ts'
-import { axis, axisSize, linearTicks, type Tick } from '../components/axis.ts'
+import { axis, axisSize, type Tick } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { formatDetail, formatNumber } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets, LINE_HEIGHT } from '../layout.ts'
 import type { LegendItem } from '../legend.ts'
 import { extent } from '../scales/extent.ts'
-import { linear } from '../scales/linear.ts'
+import type { LinearScale } from '../scales/linear.ts'
 import { type ClassValue, h } from '../vnode.ts'
-import { domainOf, markerShape, plottable, tickCount, type ValueAxisOptions } from './cartesian.ts'
+import {
+  domainOf,
+  markerShape,
+  plottable,
+  tickCount,
+  type ValueAxisOptions,
+  valueScale,
+  valueTicks,
+} from './cartesian.ts'
 import { cleanData, finite, isRecord, named, records, text } from './clean.ts'
 
 /** A point of a scatter or bubble chart. */
@@ -113,16 +121,11 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
 
   const showX = xOptions.show !== false
   const showY = yOptions.show !== false
-  const probeY = linearTicks(linear(yDomain, [1, 0]), {
-    count: countY,
-    format: yOptions.format,
-    locale,
-  })
-  const probeX = linearTicks(linear(xDomain, [0, 1]), {
-    count: countX,
-    format: xOptions.format,
-    locale,
-  })
+  // Linear or logarithmic, as each axis asks (see valueScale).
+  const ticksOf = (scale: LinearScale, axis: ValueAxisOptions, count: number) =>
+    valueTicks(scale, axis, count, axis.format, locale)
+  const probeY = ticksOf(valueScale(yDomain, [1, 0], yOptions), yOptions, countY)
+  const probeX = ticksOf(valueScale(xDomain, [0, 1], xOptions), xOptions, countX)
   const half = (tick: Tick | undefined) =>
     showX && tick ? Math.ceil(estimateTextWidth(tick.label, fontSize) / 2) : 0
   const pad = insets(options.padding)
@@ -137,10 +140,10 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
       Math.max(showY ? axisSize('left', probeY, fontSize) : 0, half(probeX[0]), overhang),
   }
   const area = innerRect(width, height, margins)
-  const x = linear(xDomain, [area.x, area.x + area.width])
-  const y = linear(yDomain, [area.y + area.height, area.y])
-  const xTicks = linearTicks(x, { count: countX, format: xOptions.format, locale })
-  const yTicks = linearTicks(y, { count: countY, format: yOptions.format, locale })
+  const x = valueScale(xDomain, [area.x, area.x + area.width], xOptions)
+  const y = valueScale(yDomain, [area.y + area.height, area.y], yOptions)
+  const xTicks = ticksOf(x, xOptions, countX)
+  const yTicks = ticksOf(y, yOptions, countY)
 
   // Every visible point in pixels, sorted by x for fast nearest-point lookups.
   const placed: Placed[] = []
