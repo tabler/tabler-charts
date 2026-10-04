@@ -102,10 +102,11 @@ export function normalizeClass(value: ClassValue): string {
  * Values that could leave their declaration (`;`, braces, quotes, escapes,
  * comments) or load something (`url()` and friends). Colors and dashes often
  * come from user data, and `red;position:fixed` would restyle the chart's
- * elements, `url(…)` would make the browser request it.
+ * elements, `url(…)` would make the browser request it. A reference to an
+ * element of the page, `url(#id)` (pattern fills), loads nothing and passes.
  */
 const UNSAFE =
-  /[;{}<>"'\\]|\/\*|\b(?:url|src|attr|image|image-set|cross-fade|element|expression)\s*\(/i
+  /[;{}<>"'\\]|\/\*|\b(?:url(?!\(#[\w-]+\))|src|attr|image|image-set|cross-fade|element|expression)\s*\(/i
 
 /**
  * Serialize a style value into a CSS declaration list. In a map, values that

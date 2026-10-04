@@ -15,6 +15,7 @@ import { line } from './charts/line.ts'
 import { pie } from './charts/pie.ts'
 import { scatter } from './charts/scatter.ts'
 import { flush } from './scheduler.ts'
+import { normalizeStyle } from './vnode.ts'
 
 const EVIL = 'red;position:fixed;inset:0;background:url(https://attacker.example/x)'
 /** Anything that escaped its value: an extra declaration, or a resource. */
@@ -116,5 +117,19 @@ describe('style injection', () => {
       size,
     )
     expect(svg).toContain('--tc-series-color:var(--bs-success)')
+  })
+
+  test('only a reference to an element of the page passes as url()', () => {
+    expect(normalizeStyle({ fill: 'url(#tc-pattern-1)' })).toBe('fill:url(#tc-pattern-1)')
+    for (const bad of [
+      'url(https://attacker.example/x)',
+      'url(#a) url(//attacker.example)',
+      'url( #a)',
+      'url(#a b)',
+      'url(#a?x)',
+      'URL(data:x)',
+    ]) {
+      expect(normalizeStyle({ fill: bad }), bad).toBe('')
+    }
   })
 })
