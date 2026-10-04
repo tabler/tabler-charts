@@ -209,19 +209,8 @@ describe('scatter', () => {
         t.children.join(''),
       )
     expect(labels('tc-axis-left')).toEqual(['1', '10', '100', '1,000'])
-    // The wider axis has room for 2 and 5 of each decade too.
-    expect(labels('tc-axis-bottom')).toEqual([
-      '1',
-      '2',
-      '5',
-      '10',
-      '20',
-      '50',
-      '100',
-      '200',
-      '500',
-      '1,000',
-    ])
+    // The wider axis has 1, 2 and 5 of each decade, thinned so that no two labels touch.
+    expect(labels('tc-axis-bottom')).toEqual(['1', '5', '20', '100', '1,000'])
     // Each decade takes the same room on both axes.
     const hits = [0, 1, 2, 3].map((i) => interactionOf(config).hitIndex(i)?.items[0])
     const steps = (key: 'x' | 'y') =>

@@ -1,6 +1,6 @@
 import type { DataTable } from '../a11y.ts'
 import type { ChartType, RenderContext } from '../chart.ts'
-import { axis, axisSize, type Tick } from '../components/axis.ts'
+import { axis, axisSize, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { formatDetail, formatNumber } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
@@ -142,8 +142,9 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   const area = innerRect(width, height, margins)
   const x = valueScale(xDomain, [area.x, area.x + area.width], xOptions)
   const y = valueScale(yDomain, [area.y + area.height, area.y], yOptions)
-  const xTicks = ticksOf(x, xOptions, countX)
-  const yTicks = ticksOf(y, yOptions, countY)
+  // Thinned like the ticks of the other charts: on a log axis they crowd at the end of each decade.
+  const xTicks = thinTicks(ticksOf(x, xOptions, countX), 'bottom', fontSize)
+  const yTicks = thinTicks(ticksOf(y, yOptions, countY), 'left', fontSize, 4)
 
   // Every visible point in pixels, sorted by x for fast nearest-point lookups.
   const placed: Placed[] = []
