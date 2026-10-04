@@ -245,14 +245,14 @@ export function createChartElement(setup: ChartElementSetup): new () => ChartEle
   }
 }
 
-/** Give custom elements, which are inline by default, a block box (zero specificity). */
+/**
+ * Give custom elements, which are inline by default, a block box (zero
+ * specificity), in a constructable stylesheet: a strict CSP blocks <style>.
+ */
 function addBaseStyle(doc: Document, tag: string): void {
-  const id = `tc-element-${tag}`
-  if (doc.getElementById(id)) return
-  const style = doc.createElement('style')
-  style.id = id
-  style.textContent = `:where(${tag}){display:block}`
-  doc.head.append(style)
+  const sheet = new CSSStyleSheet()
+  sheet.replaceSync(`:where(${tag}){display:block}`)
+  doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, sheet]
 }
 
 export interface DefineOptions {

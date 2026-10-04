@@ -18,6 +18,8 @@ if (typeof document !== 'undefined') {
     const style = document.createElement('style')
     style.id = 'tc-styles'
     style.textContent = __TC_PAGE_STYLES__
+    // Under a strict CSP, the nonce of this script lets its styles in too.
+    style.nonce = (script as HTMLScriptElement | null)?.nonce ?? ''
     // First in <head>, so the page's own CSS overrides it.
     document.head.prepend(style)
   }

@@ -166,10 +166,11 @@ describe('<tabler-chart>', () => {
   })
 
   test('gives the element a block box once, with zero specificity', () => {
-    expect(document.querySelectorAll('#tc-element-tabler-chart')).toHaveLength(1)
-    expect(document.getElementById('tc-element-tabler-chart')?.textContent).toBe(
-      ':where(tabler-chart){display:block}',
+    // A constructable stylesheet, which a strict CSP allows.
+    const rules = document.adoptedStyleSheets.flatMap((sheet) =>
+      Array.from(sheet.cssRules, (rule) => rule.cssText.replace(/\s/g, '')),
     )
+    expect(rules.filter((rule) => rule === ':where(tabler-chart){display:block;}')).toHaveLength(1)
   })
 
   test('the core entry registers only the given types, under its own tag', () => {
