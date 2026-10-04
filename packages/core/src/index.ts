@@ -39,6 +39,7 @@ addPost(shapesStep)
 addPost(labelsStep)
 
 export { Chart } from './chart-default.ts'
+export { types } from './chart-types.ts'
 export * from './core.ts'
 export type { DownloadOptions, ExportOptions, ExportTarget, ImageOptions } from './export.ts'
 export { downloadChart, exportImage, exportSVG } from './export.ts'
