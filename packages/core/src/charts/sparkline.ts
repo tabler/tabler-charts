@@ -9,7 +9,7 @@ import { circlePath } from '../shapes/circle.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { h } from '../vnode.ts'
 import { domainOf, type Label, labelKey } from './cartesian.ts'
-import { cleanData, numbers } from './clean.ts'
+import { cleanData, label, numbers } from './clean.ts'
 
 export interface SparklineOptions {
   /** The values; `null` leaves a gap. */
@@ -229,7 +229,11 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
  */
 export const sparkline: ChartType<SparklineOptions> = {
   name: 'sparkline',
-  clean: cleanData(numbers),
+  // The labels too: they come from outside like the values.
+  clean: (options) => ({
+    ...cleanData(numbers)(options),
+    labels: Array.isArray(options.labels) ? options.labels.map(label) : undefined,
+  }),
   render: renderSparkline,
   // Decorative by default: opt in with `keyboard: true`.
   keyboard: false,
