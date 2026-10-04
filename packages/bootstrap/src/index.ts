@@ -207,6 +207,9 @@ export function observe(root: Element = document.body, options: InitOptions = {}
   void init(root, options)
   const observer = new MutationObserver((records) => {
     for (const record of records) {
+      // A chart changing its own content (every hover, every update) adds no charts.
+      const owner = (record.target as Element).closest?.(SELECTOR)
+      if (owner && charts.has(owner)) continue
       for (const node of record.removedNodes) {
         if (!(node instanceof Element)) continue
         if (charts.has(node)) dispose(node)
