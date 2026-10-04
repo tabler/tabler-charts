@@ -5,6 +5,7 @@ import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets, round } from '../layout.ts'
 import { linear } from '../scales/linear.ts'
 import { barPath } from '../shapes/bar.ts'
+import { circlePath } from '../shapes/circle.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { h } from '../vnode.ts'
 import { domainOf, type Label, labelKey } from './cartesian.ts'
@@ -37,8 +38,6 @@ export interface SparklineOptions {
   /** Extra space around the plot, in pixels. */
   padding?: InsetsInput
 }
-
-const circlePath = (r: number): string => `M${r},0A${r},${r},0,1,1,${-r},0A${r},${r},0,1,1,${r},0Z`
 
 function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
   const {

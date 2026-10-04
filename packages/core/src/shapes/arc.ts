@@ -11,6 +11,12 @@ const PI = Math.PI
 const HALF_PI = PI / 2
 const TAU = 2 * PI
 
+/** Degrees to radians. */
+export const DEG: number = Math.PI / 180
+
+/** Room kept around pies and gauges for the halo of the hovered arc, in pixels. */
+export const HALO = 8
+
 // Clamped like d3-shape's math helpers, so out-of-range inputs saturate instead of NaN.
 const asin = (x: number): number => (x >= 1 ? HALF_PI : x <= -1 ? -HALF_PI : Math.asin(x))
 const acos = (x: number): number => (x > 1 ? 0 : x < -1 ? PI : Math.acos(x))

@@ -19,6 +19,7 @@ import { niceDomain } from '../scales/ticks.ts'
 import { type ClassValue, h, type Props, type VNode } from '../vnode.ts'
 import type { Annotation } from './annotations.ts'
 import { finite } from './clean.ts'
+import { groupAttrs, keyOf, legendItems } from './named.ts'
 
 /** Category label on the x axis. */
 export type Label = string | number | Date
@@ -160,17 +161,10 @@ export const TICK_SPACING_X = 80
 export const EDGE = 8
 
 /** Stable key of a series: its `id`, or its name. */
-export const seriesKey = (series: Series): string => series.id ?? series.name
+export const seriesKey: (series: Series) => string = keyOf
 
 /** Legend entries for series-based charts. */
-export function seriesLegend(data: CartesianData): LegendItem[] {
-  return data.series.map((series, index) => {
-    const item: LegendItem = { key: seriesKey(series), name: series.name, index }
-    if (series.color) item.color = series.color
-    if (series.hidden) item.hidden = true
-    return item
-  })
-}
+export const seriesLegend = (data: CartesianData): LegendItem[] => legendItems(data.series)
 
 /** Categories from `data.labels`, or `1…n` for the longest series. */
 export function resolveLabels(data: CartesianData): Label[] {
@@ -480,9 +474,7 @@ export function plotClip(
 export function seriesAttrs(series: Series, index: number): Props {
   const { dash, width } = series
   return {
-    key: seriesKey(series),
-    class: ['tc-series', `tc-series-${index + 1}`, series.class],
-    'data-series': series.name,
+    ...groupAttrs(series, index),
     // A map, so values from data cannot inject CSS (see normalizeStyle).
     style: {
       '--tc-series-color': series.color,

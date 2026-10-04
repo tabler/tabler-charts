@@ -3,10 +3,10 @@ import type { ChartType, RenderContext } from '../chart.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
-import type { LegendItem } from '../legend.ts'
-import { arcCentroid, arcPathStable } from '../shapes/arc.ts'
+import { arcCentroid, arcPathStable, DEG, HALO } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems, isRecord } from './clean.ts'
+import { groupAttrs, keyOf, legendItems } from './named.ts'
 
 /** One ring of a gauge. */
 export interface GaugeRing {
@@ -55,8 +55,6 @@ export interface GaugeOptions {
 }
 
 /** Space kept around the gauge for the hover halo. */
-const HALO = 8
-const DEG = Math.PI / 180
 const HALF_PI = Math.PI / 2
 
 interface Ring {
@@ -67,8 +65,6 @@ interface Ring {
   /** Slot among the visible rings, from the outside in. */
   position: number
 }
-
-const ringKey = (ring: GaugeRing): string => ring.id ?? ring.name
 
 function ringsOf(options: GaugeOptions): GaugeRing[] {
   const { data } = options
@@ -81,7 +77,7 @@ function layoutRings(options: GaugeOptions, hidden: ReadonlySet<string>): Ring[]
   const max = options.max ?? 100
   return ringsOf(options)
     .map((data, index) => ({ data, index, max: data.max ?? max }))
-    .filter((ring) => !hidden.has(ringKey(ring.data)))
+    .filter((ring) => !hidden.has(keyOf(ring.data)))
     .map((ring, position) => ({
       ...ring,
       position,
@@ -216,12 +212,7 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
   const groups = rings.map((ring) =>
     h(
       'g',
-      {
-        key: ringKey(ring.data),
-        class: ['tc-series', `tc-series-${ring.index + 1}`, ring.data.class],
-        'data-series': ring.data.name,
-        style: { '--tc-series-color': ring.data.color },
-      },
+      groupAttrs(ring.data, ring.index),
       h('path', {
         class: 'tc-gauge-track',
         d: arcPathStable({ ...geometry(ring), endAngle: start + sweep }),
@@ -265,15 +256,6 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
   ]
 }
 
-function gaugeLegend(options: GaugeOptions): LegendItem[] {
-  return ringsOf(options).map((ring, index) => {
-    const item: LegendItem = { key: ringKey(ring), name: ring.name, index }
-    if (ring.color) item.color = ring.color
-    if (ring.hidden) item.hidden = true
-    return item
-  })
-}
-
 function gaugeTable(options: GaugeOptions, ctx: RenderContext): DataTable {
   const value = formatNumber(options.format, ctx.locale)
   const share = getNumberFormat(ctx.locale, { style: 'percent', maximumFractionDigits: 1 })
@@ -304,6 +286,6 @@ export const gauge: ChartType<GaugeOptions> = {
     ),
   ),
   render: renderGauge,
-  legend: gaugeLegend,
+  legend: (options) => legendItems(ringsOf(options)),
   table: gaugeTable,
 }

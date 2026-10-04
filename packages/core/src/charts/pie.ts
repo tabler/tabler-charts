@@ -3,10 +3,10 @@ import type { ChartType, RenderContext } from '../chart.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
-import type { LegendItem } from '../legend.ts'
-import { arcCentroid, arcPathStable, padAngleForGap } from '../shapes/arc.ts'
+import { arcCentroid, arcPathStable, DEG, HALO, padAngleForGap } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems } from './clean.ts'
+import { groupAttrs, keyOf, legendItems } from './named.ts'
 
 /** One slice of a pie or donut. */
 export interface PieSlice {
@@ -48,8 +48,6 @@ export interface PieOptions {
 }
 
 /** Space kept around the pie for the hover halo. */
-const HALO = 8
-const DEG = Math.PI / 180
 
 interface Slice {
   data: PieSlice
@@ -59,8 +57,6 @@ interface Slice {
   endAngle: number
 }
 
-const sliceKey = (slice: PieSlice): string => slice.id ?? slice.name
-
 /** Angles of the visible slices, clockwise from `startAngle`. */
 function layoutSlices(
   options: PieOptions,
@@ -68,7 +64,7 @@ function layoutSlices(
 ): { slices: Slice[]; total: number } {
   const visible = options.data
     .map((data, index) => ({ data, index, value: Math.max(0, data.value || 0) }))
-    .filter((slice) => !hidden.has(sliceKey(slice.data)))
+    .filter((slice) => !hidden.has(keyOf(slice.data)))
   const total = visible.reduce((sum, slice) => sum + slice.value, 0)
   let angle = (options.startAngle ?? 0) * DEG
   const slices = visible.map((slice) => {
@@ -167,12 +163,7 @@ function renderPie(
   const groups = slices.map((slice) =>
     h(
       'g',
-      {
-        key: sliceKey(slice.data),
-        class: ['tc-series', `tc-series-${slice.index + 1}`, slice.data.class],
-        'data-series': slice.data.name,
-        style: { '--tc-series-color': slice.data.color },
-      },
+      groupAttrs(slice.data, slice.index),
       // Fixed path structure, so CSS can transition slices between data sets.
       slice.value > 0 && h('path', { class: 'tc-slice', d: arcPathStable(geometry(slice)) }),
     ),
@@ -231,15 +222,6 @@ function renderPie(
   ]
 }
 
-function pieLegend(options: PieOptions): LegendItem[] {
-  return options.data.map((slice, index) => {
-    const item: LegendItem = { key: sliceKey(slice), name: slice.name, index }
-    if (slice.color) item.color = slice.color
-    if (slice.hidden) item.hidden = true
-    return item
-  })
-}
-
 function pieTable(options: PieOptions, ctx: RenderContext): DataTable {
   const { slices, total } = layoutSlices(options, ctx.hidden)
   const value = formatNumber(options.format, ctx.locale)
@@ -259,7 +241,7 @@ function pieType(name: string, defaults: { inner: number; corner: number }): Cha
     name,
     clean: cleanData(cleanItems),
     render: (options, ctx): ChildInput => renderPie(options, ctx, defaults),
-    legend: pieLegend,
+    legend: (options) => legendItems(options.data),
     table: pieTable,
     valueLabels: { marks: 'slice' },
   }
