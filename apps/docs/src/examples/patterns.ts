@@ -12,6 +12,8 @@ new Chart('#chart', {
     ],
   },
   // true: always; 'auto' (the default): in forced colors only; false: never.
+  // With true, the points of line, radar and scatter charts get shapes too
+  // (shapes: true gives them shapes without the patterns).
   patterns: true,
   locale: 'en-US',
 })

@@ -1,13 +1,13 @@
-import { area, bar, Chart, donut } from '@tabler/charts'
+import { area, bar, Chart, donut, line } from '@tabler/charts'
 import type { Demo } from '../demo.ts'
 
 export const patternsDemo: Demo = {
   id: 'patterns',
   title: 'Pattern fills',
   description:
-    'Series that do not depend on color alone, for color vision deficiency, grayscale print and forced colors: every slot has a pattern (lines, dots, hatching…) over its color, and lines a dash. The patterns option draws them always (true), only in forced colors such as Windows High Contrast (auto, the default) or never (false). Legend and tooltip swatches match.',
+    'Series that do not depend on color alone, for color vision deficiency, grayscale print and forced colors: every slot has a pattern (lines, dots, hatching…) over its color, lines a dash and points a shape. The patterns option draws them always (true), only in forced colors such as Windows High Contrast (auto, the default) or never (false). Legend and tooltip swatches match.',
   mount(el, controls) {
-    el.classList.add('demo-trio')
+    el.classList.add('demo-quad')
     const host = () => {
       const div = document.createElement('div')
       el.append(div)
@@ -42,6 +42,21 @@ export const patternsDemo: Demo = {
           { name: 'Email', value: 9 },
           { name: 'Other', value: 6 },
         ],
+      }),
+      new Chart(host(), {
+        type: line,
+        locale: 'en-US',
+        title: 'Response time',
+        patterns: true,
+        points: 'all',
+        data: {
+          labels,
+          series: [
+            { name: 'API', values: [120, 135, 128, 142] },
+            { name: 'Web', values: [180, 172, 190, 176] },
+            { name: 'Jobs', values: [90, 110, 104, 98] },
+          ],
+        },
       }),
       new Chart(host(), {
         type: area,
