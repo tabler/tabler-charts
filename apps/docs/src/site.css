@@ -134,6 +134,15 @@ code {
   color: var(--fg);
 }
 
+.environment-frame {
+  display: block;
+  width: 100%;
+  height: 360px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+}
+
 .case-group {
   margin: 32px 0 12px;
 }
