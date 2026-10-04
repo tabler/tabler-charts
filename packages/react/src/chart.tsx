@@ -19,6 +19,7 @@ import {
   useImperativeHandle,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react'
 
 /** Chart events as React-style callback props. */
@@ -117,6 +118,19 @@ export function useChart<O extends object>(
   return { ref: setElement, chart }
 }
 
+const subscribe = () => () => {}
+
+/**
+ * Whether this render is on the server or hydrates its markup (the server
+ * snapshot), rather than a render in the browser alone.
+ */
+const useServerMarkup = (): boolean =>
+  useSyncExternalStore(
+    subscribe,
+    () => false,
+    () => true,
+  )
+
 /** A React `useId()` as a valid SVG id prefix (it may contain colons and other marks). */
 const idFrom = (reactId: string): string => `tc-${reactId.replace(/[^a-zA-Z0-9]/g, '')}`
 
@@ -130,7 +144,11 @@ function TablerChartImpl<O extends object>(
   const config = { ...options, id: options.id ?? idFrom(reactId) } as ChartConfig<O>
   // The server-rendered chart; kept as the same object, so React never rewrites the
   // container while the chart owns it. The client chart adopts this svg on mount.
-  const [html] = useState(() => ({ __html: chartToString(config, resolveSize(config)) }))
+  // In the browser alone there is nothing to match: the chart is built once, by the Chart.
+  const server = useServerMarkup()
+  const [html] = useState(() => ({
+    __html: server ? chartToString(config, resolveSize(config)) : '',
+  }))
   const { ref: attach, chart } = useChart(config, { onHover, onClick, onLegendToggle, onRender })
   useImperativeHandle<Chart<O> | null, Chart<O> | null>(ref, () => chart, [chart])
   return (

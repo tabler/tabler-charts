@@ -74,6 +74,14 @@ describe('@tabler/charts-react', () => {
     expect(host.querySelector('.tc-legend')).not.toBeNull()
   })
 
+  test('mounted in the browser alone, the chart is built once', () => {
+    const counted = { ...line, render: vi.fn(line.render) }
+    const el = mount(<TablerChart type={counted} data={data} width={300} height={150} />)
+    flush()
+    expect(counted.render).toHaveBeenCalledOnce()
+    expect(el.querySelectorAll('svg.tc-chart .tc-line')).toHaveLength(2)
+  })
+
   test('exposes the Chart through the ref and updates it when props change', () => {
     const ref = createRef<Chart<BarOptions> | null>()
     let setValues: (values: number[]) => void = () => {}
