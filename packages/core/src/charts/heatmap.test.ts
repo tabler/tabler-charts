@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
+import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { findByClass } from '../test-utils.ts'
 import { h } from '../vnode.ts'
@@ -151,6 +151,24 @@ describe('heatmap', () => {
       ) as never
       const cells = findByClass(h('g', null, content), 'tc-cell')
       expect(cells.filter((c) => String(c.attrs.class).includes('tc-cell-empty'))).toHaveLength(3)
+    })
+
+    test('the legend names follow the locale, the table the value format', () => {
+      const config = {
+        ...base,
+        locale: 'de-DE',
+        format: { minimumFractionDigits: 2 },
+        ranges: [
+          { from: 0, to: 1234.5, color: 'red' },
+          { from: 1234.5, color: 'blue' },
+        ],
+      }
+      expect(heatmap.legend?.(config).map((item) => item.name)).toEqual([
+        '0,00–1.234,50',
+        '≥ 1.234,50',
+      ])
+      const ctx = renderContext(config, size, 'h', () => {}, new Set())
+      expect(heatmap.table?.(config, ctx, 10).rows[0]).toEqual(['W1', '0,00', '2,00'])
     })
 
     test('the tooltip names the range of each value', () => {
