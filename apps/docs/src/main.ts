@@ -59,6 +59,42 @@ document.querySelector('.site-nav a[href="/"]')?.setAttribute('aria-current', 'p
 
 const container = document.getElementById('demos') as HTMLElement
 
+/** Usage examples by demo id: src/examples/<id>.ts or .html, type-checked with the app. */
+const examples = new Map(
+  Object.entries(
+    import.meta.glob<string>('./examples/*.{ts,html}', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    }),
+  ).map(([path, code]) => [path.replace(/^.*\/|\.\w+$/g, ''), code.trim()]),
+)
+
+/** A folded "Usage" block with the example's code and a copy button. */
+function usage(code: string): HTMLElement {
+  const details = document.createElement('details')
+  details.className = 'demo-code'
+  const summary = document.createElement('summary')
+  summary.textContent = 'Usage'
+  const copy = document.createElement('button')
+  copy.type = 'button'
+  copy.className = 'demo-copy'
+  copy.textContent = 'Copy'
+  copy.addEventListener('click', async () => {
+    await navigator.clipboard?.writeText(code)
+    copy.textContent = 'Copied'
+    setTimeout(() => {
+      copy.textContent = 'Copy'
+    }, 1500)
+  })
+  const pre = document.createElement('pre')
+  const text = document.createElement('code')
+  text.textContent = code
+  pre.append(text)
+  details.append(summary, copy, pre)
+  return details
+}
+
 for (const demo of demos) {
   const card = document.createElement('section')
   card.className = 'demo'
@@ -74,6 +110,8 @@ for (const demo of demos) {
   controls.className = 'demo-controls'
 
   card.append(title, description, chart, controls)
+  const example = examples.get(demo.id)
+  if (example) card.append(usage(example))
   container.append(card)
   // A test hook: visual tests seed the random data of each demo by its id.
   ;(window as { __tcSeed?: (id: string) => void }).__tcSeed?.(demo.id)

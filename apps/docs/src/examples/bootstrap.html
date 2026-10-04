@@ -1,0 +1,9 @@
+<!-- Bootstrap 5.3: one script with the library, the styles mapped to --bs-* variables
+     (data-bs-theme switches the charts too) and the data API. -->
+<script src="https://cdn.jsdelivr.net/npm/@tabler/charts-bootstrap/dist/tabler-charts-bootstrap.min.js"></script>
+
+<!-- Charts declared in HTML: the type, data-tc-* options, inline JSON or a URL. -->
+<div data-tc-chart="line" data-tc-aspect-ratio="2.4" data-tc-points="last"
+  data-tc-data='{"labels":["Mon","Tue","Wed"],"series":[{"name":"Visits","values":[120,180,150]}]}'></div>
+
+<div data-tc-chart="donut" data-tc-src="/api/traffic.json"></div>

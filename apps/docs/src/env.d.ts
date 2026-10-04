@@ -10,3 +10,11 @@ declare module '*?inline' {
   const content: string
   export default content
 }
+
+// Vite's import.meta.glob, as the playground uses it (eager, one export).
+interface ImportMeta {
+  glob<T>(
+    pattern: string,
+    options: { query?: string; import?: string; eager: true },
+  ): Record<string, T>
+}

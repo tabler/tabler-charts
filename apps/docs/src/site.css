@@ -413,3 +413,56 @@ code {
   stroke-dasharray: 6 4;
   stroke-width: 2px;
 }
+
+/* Usage examples under each demo, folded. */
+.demo-code {
+  position: relative;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.demo-code summary {
+  cursor: pointer;
+  width: max-content;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.demo-code summary:hover {
+  color: var(--fg);
+}
+
+.demo-code pre {
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  background: var(--code-bg);
+  border-radius: 6px;
+}
+
+.demo-code pre code {
+  padding: 0;
+  background: none;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.demo-copy {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+
+.demo-code:not([open]) .demo-copy {
+  display: none;
+}
