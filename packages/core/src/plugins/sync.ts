@@ -37,17 +37,25 @@ export function sync(): ChartPlugin {
     install(chart) {
       const self = new WeakRef(chart)
       let group: Set<WeakRef<Chart<object>>> | undefined
+      /** The name of the group joined: the config may have moved on before the next render. */
+      let joined: string | undefined
+      /** Leave the group, and take it off the list when it is empty. */
+      const leave = () => {
+        group?.delete(self)
+        if (joined && group?.size === 0 && groups.get(joined) === group) groups.delete(joined)
+      }
       /** Join the group of the current config, leaving the one before. */
       const join = () => {
         const name = chart.config.sync
         const next = name ? (groups.get(name) ?? new Set()) : undefined
         if (next === group) return
-        group?.delete(self)
+        leave()
         if (name && next) {
           next.add(self)
           groups.set(name, next)
         }
         group = next
+        joined = name
       }
       join()
       const off = chart.on('hover', ({ hit }) => {
@@ -71,8 +79,7 @@ export function sync(): ChartPlugin {
         afterRender: join,
         destroy() {
           off()
-          group?.delete(self)
-          if (group?.size === 0 && chart.config.sync) groups.delete(chart.config.sync)
+          leave()
         },
       }
     },
