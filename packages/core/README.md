@@ -82,6 +82,8 @@ A feature you use but did not import throws an error that names the import.
 | `candlestick` | `[{ x, open, high, low, close }]` | time axes, `maxCandleWidth` |
 | `sparkline` | `number[]` | `variant` (`'line'`, `'area'`, `'bar'`, `'tristate'`), `point`, `markers: 'minmax'` |
 
+`types` (from `@tabler/charts`) has every type by its name, for charts declared in markup (`types[name]`); it brings all of them into the bundle.
+
 Series take `name`, `values`, and optionally `id` (stable identity), `color`, `dash`, `width`, `class` and `hidden`.
 
 Cartesian charts share two axes:
@@ -105,6 +107,8 @@ annotations: [
 ```js
 new Chart('#el', { type: bar, data, valueLabels: true })
 ```
+
+A chart type of your own gets labels from its hits like the built-in ones. Its `valueLabels` says what its marks are, when not bars or points (`{ marks: 'slice' }` for shares inside slices, `{ marks: 'cell' }` for values in the middle of cells), and where its number format is (`{ format: (options) => options.format }`).
 
 ### Synced hover
 

@@ -349,6 +349,7 @@ export const heatmap: ChartType<HeatmapOptions> = {
   clean: cleanData(cleanSeries),
   render: renderHeatmap,
   legend: heatmapLegend,
+  valueLabels: { marks: 'cell', format: (options) => options.format },
   // Cells are formatted as in the tooltip: `format` is the value format here, not `y.format`.
   table: (options, ctx, limit) =>
     seriesTable(
