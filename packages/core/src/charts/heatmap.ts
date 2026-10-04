@@ -1,6 +1,6 @@
 import type { ChartType, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, thinTicks } from '../components/axis.ts'
-import { formatNumber, type NumberFormat } from '../format.ts'
+import { formatNumber, type Locale, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets } from '../layout.ts'
 import { band } from '../scales/band.ts'
@@ -313,7 +313,8 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
 function heatmapLegend(options: HeatmapOptions): LegendItem[] {
   const { ranges } = options
   if (ranges?.length) {
-    const value = formatNumber(options.format)
+    // The legend is asked with the whole config, so the names follow its locale.
+    const value = formatNumber(options.format, (options as { locale?: Locale }).locale)
     return ranges.map((range, index) => ({
       key: rangeKey(range, index),
       name:
@@ -350,5 +351,11 @@ export const heatmap: ChartType<HeatmapOptions> = {
   clean: cleanData(cleanSeries),
   render: renderHeatmap,
   legend: heatmapLegend,
-  table: (options, ctx, limit) => seriesTable(options, ctx, limit),
+  // Cells are formatted as in the tooltip: `format` is the value format here, not `y.format`.
+  table: (options, ctx, limit) =>
+    seriesTable(
+      { data: options.data, ...(options.x ? { x: options.x } : {}), y: { format: options.format } },
+      ctx,
+      limit,
+    ),
 }
