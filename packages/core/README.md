@@ -90,6 +90,13 @@ Cartesian charts share two axes:
 - `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`.
 - `y`: `min`, `max`, `zero`, `nice`, `ticks`, `format`, `scale: 'log'`, `grid`, `show`.
 
+A number `format` is `Intl.NumberFormat` options or a function. `notation: 'compact'` shortens long numbers in the locale's words ("1.1M", "1,1 mln" in Polish); `compactSymbols` writes suffixes of your own in the locale's separators instead:
+
+```js
+y: { format: { notation: 'compact', compactSymbols: true } }            // 1K, 1,1M, 2,5B in pl-PL
+y: { format: { notation: 'compact', compactSymbols: ['k', 'M', 'G'] } } // 1k, 1.1M, 2.5G
+```
+
 They also share `annotations`:
 
 ```js

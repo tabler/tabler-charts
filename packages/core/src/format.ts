@@ -10,8 +10,19 @@
 /** Locale(s) passed to `Intl`; `undefined` uses the runtime default. */
 export type Locale = string | readonly string[] | undefined
 
-/** `Intl.NumberFormat` options or a custom formatter. */
-export type NumberFormat = Intl.NumberFormatOptions | ((value: number) => string)
+/** `Intl.NumberFormat` options, plus suffixes of our own for compact notation. */
+export interface NumberFormatOptions extends Intl.NumberFormatOptions {
+  /**
+   * Compact notation with these suffixes for thousands, millions, billions…
+   * instead of the locale's words: `['k', 'M', 'G']` writes 1500 as "1.5k",
+   * or "1,5k" in Polish, where the locale itself writes "1,5 tys.". `true`
+   * stands for `['K', 'M', 'B', 'T']`. Larger numbers keep the last suffix.
+   */
+  compactSymbols?: boolean | readonly string[]
+}
+
+/** Number format options or a custom formatter. */
+export type NumberFormat = NumberFormatOptions | ((value: number) => string)
 
 /** `Intl.DateTimeFormat` options or a custom formatter. */
 export type DateFormat = Intl.DateTimeFormatOptions | ((value: Date) => string)
@@ -70,9 +81,54 @@ const unsignedZero = (value: number): number => (value === 0 ? 0 : value)
  */
 export function formatNumber(format?: NumberFormat, locale?: Locale): (value: number) => string {
   if (typeof format === 'function') return format
-  const nf = getNumberFormat(locale, format)
+  const { compactSymbols, ...options } = format ?? {}
+  if (compactSymbols) {
+    return formatCompact(compactSymbols === true ? SYMBOLS : compactSymbols, options, locale)
+  }
+  const nf = getNumberFormat(locale, options)
   return (value) => nf.format(unsignedZero(value))
 }
+
+const SYMBOLS = ['K', 'M', 'B', 'T']
+
+/**
+ * Compact notation with the given suffixes: the value divided by its power
+ * of a thousand, formatted by `Intl` (separators, currency, sign) with the
+ * suffix after the digits. Without digits of its own it rounds like `Intl`'s
+ * compact notation: two significant digits below 10, whole numbers above.
+ */
+function formatCompact(
+  symbols: readonly string[],
+  // `notation` and `compactDisplay` are taken out: the suffixes replace them.
+  { notation, compactDisplay, ...options }: Intl.NumberFormatOptions,
+  locale: Locale,
+): (value: number) => string {
+  const own = digitsOf(options)
+  const small = getNumberFormat(locale, own ? options : { ...options, maximumSignificantDigits: 2 })
+  const large = own ? small : getNumberFormat(locale, { ...options, maximumFractionDigits: 0 })
+  return (value) => {
+    for (let exp = 0; ; exp++) {
+      const scaled = unsignedZero(value / 1000 ** exp)
+      const parts = (Math.abs(scaled) < 10 ? small : large).formatToParts(scaled)
+      let digits = ''
+      let last: Intl.NumberFormatPart | undefined
+      for (const part of parts) {
+        if (part.type === 'integer') digits += part.value
+        if (part.type === 'integer' || part.type === 'fraction') last = part
+      }
+      // Four digits or more: a thousand times smaller, with the next suffix
+      // (so 999 950 rounds up to "1M", not "1000K").
+      if (digits.length < 4 || exp >= symbols.length) {
+        if (exp && last) last.value += symbols[exp - 1]
+        return parts.map((part) => part.value).join('')
+      }
+    }
+  }
+}
+
+/** Whether number options write compact numbers ("25K"). */
+const compactOf = (o: NumberFormatOptions): boolean =>
+  o.notation === 'compact' || !!o.compactSymbols
 
 /** Whether number options set their digits (fraction or significant). */
 const digitsOf = (o: Intl.NumberFormatOptions): boolean =>
@@ -89,7 +145,7 @@ const digitsOf = (o: Intl.NumberFormatOptions): boolean =>
  */
 export function formatDetail(format?: NumberFormat, locale?: Locale): (value: number) => string {
   return formatNumber(
-    typeof format === 'object' && format.notation === 'compact' && !digitsOf(format)
+    typeof format === 'object' && compactOf(format) && !digitsOf(format)
       ? { ...format, maximumSignificantDigits: 3 }
       : format,
     locale,
@@ -105,8 +161,10 @@ export function stepPrecision(step: number): number {
   return Math.max(0, -Math.floor(Math.log10(abs) + 1e-9))
 }
 
-function hasPrecision(options: Intl.NumberFormatOptions): boolean {
-  return digitsOf(options) || (options.notation ?? 'standard') !== 'standard'
+function hasPrecision(options: NumberFormatOptions): boolean {
+  return (
+    digitsOf(options) || !!options.compactSymbols || (options.notation ?? 'standard') !== 'standard'
+  )
 }
 /**
  * Create a formatter for axis ticks `step` apart. Unless `format` sets its

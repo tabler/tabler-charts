@@ -139,3 +139,61 @@ describe('formatDetail()', () => {
     expect(formatDetail((v) => `${v}!`, 'en-US')(3)).toBe('3!')
   })
 })
+
+describe('compactSymbols', () => {
+  const symbols = { notation: 'compact', compactSymbols: ['k', 'M', 'G'] } as const
+
+  test('writes its own suffixes, in the locale separators', () => {
+    const en = formatNumber(symbols, 'en-US')
+    expect([999, 1000, 1500, 1_100_000, 2_500_000_000].map(en)).toEqual([
+      '999',
+      '1k',
+      '1.5k',
+      '1.1M',
+      '2.5G',
+    ])
+    expect(formatNumber(symbols, 'pl-PL')(1_100_000)).toBe('1,1M')
+    expect(formatNumber({ compactSymbols: true }, 'pl-PL')(1000)).toBe('1K')
+    expect(formatNumber({ compactSymbols: true }, 'de-DE')(2_500_000_000)).toBe('2,5B')
+  })
+
+  test('rounds like compact notation, into the next thousand', () => {
+    const en = formatNumber(symbols, 'en-US')
+    expect([1250, 12_500, 125_400, 999_950, 0.123].map(en)).toEqual([
+      '1.3k',
+      '13k',
+      '125k',
+      '1M',
+      '0.12',
+    ])
+  })
+
+  test('keeps the last suffix for larger numbers', () => {
+    expect(formatNumber(symbols, 'en-US')(1.5e12)).toBe('1,500G')
+  })
+
+  test('puts the suffix after the digits: signs and currencies stay around them', () => {
+    expect(formatNumber(symbols, 'en-US')(-1500)).toBe('-1.5k')
+    expect(formatNumber({ ...symbols, style: 'currency', currency: 'USD' }, 'en-US')(25_000)).toBe(
+      '$25k',
+    )
+    expect(
+      formatNumber({ ...symbols, style: 'currency', currency: 'PLN' }, 'pl-PL')(1_100_000),
+    ).toBe(nbsp('1,1M zł'))
+  })
+
+  test('respects digits of its own, and the detail format keeps three digits', () => {
+    expect(formatNumber({ ...symbols, maximumFractionDigits: 2 }, 'en-US')(1_234_567)).toBe('1.23M')
+    expect(formatDetail(symbols, 'en-US')(24_812)).toBe('24.8k')
+    expect(formatTicks(500_000, symbols, 'en-US')(1_500_000)).toBe('1.5M')
+  })
+
+  test('leaves values that are not finite to Intl', () => {
+    expect(formatNumber(symbols, 'en-US')(Number.POSITIVE_INFINITY)).toBe('∞')
+    expect(formatNumber(symbols, 'en-US')(Number.NaN)).toBe('NaN')
+  })
+
+  test('`false` is plain Intl', () => {
+    expect(formatNumber({ compactSymbols: false }, 'en-US')(1500)).toBe('1,500')
+  })
+})

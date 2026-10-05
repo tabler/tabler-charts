@@ -67,7 +67,7 @@ export { grid } from './components/grid.ts'
 export { hoverOverlay, hoverUnderlay } from './components/hover.ts'
 export type { Features } from './features.ts'
 export { feature, features, register } from './features.ts'
-export type { DateFormat, Locale, NumberFormat } from './format.ts'
+export type { DateFormat, Locale, NumberFormat, NumberFormatOptions } from './format.ts'
 export {
   formatDate,
   formatDetail,

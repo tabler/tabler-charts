@@ -1,12 +1,13 @@
-import { bar, Chart } from '@tabler/charts'
+import { bar, Chart, type NumberFormatOptions } from '@tabler/charts'
 import type { Demo } from '../demo.ts'
 
 const formats = {
   compact: { notation: 'compact' },
   'compact long': { notation: 'compact', compactDisplay: 'long' },
+  'compact symbols': { notation: 'compact', compactSymbols: ['k', 'M', 'G'] },
   'compact currency': { style: 'currency', currency: 'USD', notation: 'compact' },
   standard: {},
-} as const satisfies Record<string, Intl.NumberFormatOptions>
+} as const satisfies Record<string, NumberFormatOptions>
 
 type FormatName = keyof typeof formats
 
@@ -14,7 +15,7 @@ export const numberFormatDemo: Demo = {
   id: 'number-format',
   title: 'Number format',
   description:
-    'Long numbers shortened with compact notation: 1000 → 1K, 1 100 000 → 1.1M. Formats are plain Intl.NumberFormat options, so the suffixes and the decimal separator follow the locale (1,1 mln in Polish). Ticks stay short, while value labels and tooltips keep three significant digits.',
+    'Long numbers shortened with compact notation: 1000 → 1K, 1 100 000 → 1.1M. Formats are plain Intl.NumberFormat options, so the suffixes and the decimal separator follow the locale (1,1 mln in Polish); compactSymbols sets suffixes of your own (1,1M). Ticks stay short, while value labels and tooltips keep three significant digits.',
   mount(el, controls) {
     let format: FormatName = 'compact'
     let locale = 'en-US'
