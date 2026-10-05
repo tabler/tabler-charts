@@ -7,6 +7,11 @@ name: Visual
 # to commit (the summary of the run says how). Such a run compares nothing, so
 # it has a name and a queue of its own: it is not the check of its commit, and
 # it leaves the comparison of the same branch running.
+#
+# Pushes and pull requests compare in Chromium only, without the leak checks
+# (the slowest tests): a runner of a private repository has two cores, so
+# Playwright runs one test at a time on it. Run it by hand with "full" for
+# Firefox, WebKit and the leak checks too, split into jobs run side by side.
 on:
   push:
     branches: [main]
@@ -17,19 +22,44 @@ on:
         description: Recreate every baseline and upload them
         type: boolean
         default: false
+      full:
+        description: Also run Firefox, WebKit and the leak checks
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: visual-${{ github.ref }}-${{ inputs.update-snapshots && 'update' || 'compare' }}
+  group: visual-${{ github.ref }}-${{ inputs.update-snapshots && 'update' || inputs.full && 'full' || 'compare' }}
   cancel-in-progress: true
 
 jobs:
   visual:
-    name: ${{ inputs.update-snapshots && 'Update baselines' || 'Visual regression' }}
+    name: >-
+      ${{ inputs.update-snapshots && 'Update baselines'
+        || inputs.full && format('Full visual regression ({0})', matrix.part.name)
+        || 'Visual regression' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # Updating makes every baseline (Firefox and WebKit have export ones)
+        # in one job, so they land in one artifact. Chromium has most of the
+        # slow tests, so a full run gives it three shards.
+        part: >-
+          ${{ fromJSON(inputs.update-snapshots && '[
+            {"name": "all", "args": "--grep-invert @leaks"}
+          ]' || inputs.full && '[
+            {"name": "chromium 1/3", "args": "--project=chromium --shard=1/3"},
+            {"name": "chromium 2/3", "args": "--project=chromium --shard=2/3"},
+            {"name": "chromium 3/3", "args": "--project=chromium --shard=3/3"},
+            {"name": "firefox", "args": "--project=firefox"},
+            {"name": "webkit", "args": "--project=webkit"}
+          ]' || '[
+            {"name": "chromium", "args": "--project=chromium --grep-invert @leaks"}
+          ]') }}
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
@@ -45,7 +75,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Visual tests
-        run: pnpm visual ${{ inputs.update-snapshots && '--update-snapshots=all' || '' }}
+        run: pnpm visual ${{ matrix.part.args }} ${{ inputs.update-snapshots && '--update-snapshots=all' || '' }}
         env:
           # Firefox refuses to start as root with a HOME owned by another user.
           HOME: /root
@@ -54,7 +84,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ strategy.job-index }}
           path: |
             playwright-report/
             test-results/

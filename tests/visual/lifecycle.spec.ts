@@ -194,7 +194,7 @@ async function cycles(page: Page, scenario: string, n: number): Promise<void> {
 
 const SCENARIOS = ['chart', 'forgotten', 'element', 'shadow', 'bootstrap', 'react', 'vue']
 
-test.describe('leaks', () => {
+test.describe('leaks', { tag: '@leaks' }, () => {
   test.skip(({ browserName }) => browserName !== 'chromium', 'Chromium counters (CDP)')
 
   for (const scenario of SCENARIOS) {

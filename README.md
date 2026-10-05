@@ -82,7 +82,7 @@ Other scripts:
 | `pnpm visual` | Playwright visual, axe and export tests against the built playground |
 | `pnpm examples:build` | Build the Next.js, Nuxt and Astro examples |
 
-Visual baselines are made on Linux in CI: run the **Visual** workflow with *update snapshots* and commit the `visual-baselines` artifact.
+Visual baselines are made on Linux in CI: run the **Visual** workflow with *update snapshots* and commit the `visual-baselines` artifact. Pushes and pull requests compare in Chromium only, without the leak checks; run the workflow with *full* for Firefox, WebKit and the leak checks too.
 
 ## License
 
