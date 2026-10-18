@@ -122,33 +122,77 @@ describe('radar', () => {
     }
   })
 
-  test('long labels shrink the radius instead of leaving the chart', () => {
+  /** The lines of a spoke label: its text, then every tspan. */
+  const linesOf = (label: VNode | undefined) =>
+    (label?.children ?? []).map((child) =>
+      typeof child === 'string' ? child : (child as VNode).children.join(''),
+    )
+
+  test('long labels wrap at their spaces, so the radius stays large', () => {
     const short = render()
-    const long = render({
-      data: { ...data, labels: data.labels.map((l) => `${l} and a much longer name`) },
-    })
+    const labels = data.labels.map((l) => `${l} and a much longer name`)
+    const long = render({ data: { ...data, labels } })
     const radius = (node: VNode) => {
       const spoke = findByClass(node, 'tc-radar-spoke')[0]
       return Number(spoke?.attrs.y1) - Number(spoke?.attrs.y2)
     }
-    expect(radius(long)).toBeLessThan(radius(short))
+    expect(radius(long)).toBeGreaterThan(radius(short) * 0.6)
+    const nodes = findByClass(long, 'tc-radar-label')
+    for (const [i, label] of nodes.entries()) {
+      const lines = linesOf(label)
+      // Whole, on a few lines no wider than a quarter of the chart.
+      expect(lines.length).toBeGreaterThan(1)
+      expect(lines.length).toBeLessThanOrEqual(3)
+      expect(lines.join(' ')).toBe(labels[i])
+      for (const line of lines) expect(estimateTextWidth(line, 12)).toBeLessThanOrEqual(100)
+      // Every line on the same x, one line height apart.
+      const spans = label.children.slice(1) as VNode[]
+      for (const span of spans) {
+        expect(span.tag).toBe('tspan')
+        expect(span.attrs.x).toBe(label.attrs.x)
+        expect(span.attrs.dy).toBe('1.25em')
+      }
+    }
+    // The top label moves up for its other lines, side labels center the block.
+    const top = nodes[0]
+    expect(top?.attrs.dy).toBe(`${-(linesOf(top).length - 1) * 1.25}em`)
+    const side = nodes[1]
+    expect(Number.parseFloat(String(side?.attrs.dy))).toBeLessThan(0.35)
+    // Short labels are untouched.
+    expect(findByClass(short, 'tc-radar-label').map(linesOf)).toEqual(data.labels.map((l) => [l]))
+  })
+
+  test('labelWidth sets where labels wrap', () => {
+    const labels = data.labels.map((l) => `${l} and a much longer name`)
+    const wide = render({ data: { ...data, labels }, labelWidth: 1000 })
+    const lines = findByClass(wide, 'tc-radar-label').map(linesOf)
+    expect(lines.every((l) => l.length === 1)).toBe(true)
+    const narrow = render({ data: { ...data, labels }, labelWidth: 10 })
+    for (const label of findByClass(narrow, 'tc-radar-label')) {
+      // One word per line, the rest joined into the third.
+      expect(linesOf(label)).toHaveLength(3)
+    }
+  })
+
+  test('a word that still does not fit is cut short, inside the chart', () => {
+    const labels = data.labels.map((l) => `${l}${'x'.repeat(40)}`)
+    const long = render({ data: { ...data, labels } })
+    const radius = (node: VNode) => {
+      const spoke = findByClass(node, 'tc-radar-spoke')[0]
+      return Number(spoke?.attrs.y1) - Number(spoke?.attrs.y2)
+    }
+    expect(radius(long)).toBeLessThan(radius(render()))
     expect(radius(long)).toBeGreaterThan(50)
-    // What still does not fit is cut short, inside the chart; tooltips keep the name.
-    const labels = findByClass(long, 'tc-radar-label')
-    const side = labels[1]
+    const side = findByClass(long, 'tc-radar-label')[1]
     expect(side?.children.join('')).toMatch(/…$/)
     const w = estimateTextWidth(side?.children.join('') ?? '', 12)
     expect(Number(side?.attrs.x) + w).toBeLessThanOrEqual(size.width)
+    // Tooltips keep the name.
     let hit: Interaction | undefined
-    buildChart(
-      { ...base, data: { ...data, labels: data.labels.map((l) => `${l} and a much longer name`) } },
-      size,
-      'r',
-      (i) => {
-        hit = i
-      },
-    )
-    expect(hit?.hitIndex(1)?.title).toBe('Range and a much longer name')
+    buildChart({ ...base, data: { ...data, labels } }, size, 'r', (i) => {
+      hit = i
+    })
+    expect(hit?.hitIndex(1)?.title).toBe(labels[1])
   })
 
   test('hidden series are left out of the polygons and the domain', () => {

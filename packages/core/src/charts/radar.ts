@@ -2,7 +2,14 @@ import type { ChartType, RenderContext } from '../chart.ts'
 import { linearTicks } from '../components/axis.ts'
 import { formatDetail, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
-import { estimateTextWidth, type InsetsInput, innerRect, insets, round } from '../layout.ts'
+import {
+  estimateTextWidth,
+  type InsetsInput,
+  innerRect,
+  insets,
+  LINE_HEIGHT,
+  round,
+} from '../layout.ts'
 import { linear } from '../scales/linear.ts'
 import { type ChildInput, h } from '../vnode.ts'
 import {
@@ -49,6 +56,11 @@ export interface RadarOptions {
   points?: boolean
   /** Dot radius in pixels. Defaults to `4`. */
   pointRadius?: number
+  /**
+   * Widest spoke label, in pixels: a longer one wraps at its spaces onto up
+   * to three lines. Defaults to a quarter of the chart's width.
+   */
+  labelWidth?: number
   /** Extra space around the chart, in pixels. */
   padding?: InsetsInput
 }
@@ -60,6 +72,8 @@ const HOVER_SLOP = 8
 
 /** Smallest radius, as a share of the space, however long the labels. */
 const MIN_RADIUS = 0.5
+/** Most lines a wrapped spoke label takes. */
+const MAX_LINES = 3
 
 /** `text`, cut short with an ellipsis to fit `width` pixels. */
 function truncate(text: string, width: number, fontSize: number): string {
@@ -67,6 +81,28 @@ function truncate(text: string, width: number, fontSize: number): string {
   let end = text.length
   while (end > 0 && estimateTextWidth(`${text.slice(0, end)}…`, fontSize) > width) end--
   return end > 0 ? `${text.slice(0, end).trimEnd()}…` : ''
+}
+
+/**
+ * `text` split at its spaces into lines no wider than `width` pixels (a word
+ * wider than that gets a line of its own), at most `MAX_LINES` of them: what
+ * is left joins the last line.
+ */
+function wrap(text: string, width: number, fontSize: number): string[] {
+  const lines: string[] = []
+  let line = ''
+  for (const word of text.split(' ')) {
+    const next = line ? `${line} ${word}` : word
+    if (!line || estimateTextWidth(next, fontSize) <= width) line = next
+    else {
+      lines.push(line)
+      line = word
+    }
+  }
+  lines.push(line)
+  if (lines.length > MAX_LINES)
+    lines.splice(MAX_LINES - 1, lines.length, lines.slice(MAX_LINES - 1).join(' '))
+  return lines
 }
 
 /** Text anchor of a spoke label on the side its spoke points to. */
@@ -79,26 +115,33 @@ const side = (sin: number): -1 | 0 | 1 => (sin > 0.1 ? 1 : sin < -0.1 ? -1 : 0)
 function fitRadius(
   area: { width: number; height: number },
   angles: readonly number[],
-  widths: readonly number[],
+  labels: readonly (readonly string[])[],
   fontSize: number,
 ): number {
   let radius = Math.min(area.width, area.height) / 2
   angles.forEach((angle, i) => {
     const sin = Math.sin(angle)
     const cos = Math.cos(angle)
-    const w = widths[i] ?? 0
+    const lines = labels[i] ?? []
+    const w = Math.max(0, ...lines.map((line) => estimateTextWidth(line, fontSize)))
+    const height = blockHeight(lines.length, fontSize)
     const s = side(sin)
     // Horizontal: the label runs outwards from the spoke end (or is centered on it).
     const across = s === 0 ? w / 2 : w + LABEL_GAP
     if (Math.abs(sin) > 1e-6) radius = Math.min(radius, (area.width / 2 - across) / Math.abs(sin))
-    // Vertical: a line of text above the top spokes, below the bottom ones.
+    // Vertical: the lines of text above the top spokes, below the bottom ones,
+    // centered on the ones at the sides.
     if (Math.abs(cos) > 1e-6) {
-      const along = (s === 0 ? fontSize + LABEL_GAP : fontSize / 2) / Math.abs(cos)
+      const along = (s === 0 ? height + LABEL_GAP : height / 2) / Math.abs(cos)
       radius = Math.min(radius, area.height / 2 / Math.abs(cos) - along)
     }
   })
   return Math.max(0, radius)
 }
+
+/** Height of `lines` lines of text, in pixels. */
+const blockHeight = (lines: number, fontSize: number) =>
+  fontSize * (1 + Math.max(0, lines - 1) * LINE_HEIGHT)
 
 function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
   const { width, height, fontSize, locale } = ctx
@@ -122,21 +165,19 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
   const cy = area.y + area.height / 2
   const angles = labels.map((_, i) => (i / Math.max(1, n)) * Math.PI * 2)
   const texts = labels.map((label, i) => formatLabel(label, i))
-  // Fit the labels, but never shrink below a share of the space: labels that
-  // still do not fit are cut short (the tooltip and the table keep them whole).
+  // Long labels wrap onto a few lines, then the radius fits them, but never
+  // shrinks below a share of the space: lines that still do not fit are cut
+  // short (the tooltip and the table keep the labels whole).
+  const labelWidth = options.labelWidth ?? area.width / 4
+  const wrapped = texts.map((text) => wrap(text, labelWidth, fontSize))
   const radius = Math.max(
-    fitRadius(
-      area,
-      angles,
-      texts.map((text) => estimateTextWidth(text, fontSize)),
-      fontSize,
-    ),
+    fitRadius(area, angles, wrapped, fontSize),
     (Math.min(area.width, area.height) / 2) * MIN_RADIUS,
   )
-  const shown = texts.map((text, i) => {
+  const shown = wrapped.map((lines, i) => {
     const sin = Math.sin(angles[i] as number)
     const room = side(sin) === 0 ? area.width : area.width / 2 - radius * Math.abs(sin) - LABEL_GAP
-    return truncate(text, room, fontSize)
+    return lines.map((line) => truncate(line, room, fontSize))
   })
 
   const count = tickCount(axis, Math.max(2, Math.round(radius / 40)))
@@ -268,6 +309,11 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
       const s = side(Math.sin(angle))
       const cos = Math.cos(angle)
       const [x, y] = at(i, radius + LABEL_GAP)
+      const [first = '', ...rest] = shown[i] ?? []
+      // Above the top spokes, below the bottom ones, centered on the sides:
+      // the first line moves up to leave room for the ones under it.
+      const up = rest.length * LINE_HEIGHT
+      const dy = s !== 0 ? `${round(0.35 - up / 2)}em` : cos > 0 ? `${round(-up)}em` : '0.71em'
       return h(
         'text',
         {
@@ -276,10 +322,10 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
           x: round(x),
           y: round(y),
           'text-anchor': s > 0 ? 'start' : s < 0 ? 'end' : 'middle',
-          // Above the top spokes, below the bottom ones, centered on the sides.
-          dy: s !== 0 ? '0.35em' : cos > 0 ? '0' : '0.71em',
+          dy,
         },
-        shown[i],
+        first,
+        rest.map((line, j) => h('tspan', { key: j, x: round(x), dy: `${LINE_HEIGHT}em` }, line)),
       )
     }),
   )
