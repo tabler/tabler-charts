@@ -12,6 +12,7 @@ export default defineConfig({
     'src/pie.ts',
     'src/gauge.ts',
     'src/radar.ts',
+    'src/sankey.ts',
     'src/heatmap.ts',
     'src/candlestick.ts',
     'src/annotations.ts',

@@ -7,6 +7,7 @@ import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
+import { sankey } from './charts/sankey.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
 
@@ -27,4 +28,5 @@ export const types: Readonly<Record<string, ChartType<never>>> = {
   heatmap,
   candlestick,
   radar,
+  sankey,
 } as Record<string, ChartType<never>>

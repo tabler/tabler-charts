@@ -18,6 +18,7 @@ import { patternsDemo } from './demos/patterns.ts'
 import { pieDemo } from './demos/pie.ts'
 import { radarDemo } from './demos/radar.ts'
 import { reactDemo } from './demos/react.tsx'
+import { sankeyDemo } from './demos/sankey.ts'
 import { scatterDemo } from './demos/scatter.ts'
 import { sparklineDemo } from './demos/sparkline.ts'
 import { syncDemo } from './demos/sync.ts'
@@ -37,6 +38,7 @@ const demos: Demo[] = [
   pieDemo,
   gaugeDemo,
   radarDemo,
+  sankeyDemo,
   heatmapDemo,
   candlestickDemo,
   scatterDemo,

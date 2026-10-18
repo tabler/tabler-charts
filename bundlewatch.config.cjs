@@ -14,6 +14,7 @@ module.exports = {
     { path: '.size/core-pie.js', maxSize: '8KB' },
     { path: '.size/core-gauge.js', maxSize: '8KB' },
     { path: '.size/core-radar.js', maxSize: '8.5KB' },
+    { path: '.size/core-sankey.js', maxSize: '8KB' },
     { path: '.size/core-heatmap.js', maxSize: '8.75KB' },
     { path: '.size/core-candlestick.js', maxSize: '10.25KB' },
     { path: '.size/core-line-tooltip-legend.js', maxSize: '13.75KB' },

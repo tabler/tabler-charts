@@ -77,6 +77,7 @@ A feature you use but did not import throws an error that names the import.
 | `pie`, `donut` | `[{ name, value }]` | `innerRadius`, `gap`, `cornerRadius`, `center` (text in the middle) |
 | `gauge` | a number, a ring or rings | `max`, `startAngle`, `angle` (`270` for a dial), `thickness`, `center` |
 | `radar` | `{ labels, series }` | `grid: 'polygon' \| 'circle'`, `fill`, `points`, `r` (radial axis) |
+| `sankey` | `{ nodes?, links: [{ from, to, value }] }` | `nodeWidth`, `nodePadding`, `align: 'justify' \| 'left'`, `format`; nodes with a `color` make the legend |
 | `scatter` | `{ series: [{ name, points: [{ x, y, size? }] }] }` | `radius`, `size` (bubble radii); points with `size` are bubbles |
 | `heatmap` | `{ labels, series }` (rows) | `min`, `max`, `ranges`, `colors` + `mid` (scales), `colorBy: 'series'` |
 | `candlestick` | `[{ x, open, high, low, close }]` | time axes, `maxCandleWidth` |
