@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { arcPathStable } from '../shapes/arc.ts'
 
 /** Frames requested so far, run by hand at chosen times. */
 let frames: FrameRequestCallback[] = []
@@ -124,5 +125,29 @@ describe('morph()', () => {
     tick(400)
     // The cancelled morph no longer writes the attribute.
     expect(el.getAttribute('d')).toBe('M0,0L1,1')
+  })
+
+  test('pie slices turn around the center in every browser, keeping the ring round', async () => {
+    stubBrowser({ native: true })
+    const morph = await load()
+    const slice = (endAngle: number) =>
+      arcPathStable({ innerRadius: 60, outerRadius: 100, startAngle: 0, endAngle, cornerRadius: 4 })
+    const from = slice(0.5)
+    const to = slice(5.5)
+    const el = path(from)
+    el.setAttribute('class', 'tc-slice')
+    expect(morph(el, from, to)).toBe(true)
+    expect(el.style.transition).toBe('none')
+    tick(0)
+    tick(100)
+    // The ring's points (end of every arc but the corners) stay on their circles.
+    const d = el.getAttribute('d') as string
+    const radii = [...d.matchAll(/A(\d+(?:\.\d+)?),[^A-Z]*?,(-?[\d.]+),(-?[\d.]+)(?=[A-Z])/g)]
+      .filter((m) => Number(m[1]) > 10)
+      .map((m) => Math.round(Math.hypot(Number(m[2]), Number(m[3]))))
+    expect(radii).toEqual([100, 100, 60, 60])
+    tick(400)
+    expect(el.getAttribute('d')).toBe(to)
+    expect(el.style.transition).toBe('')
   })
 })

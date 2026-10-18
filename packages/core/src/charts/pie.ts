@@ -192,7 +192,14 @@ function renderPie(
         'g',
         {
           class: 'tc-pie-slices',
-          style: strokeGap > 0 ? `--tc-pie-gap:${strokeGap}px` : undefined,
+          // Where the slices start, so morphing slices agree which way round they turn.
+          style:
+            [
+              strokeGap > 0 && `--tc-pie-gap:${strokeGap}px`,
+              options.startAngle && `--tc-arc-start:${options.startAngle}`,
+            ]
+              .filter(Boolean)
+              .join(';') || undefined,
         },
         groups,
       ),
