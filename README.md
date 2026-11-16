@@ -84,6 +84,17 @@ Other scripts:
 
 Visual baselines are made on Linux in CI: run the **Visual** workflow with *update snapshots* and commit the `visual-baselines` artifact. Pushes and pull requests compare in Chromium only, without the leak checks; run the workflow with *full* for Firefox, WebKit and the leak checks too.
 
+### Releasing
+
+Releases are cut from a clean, up-to-date `main` with [release-it](https://github.com/release-it/release-it), configured in `.release-it.json`. Log in to npm first (`npm login`, with publish rights to the `@tabler` organization); the GitHub token comes from `gh auth token`.
+
+```bash
+pnpm release          # asks for the next version
+pnpm release patch    # or: minor, major, 0.1.0
+```
+
+It runs `pnpm check`, writes the same version to every package in `packages/*`, commits `chore: release vX.Y.Z`, tags it, pushes, creates a GitHub release with generated notes and finally publishes the packages with `pnpm -r publish`. Add `--dry-run` to see the steps without doing anything.
+
 ## License
 
 MIT
