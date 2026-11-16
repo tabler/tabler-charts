@@ -29,9 +29,7 @@ What the mapping gives you:
 - **First series:** it takes `primary`. Series 2–8 keep the chart palette, which is checked for colorblind separation next to a blue primary; Bootstrap's own orange, yellow and pink are not.
 - **Dark mode:** `data-bs-theme="dark"` switches the charts along with the rest of the page, on `<html>` or on any element.
 
-The Tabler preset, `tabler.css`, uses Tabler's `--tblr-*` variables:
-- charts sit on the card surface and use Tabler's muted gray;
-- the first series follows the theme's primary color, so `data-bs-theme-primary` works too.
+The chart stylesheet itself already reads Tabler's `--tblr-*` variables (primary, named colors, card surface, borders, radius, shadow, font) with its own colors as fallbacks, so on a Tabler page charts follow the theme without this package. The Tabler preset, `tabler.css`, adds the theme-option scopes: the mapping is declared again on every element with `data-bs-theme-primary`, `-base`, `-font` or `-radius`, so a subtree with its own primary color or radius gets it. It leaves series 2–8 to the chart stylesheet (Tabler's named colors).
 
 ### SCSS
 

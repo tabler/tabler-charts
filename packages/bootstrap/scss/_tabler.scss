@@ -3,10 +3,13 @@
 // but prefixes its variables with `tblr-`, and sets its theme options
 // (data-bs-theme-primary, -base, -font, -radius) as attributes too.
 //
-// Charts then sit on the card surface (--tblr-bg-surface), use Tabler's
-// muted gray, border colors, radius, shadow and font, and the first series
-// follows the theme's primary color. Load it after `@tabler/charts/style.css`;
-// the plain CSS build is `@tabler/charts-bootstrap/tabler.css`.
+// The chart stylesheet already reads --tblr-* variables (with its own colors
+// as fallbacks), so on a Tabler page this preset only adds the theme-option
+// scopes: the mapping is declared again on every element that carries a
+// data-bs-theme-* attribute, so a subtree with its own primary color or
+// radius gets it. Series 2–8 are left to the chart stylesheet, which uses
+// Tabler's named colors. Load it after `@tabler/charts/style.css`; the plain
+// CSS build is `@tabler/charts-bootstrap/tabler.css`.
 //
 //   @use "@tabler/charts-bootstrap/scss/tabler";
 //   @use "@tabler/charts-bootstrap/scss/tabler" with ($tc-series-1: var(--tblr-green));
@@ -18,5 +21,7 @@
   $tc-series-1: var(--tblr-primary, #066fd1) !default,
   $tc-surface: var(--tblr-bg-surface, #fff) !default,
   $tc-tooltip-bg: var(--tblr-bg-surface, #fff) !default,
-  $tc-text-muted: var(--tblr-secondary, #6f6e69) !default
+  $tc-text-muted: var(--tblr-secondary, #6f6e69) !default,
+  $tc-palette-light: () !default,
+  $tc-palette-dark: () !default
 );
