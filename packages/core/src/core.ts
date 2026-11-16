@@ -90,9 +90,11 @@ export type {
   ChartPlugin,
   PluginInstance,
 } from './plugin.ts'
+export type { DownloadFormat, DownloadMenuOptions, DownloadOption } from './plugins/download.ts'
 export {
   dataTable,
   defaultPlugins,
+  download,
   highlight,
   keyboard,
   legend,

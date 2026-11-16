@@ -10,6 +10,8 @@
  *
  * Add `data-no-styles` to the script tag to load the stylesheet yourself.
  */
+// A script tag cannot import an entry: the download menu's saver comes along.
+import '@tabler/charts/export'
 import { defineChartElement } from './index.ts'
 
 if (typeof document !== 'undefined') {

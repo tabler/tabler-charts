@@ -7,6 +7,7 @@
  */
 import '@tabler/charts/style.css'
 import * as tc from '@tabler/charts'
+import '@tabler/charts/export'
 import * as tcBootstrap from '@tabler/charts-bootstrap'
 import * as tcElements from '@tabler/charts-elements'
 import { shadow } from '@tabler/charts-elements/shadow'

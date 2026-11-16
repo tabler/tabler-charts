@@ -1,11 +1,13 @@
 import { bar, Chart, downloadChart, exportImage } from '@tabler/charts'
+// Enables the download menu (download: true).
+import '@tabler/charts/export'
 import type { Demo } from '../demo.ts'
 
 export const exportDemo: Demo = {
   id: 'export',
   title: 'Export',
   description:
-    'Save a chart as SVG, PNG, JPEG or WebP. The export copies the computed styles into a standalone SVG (so CSS theming and custom properties come along), draws the legend in, leaves hover marks out, and renders images at 2× by default.',
+    'Save a chart as SVG, PNG, JPEG or WebP: with the download menu in the chart’s corner (download: true), or from code. The export copies the computed styles into a standalone SVG (so CSS theming and custom properties come along), draws the legend in, leaves hover marks out, and renders images at 2× by default.',
   mount(el, controls) {
     const chart = new Chart(el, {
       type: bar,
@@ -20,6 +22,7 @@ export const exportDemo: Demo = {
       locale: 'en-US',
       aspectRatio: 2.5,
       title: 'Revenue and costs',
+      download: ['png', 'svg', 'jpeg', 'webp'],
     })
 
     let format: 'png' | 'svg' | 'jpeg' | 'webp' = 'png'

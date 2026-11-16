@@ -20,6 +20,7 @@ export default defineConfig({
     alias: [
       { find: '@tabler/charts/style.css', replacement: core('style.css') },
       { find: /^@tabler\/charts\/core$/, replacement: core('core.ts') },
+      { find: /^@tabler\/charts\/export$/, replacement: core('export.ts') },
       { find: /^@tabler\/charts$/, replacement: core('index.ts') },
       { find: /^@tabler\/charts-elements$/, replacement: elements('index.ts') },
       { find: /^@tabler\/charts-react$/, replacement: react('index.ts') },

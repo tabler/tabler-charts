@@ -49,3 +49,23 @@ test('images are drawn at twice the chart size', async ({ page }) => {
   expect(jpeg[0]).toBe(0xff)
   expect(jpeg[1]).toBe(0xd8)
 })
+
+test('the download menu on the chart saves the chosen format', async ({ page }) => {
+  await open(page, 'light')
+  const toggle = page.locator('#export .tc-download-toggle')
+  await toggle.click()
+  const menu = page.locator('#export .tc-download-menu')
+  await expect(menu).toBeVisible()
+  await expect(menu.getByRole('menuitem')).toHaveText(['PNG', 'SVG', 'JPEG', 'WebP'])
+  const [file] = await Promise.all([
+    page.waitForEvent('download'),
+    menu.getByRole('menuitem', { name: 'SVG' }).click(),
+  ])
+  expect(file.suggestedFilename()).toBe('Revenue and costs.svg')
+  await expect(menu).toBeHidden()
+  await expect(toggle).toBeFocused()
+  // Escape closes it too.
+  await toggle.click()
+  await page.keyboard.press('Escape')
+  await expect(menu).toBeHidden()
+})

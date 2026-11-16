@@ -56,7 +56,10 @@
     "./src/hydrate.ts",
     "./dist/morph.js",
     "./dist/morph.cjs",
-    "./src/morph.ts"
+    "./src/morph.ts",
+    "./dist/export.js",
+    "./dist/export.cjs",
+    "./src/export.ts"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
