@@ -286,7 +286,8 @@
 }
 
 .tc-pie-value,
-.tc-gauge-value {
+.tc-gauge-value,
+.tc-parliament-value {
   font-size: var(--tc-pie-value-size);
   font-weight: 600;
   fill: var(--tc-text-color);
@@ -294,8 +295,25 @@
 }
 
 .tc-pie-label,
-.tc-gauge-label {
+.tc-gauge-label,
+.tc-parliament-label {
   fill: var(--tc-text-muted);
+}
+
+/* Parliament seats: a dot per seat in its party's color, vacant ones empty. */
+.tc-seat {
+  fill: var(--tc-series-color);
+  transition:
+    transform var(--tc-duration) var(--tc-easing),
+    r var(--tc-duration) var(--tc-easing);
+}
+
+.tc-seat-vacant {
+  fill: var(--tc-grid-color);
+}
+
+.tc-chart-parliament .tc-hover-mark {
+  opacity: 0.25;
 }
 
 /* Sankey: nodes in their color, flows as translucent ribbons of their source's. */
@@ -634,6 +652,8 @@
 .tc-areas .tc-series,
 .tc-sankey-links .tc-sankey-link,
 .tc-sankey-nodes .tc-series,
+.tc-parliament-seats .tc-series,
+.tc-parliament-seats .tc-seat,
 .tc-series-list .tc-point,
 .tc-heatmap-cells,
 .tc-candles,
@@ -747,6 +767,7 @@
 
 .tc-pie-slices,
 .tc-gauge-rings,
+.tc-parliament-seats,
 .tc-radar-series {
   animation: tc-pie-in calc(var(--tc-duration) * 1.5) var(--tc-easing);
 }

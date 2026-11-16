@@ -26,12 +26,14 @@
     "examples:build": "pnpm -r --filter \"./examples/**\" build",
     "visual": "playwright test",
     "visual:update": "playwright test --update-snapshots",
+    "changeset": "changeset",
     "release": "GITHUB_TOKEN=\"${GITHUB_TOKEN:-$(gh auth token)}\" release-it"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.14",
+    "@changesets/cli": "^3.0.3",
     "@playwright/test": "^1.63.0",
     "@release-it/bumper": "^8.0.1",
     "@types/node": "^24.19.0",

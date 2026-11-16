@@ -12,6 +12,7 @@ import {
   heatmap,
   type Label,
   line,
+  parliament,
   pie,
   radar,
   sankey,
@@ -664,6 +665,24 @@ const ITEMS: Item[] = [
       grid: 'circle',
       fill: false,
       points: true,
+    },
+  })),
+  seeded('Parliament', () => ({
+    title: 'Parliament',
+    note: 'The Sejm of Poland after 2023: 460 seats on a hemicycle, five parties from the left in their colors, the total in the middle; center.label names it.',
+    span: 2,
+    config: {
+      type: parliament,
+      ...common,
+      aspectRatio: 2.2,
+      center: { label: 'seats' },
+      data: [
+        { name: 'PiS', seats: 194, color: '#263778' },
+        { name: 'KO', seats: 157, color: '#f68f3c' },
+        { name: 'Trzecia Droga', seats: 65, color: '#ffc62a' },
+        { name: 'Lewica', seats: 26, color: '#8e2a7b' },
+        { name: 'Konfederacja', seats: 18, color: '#1d3f8a' },
+      ],
     },
   })),
   seeded('Sankey', () => ({

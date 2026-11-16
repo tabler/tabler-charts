@@ -28,7 +28,7 @@ export function Revenue({ data }) {
 }
 ```
 
-There is one component per chart type: `LineChart`, `AreaChart`, `BarChart`, `PieChart`, `DonutChart`, `GaugeChart`, `RadarChart`, `SankeyChart`, `ScatterChart`, `HeatmapChart`, `CandlestickChart` and `Sparkline`. `TablerChart` takes the type as a prop:
+There is one component per chart type: `LineChart`, `AreaChart`, `BarChart`, `PieChart`, `DonutChart`, `GaugeChart`, `RadarChart`, `SankeyChart`, `ParliamentChart`, `ScatterChart`, `HeatmapChart`, `CandlestickChart` and `Sparkline`. `TablerChart` takes the type as a prop:
 
 ```tsx
 import { bar } from '@tabler/charts'

@@ -155,6 +155,16 @@
         "default": "./dist/sankey.cjs"
       }
     },
+    "./parliament": {
+      "import": {
+        "types": "./dist/parliament.d.ts",
+        "default": "./dist/parliament.js"
+      },
+      "require": {
+        "types": "./dist/parliament.d.cts",
+        "default": "./dist/parliament.cjs"
+      }
+    },
     "./export": {
       "import": {
         "types": "./dist/export.d.ts",

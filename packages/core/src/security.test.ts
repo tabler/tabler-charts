@@ -12,6 +12,7 @@ import { bar } from './charts/bar.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { parliament } from './charts/parliament.ts'
 import { pie } from './charts/pie.ts'
 import { scatter } from './charts/scatter.ts'
 import { flush } from './scheduler.ts'
@@ -48,6 +49,7 @@ const cases: [string, Record<string, unknown>][] = [
     },
   ],
   ['gauge ring', { type: gauge, data: { name: 'A', value: 4, color: EVIL } }],
+  ['parliament party', { type: parliament, data: [{ name: 'A', seats: 4, color: EVIL }] }],
   [
     'scatter series',
     { type: scatter, data: { series: [{ name: 'A', color: EVIL, points: [{ x: 1, y: 2 }] }] } },
