@@ -82,6 +82,8 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
     const label = options.labels?.[i]
     return label === undefined ? '' : String(label)
   }
+  // Where a value is drawn: a tristate bar ends at its sign, not its magnitude.
+  const yOf = (v: number) => y(tristate ? Math.sign(v) : v)
   const hitFor = (i: number): Hit | null => {
     const value = values[i]
     if (value === undefined) return null
@@ -92,7 +94,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
       value,
       text: value === null ? '–' : format(value),
       x: px,
-      y: value === null ? null : y(value),
+      y: value === null ? null : yOf(value),
     }
     const hit: Hit = {
       index: i,
@@ -102,7 +104,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
       area,
       items: [item],
     }
-    if (value !== null) hit.mark = { d: circlePath(pointRadius + 3), x: px, y: y(value) }
+    if (value !== null) hit.mark = { d: circlePath(pointRadius + 3), x: px, y: yOf(value) }
     return hit
   }
   const interaction: Interaction = {

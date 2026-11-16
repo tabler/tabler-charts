@@ -1,8 +1,10 @@
 import type { DataTable } from '../a11y.ts'
 import type { ChartType, RenderContext } from '../chart.ts'
+import { features } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
+import { arcNode, sweep } from '../render/sweep.ts'
 import { arcCentroid, arcPathStable, DEG, HALO, padAngleForGap } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems } from './clean.ts'
@@ -46,8 +48,6 @@ export interface PieOptions {
   /** Extra space around the pie, in pixels. */
   padding?: InsetsInput
 }
-
-/** Space kept around the pie for the hover halo. */
 
 interface Slice {
   data: PieSlice
@@ -164,8 +164,10 @@ function renderPie(
     h(
       'g',
       groupAttrs(slice.data, slice.index),
-      // Fixed path structure, so CSS can transition slices between data sets.
-      slice.value > 0 && h('path', { class: 'tc-slice', d: arcPathStable(geometry(slice)) }),
+      // The path keeps its arc, so new data sweeps slices around the center
+      // (see `sweep`). An empty slice keeps its path, a line with no area in
+      // the gap between its neighbors, to grow from there.
+      arcNode('tc-slice', geometry(slice)),
     ),
   )
 
@@ -240,7 +242,12 @@ function pieType(name: string, defaults: { inner: number; corner: number }): Cha
   return {
     name,
     clean: cleanData(cleanItems),
-    render: (options, ctx): ChildInput => renderPie(options, ctx, defaults),
+    render: (options, ctx): ChildInput => {
+      // Set here, not as the module loads: a module with side effects would
+      // stay in every bundle that imports another chart type next to it.
+      features.sweep = sweep
+      return renderPie(options, ctx, defaults)
+    },
     legend: (options) => legendItems(options.data),
     table: pieTable,
     valueLabels: { marks: 'slice' },

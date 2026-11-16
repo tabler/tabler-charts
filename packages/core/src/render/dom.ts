@@ -124,7 +124,9 @@ function patchNode(node: Node, next: Child): void {
 function patchElement(el: Element, next: VNode): void {
   const prev = rendered.get(el) as VNode
   if (prev === next) return
-  patchAttrs(el, prev.attrs, next.attrs, true)
+  // An arc sweeps to its new angles, setting its `d` itself on the way: the
+  // sweep feature then says what is left to patch.
+  patchAttrs(el, prev.attrs, features.sweep?.(el, prev, next) ?? next.attrs, true)
   patchChildren(el, next.children)
   rendered.set(el, next)
 }
