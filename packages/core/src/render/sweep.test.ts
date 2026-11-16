@@ -1,7 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { arcPathStable } from '../shapes/arc.ts'
-import { arcData, sweep } from './sweep.ts'
+import { arcNode, sweep } from './sweep.ts'
 
 /** Frames requested so far, run by hand at chosen times. */
 let frames: FrameRequestCallback[] = []
@@ -23,10 +22,9 @@ const arc = (startAngle: number, endAngle: number) => ({
   padAngle: 0.02,
   cornerRadius: 4,
 })
-const attrs = (startAngle: number, endAngle: number) => ({
-  d: arcPathStable(arc(startAngle, endAngle)),
-  'data-arc': arcData(arc(startAngle, endAngle)),
-})
+const node = (startAngle: number, endAngle: number) =>
+  arcNode('tc-slice', arc(startAngle, endAngle))
+const d = (startAngle: number, endAngle: number) => String(node(startAngle, endAngle).attrs.d)
 const path = (d: string) => {
   const el = document.createElementNS('http://www.w3.org/2000/svg', 'path')
   el.setAttribute('d', d)
@@ -64,55 +62,52 @@ afterEach(() => {
 
 describe('sweep()', () => {
   test('draws the arcs in between, on the ring', () => {
-    const from = attrs(0, 1)
-    const to = attrs(2, 4.5)
-    const el = path(from.d)
-    expect(sweep(el, from, to)).toBe(true)
+    const el = path(d(0, 1))
+    // The attributes left to patch: all of them, but the path as it is.
+    expect(sweep(el, node(0, 1), node(2, 4.5))).toEqual({ class: 'tc-slice', d: d(0, 1) })
     tick(0)
-    expect(el.getAttribute('d')).toBe(from.d)
+    expect(el.getAttribute('d')).toBe(d(0, 1))
     tick(200)
     // Ease out: 87.5% of the way at half the time.
-    expect(el.getAttribute('d')).toBe(arcPathStable(arc(1.75, 4.0625)))
+    expect(el.getAttribute('d')).toBe(d(1.75, 4.0625))
     // A slice in between is still a slice of the ring: nothing bends inside it.
     expect(reach(el.getAttribute('d') as string)).toBeCloseTo(100, 1)
     tick(400)
-    expect(el.getAttribute('d')).toBe(to.d)
+    expect(el.getAttribute('d')).toBe(d(2, 4.5))
     expect(frames).toHaveLength(0)
   })
 
   test('an interrupted sweep continues from where the arc is', () => {
-    const from = attrs(0, 1)
-    const el = path(from.d)
-    sweep(el, from, attrs(2, 4.5))
+    const el = path(d(0, 1))
+    sweep(el, node(0, 1), node(2, 4.5))
     tick(0)
     tick(200)
-    const back = attrs(0, 1)
-    expect(sweep(el, attrs(2, 4.5), back)).toBe(true)
+    expect(sweep(el, node(2, 4.5), node(0, 1))).toBeDefined()
     tick(200)
-    expect(el.getAttribute('d')).toBe(arcPathStable(arc(1.75, 4.0625)))
+    expect(el.getAttribute('d')).toBe(d(1.75, 4.0625))
     tick(600)
-    expect(el.getAttribute('d')).toBe(back.d)
+    expect(el.getAttribute('d')).toBe(d(0, 1))
   })
 
-  test('leaves paths without an arc, and charts without transitions, to the caller', () => {
-    const from = attrs(0, 1)
-    const to = attrs(2, 4.5)
-    const el = path(from.d)
-    expect(sweep(el, { d: from.d }, to)).toBe(false)
-    expect(sweep(el, from, { d: to.d })).toBe(false)
+  test('leaves other paths, and charts without transitions, to the caller', () => {
+    const el = path(d(0, 1))
+    const plain = (node: ReturnType<typeof arcNode>) => ({ ...node, arc: undefined })
+    // Not an arc, no arc to come from, the same path.
+    expect(sweep(el, node(0, 1), plain(node(2, 4.5)))).toBeUndefined()
+    expect(sweep(el, plain(node(0, 1)), node(2, 4.5))).toBeUndefined()
+    expect(sweep(el, node(0, 1), node(0, 1))).toBeUndefined()
     duration = '0s'
-    expect(sweep(el, from, to)).toBe(false)
+    expect(sweep(el, node(0, 1), node(2, 4.5))).toBeUndefined()
     duration = ''
-    expect(sweep(el, from, to)).toBe(false)
+    expect(sweep(el, node(0, 1), node(2, 4.5))).toBeUndefined()
     expect(frames).toHaveLength(0)
   })
 
   test('a sweep that is running stops when the path is set without one', () => {
-    const from = attrs(0, 1)
-    const el = path(from.d)
-    sweep(el, from, attrs(2, 4.5))
+    const el = path(d(0, 1))
+    sweep(el, node(0, 1), node(2, 4.5))
     duration = '0s'
-    expect(sweep(el, attrs(2, 4.5), attrs(3, 4))).toBe(false)
+    expect(sweep(el, node(2, 4.5), node(3, 4))).toBeUndefined()
     el.setAttribute('d', 'M0,0')
     tick(200)
     expect(el.getAttribute('d')).toBe('M0,0')

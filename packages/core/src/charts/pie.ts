@@ -4,7 +4,7 @@ import { features } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
-import { arcData, sweep } from '../render/sweep.ts'
+import { arcNode, sweep } from '../render/sweep.ts'
 import { arcCentroid, arcPathStable, DEG, HALO, padAngleForGap } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems } from './clean.ts'
@@ -164,14 +164,10 @@ function renderPie(
     h(
       'g',
       groupAttrs(slice.data, slice.index),
-      // The arc is written next to its path, so new data sweeps slices around
-      // the center (see `sweep`). An empty slice keeps its path, a line with
-      // no area in the gap between its neighbors, to grow from there.
-      h('path', {
-        class: 'tc-slice',
-        d: arcPathStable(geometry(slice)),
-        'data-arc': arcData(geometry(slice)),
-      }),
+      // The path keeps its arc, so new data sweeps slices around the center
+      // (see `sweep`). An empty slice keeps its path, a line with no area in
+      // the gap between its neighbors, to grow from there.
+      arcNode('tc-slice', geometry(slice)),
     ),
   )
 

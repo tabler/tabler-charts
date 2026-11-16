@@ -144,7 +144,7 @@ for (const [index, [from, to, a, b]] of STEPS.entries()) {
         }
         // Slices are swept frame by frame, not by CSS (see `sweep`): wait for
         // them to be on their way, and later to arrive.
-        const swept = [...el.querySelectorAll('[data-arc]')]
+        const swept = [...el.querySelectorAll('.tc-slice, .tc-gauge-arc, .tc-gauge-track')]
         const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
         if (swept.length) await wait(150)
         const mid = boxes()
