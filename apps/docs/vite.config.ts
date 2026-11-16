@@ -33,6 +33,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        docs: fileURLToPath(new URL('./docs.html', import.meta.url)),
         cases: fileURLToPath(new URL('./cases.html', import.meta.url)),
         environments: fileURLToPath(new URL('./environments.html', import.meta.url)),
         environment: fileURLToPath(new URL('./environment.html', import.meta.url)),

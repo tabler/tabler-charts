@@ -466,3 +466,230 @@ code {
 .demo-code:not([open]) .demo-copy {
   display: none;
 }
+
+/* Docs page: a sticky table of contents beside the article. */
+.docs {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  padding-bottom: 64px;
+}
+
+.docs-toc {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 40px;
+  font-size: 13px;
+}
+
+.docs-toc a {
+  padding: 4px 10px;
+  color: var(--muted);
+  text-decoration: none;
+  border-left: 2px solid var(--border);
+}
+
+.docs-toc a:hover {
+  color: var(--fg);
+}
+
+.docs-toc a[aria-current="true"] {
+  color: var(--fg);
+  font-weight: 500;
+  border-left-color: var(--accent);
+}
+
+@media (max-width: 800px) {
+  .docs {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .docs-toc {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 24px 0 0;
+  }
+
+  .docs-toc a {
+    padding: 0;
+    border-left: 0;
+  }
+}
+
+.docs-body {
+  min-width: 0;
+  max-width: 760px;
+}
+
+.docs-body .intro p {
+  max-width: 60ch;
+}
+
+.docs-body section {
+  padding: 24px 0 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.docs-body section.intro,
+.docs-body section:last-child {
+  border-bottom: 0;
+}
+
+.docs-body h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 24px;
+}
+
+.docs-body h3 {
+  margin: 20px 0 6px;
+  font-size: 14px;
+}
+
+.docs-body p,
+.docs-body li {
+  margin: 0 0 12px;
+  max-width: 68ch;
+}
+
+.docs-body li {
+  margin-bottom: 6px;
+}
+
+.docs-body ul {
+  padding-left: 20px;
+}
+
+.docs-body a {
+  color: var(--accent);
+}
+
+.docs-body pre {
+  position: relative;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  background: var(--code-bg);
+  border-radius: 6px;
+}
+
+.docs-body pre code {
+  padding: 0;
+  background: none;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.docs-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 10px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.docs-body pre:hover .docs-copy,
+.docs-copy:focus-visible {
+  opacity: 1;
+}
+
+.docs-figure {
+  margin: 0 0 16px;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.docs-figure figcaption {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.docs-trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .docs-trio {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.docs-button {
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.docs-button:hover {
+  background: var(--code-bg);
+}
+
+/* The theming example: three tokens on the container, nothing else. */
+.docs-themed {
+  --tc-color-1: oklch(60% 0.2 250);
+  --tc-color-2: oklch(70% 0.15 50);
+  --tc-stroke-width: 3px;
+}
+
+.docs-themed .tc-series-2 .tc-line {
+  stroke-dasharray: 4 4;
+}
+
+.docs-table {
+  overflow-x: auto;
+  margin: 0 0 14px;
+}
+
+.docs-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.docs-table th,
+.docs-table td {
+  padding: 7px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.docs-table th {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.docs-table td:first-child {
+  white-space: nowrap;
+}
