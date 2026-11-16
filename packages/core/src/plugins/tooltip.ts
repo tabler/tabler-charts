@@ -44,7 +44,8 @@ function placeAll(): void {
 
 /**
  * An HTML tooltip (`.tc-tooltip`) for the highlighted category, placed next
- * to it inside the chart element. Configure it with the `tooltip` option.
+ * to it inside the chart element. Configure it with the `tooltip` option;
+ * `theme: 'light'` adds `.tc-tooltip-light` for the white variant.
  */
 export function tooltip(): ChartPlugin {
   return {
@@ -82,7 +83,9 @@ export function tooltip(): ChartPlugin {
             tip.setAttribute('aria-hidden', 'true')
             el.appendChild(tip)
           }
-          render(tip, tooltipContent(hit, typeof option === 'object' ? option : undefined))
+          const options = typeof option === 'object' ? option : undefined
+          tip.classList.toggle('tc-tooltip-light', options?.theme === 'light')
+          render(tip, tooltipContent(hit, options))
 
           // Placed with the tooltips of the other charts of this frame (see placeAll).
           const shown = tip

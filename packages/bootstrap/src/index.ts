@@ -78,11 +78,13 @@ function optionsOf(element: HTMLElement): Record<string, unknown> {
     out[name] =
       name === 'legend' && value === 'bottom'
         ? { position: 'bottom' }
-        : name === 'download' && /^[a-z]/i.test(value) && !/^(true|false)$/.test(value)
-          ? value.split(/[\s,]+/).filter(Boolean)
-          : TEXT.has(name)
-            ? value
-            : parseValue(value)
+        : name === 'tooltip' && value === 'light'
+          ? { theme: 'light' }
+          : name === 'download' && /^[a-z]/i.test(value) && !/^(true|false)$/.test(value)
+            ? value.split(/[\s,]+/).filter(Boolean)
+            : TEXT.has(name)
+              ? value
+              : parseValue(value)
   }
   return out
 }

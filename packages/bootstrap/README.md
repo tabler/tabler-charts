@@ -49,7 +49,7 @@ The chart stylesheet itself already reads Tabler's `--tblr-*` variables (primary
 | `$tc-series-1` | `var(--bs-primary)` | The first series' color |
 | `$tc-palette-light`, `$tc-palette-dark` | the chart palette | Series 2–8, per mode |
 
-The mapped variables are `$tc-surface`, `$tc-text-color`, `$tc-text-muted`, `$tc-grid-color`, `$tc-baseline-color`, `$tc-hover-color`, `$tc-font-family` and `$tc-tooltip-bg`, `-border`, `-shadow` and `-radius`.
+The mapped variables are `$tc-surface`, `$tc-text-color`, `$tc-text-muted`, `$tc-grid-color`, `$tc-baseline-color`, `$tc-hover-color`, `$tc-font-family` and `$tc-tooltip-bg`, `-color`, `-muted`, `-border`, `-shadow` and `-radius`. The tooltip takes the theme's own tooltip colors (Bootstrap's emphasis color on the body background, Tabler's `--tblr-tooltip-bg`), so it inverts with the color mode like the page's tooltips; `tooltip: { theme: 'light' }` (or `data-tc-tooltip="light"`) keeps the white one.
 
 ## Data API
 

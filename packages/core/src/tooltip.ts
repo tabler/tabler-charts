@@ -15,6 +15,12 @@ export function hitAnchor(hit: Hit, pointer?: { x: number; y: number }): { x: nu
 
 export interface TooltipOptions {
   /**
+   * Colors of the tooltip: `'dark'` (the default) is a dark box with light
+   * text, `'light'` a white one with dark text. Both keep their colors in
+   * dark mode; the `--tc-tooltip-*` tokens tune them.
+   */
+  theme?: 'dark' | 'light'
+  /**
    * Custom content for a hit: VNodes built with `h()` or plain text.
    * Rendered safely (no HTML parsing), inside `.tc-tooltip`.
    */

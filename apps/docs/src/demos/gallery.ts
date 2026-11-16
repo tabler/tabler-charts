@@ -919,7 +919,7 @@ const ITEMS: Item[] = [
   })),
   seeded('Static', () => ({
     title: 'Static',
-    note: 'animate: false, custom tooltip footer with the sum.',
+    note: 'animate: false, light tooltip with a custom footer: the sum.',
     config: {
       type: bar,
       ...common,
@@ -934,6 +934,7 @@ const ITEMS: Item[] = [
       stacked: true,
       animate: false,
       tooltip: {
+        theme: 'light',
         footer: (hit: Hit) =>
           h(
             'div',

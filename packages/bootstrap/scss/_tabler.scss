@@ -20,7 +20,8 @@
   $tc-theme-scopes: ":root, [data-bs-theme], [data-bs-theme-primary], [data-bs-theme-base], [data-bs-theme-font], [data-bs-theme-radius]" !default,
   $tc-series-1: var(--tblr-primary, #066fd1) !default,
   $tc-surface: var(--tblr-bg-surface, #fff) !default,
-  $tc-tooltip-bg: var(--tblr-bg-surface, #fff) !default,
+  $tc-tooltip-bg: var(--tblr-tooltip-bg, #0b0b0b) !default,
+  $tc-tooltip-color: var(--tblr-tooltip-color, #fff) !default,
   $tc-text-muted: var(--tblr-secondary, #6f6e69) !default,
   $tc-palette-light: () !default,
   $tc-palette-dark: () !default

@@ -157,6 +157,22 @@ describe('Chart hover rendering', () => {
     expect(el.querySelectorAll('.tc-crosshair')).toHaveLength(0)
   })
 
+  test('is dark by default and white with theme: light', () => {
+    mount()
+    move(200)
+    flush()
+    const tip = el.querySelector('.tc-tooltip') as HTMLElement
+    expect(tip.classList.contains('tc-tooltip-light')).toBe(false)
+    chart.update({ tooltip: { theme: 'light' } } as Partial<ChartConfig<object>>)
+    move(200)
+    flush()
+    expect(tip.classList.contains('tc-tooltip-light')).toBe(true)
+    chart.update({ tooltip: true } as Partial<ChartConfig<object>>)
+    move(200)
+    flush()
+    expect(tip.classList.contains('tc-tooltip-light')).toBe(false)
+  })
+
   test('can disable the tooltip and the crosshair', () => {
     mount({ tooltip: false, crosshair: false })
     move(200)

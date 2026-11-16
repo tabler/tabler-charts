@@ -45,7 +45,10 @@ describe('bootstrap mapping', () => {
     expect(tokens).toContain('--tc-font-family: var(--bs-body-font-family, inherit)')
     // Derived tokens are declared with the mapping, not inherited from :root.
     expect(tokens).toContain('--tc-focus-color: var(--bs-primary, #2a78d6)')
-    expect(tokens).toContain('--tc-tooltip-color: var(--bs-body-color, #0b0b0b)')
+    // The tooltip takes Bootstrap's tooltip colors, inverted with the color mode.
+    expect(tokens).toContain('--tc-tooltip-bg: var(--bs-emphasis-color, #0b0b0b)')
+    expect(tokens).toContain('--tc-tooltip-color: var(--bs-body-bg, #fff)')
+    expect(tokens).toContain('--tc-tooltip-muted: rgba(var(--bs-body-bg-rgb, 255, 255, 255), 0.7)')
   })
 
   test('keeps the validated chart palette for series 2–8, per data-bs-theme', () => {
@@ -87,7 +90,8 @@ describe('bootstrap mapping', () => {
       expect(tokens).toContain('--tc-color-1: var(--tblr-primary, #066fd1)')
       // Charts sit on cards: the surface is Tabler's card background.
       expect(tokens).toContain('--tc-surface: var(--tblr-bg-surface, #fff)')
-      expect(tokens).toContain('--tc-tooltip-bg: var(--tblr-bg-surface, #fff)')
+      expect(tokens).toContain('--tc-tooltip-bg: var(--tblr-tooltip-bg, #0b0b0b)')
+      expect(tokens).toContain('--tc-tooltip-color: var(--tblr-tooltip-color, #fff)')
       expect(tokens).toContain('--tc-text-muted: var(--tblr-secondary, #6f6e69)')
       expect(tokens).toContain('--tc-grid-color: var(--tblr-border-color-translucent, #e1e0d9)')
       expect(tokens).toContain('--tc-font-family: var(--tblr-body-font-family, inherit)')
