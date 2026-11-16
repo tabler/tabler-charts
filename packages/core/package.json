@@ -142,6 +142,16 @@
         "default": "./dist/radar.cjs"
       }
     },
+    "./sankey": {
+      "import": {
+        "types": "./dist/sankey.d.ts",
+        "default": "./dist/sankey.js"
+      },
+      "require": {
+        "types": "./dist/sankey.d.cts",
+        "default": "./dist/sankey.cjs"
+      }
+    },
     "./export": {
       "import": {
         "types": "./dist/export.d.ts",

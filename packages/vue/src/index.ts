@@ -32,8 +32,10 @@ import {
   pie,
   type RadarOptions,
   radar,
+  type SankeyOptions,
   type ScatterOptions,
   type SparklineOptions,
+  sankey,
   scatter,
   sparkline,
 } from '@tabler/charts'
@@ -80,4 +82,8 @@ export const CandlestickChart: ChartComponent<CandlestickOptions> = /* @__PURE__
 export const RadarChart: ChartComponent<RadarOptions> = /* @__PURE__ */ chartComponent(
   radar,
   'RadarChart',
+)
+export const SankeyChart: ChartComponent<SankeyOptions> = /* @__PURE__ */ chartComponent(
+  sankey,
+  'SankeyChart',
 )

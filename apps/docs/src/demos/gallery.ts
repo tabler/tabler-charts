@@ -14,6 +14,7 @@ import {
   line,
   pie,
   radar,
+  sankey,
   scatter,
   sparkline,
 } from '@tabler/charts'
@@ -663,6 +664,43 @@ const ITEMS: Item[] = [
       grid: 'circle',
       fill: false,
       points: true,
+    },
+  })),
+  seeded('Sankey', () => ({
+    title: 'Sankey',
+    note: 'A city budget in Polish: six sources into three groups into two totals, values in mln zł (pl-PL, compact currency); the three colored group nodes make the legend.',
+    span: 2,
+    config: {
+      type: sankey,
+      ...common,
+      locale: 'pl-PL',
+      aspectRatio: 2.4,
+      format: {
+        style: 'currency',
+        currency: 'PLN',
+        notation: 'compact',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      },
+      data: {
+        nodes: [
+          { name: 'Dochody własne', color: '#206bc4' },
+          { name: 'Transfery z państwa', color: '#2fb344' },
+          { name: 'Środki UE / inne', color: '#f59f00' },
+        ],
+        links: [
+          ['PIT (udział)', 'Dochody własne', 53.7],
+          ['Podatki lokalne', 'Dochody własne', 13.42],
+          ['Opłaty i dochody z majątku', 'Dochody własne', 7.05],
+          ['Subwencja ogólna', 'Transfery z państwa', 11.64],
+          ['Dotacje celowe', 'Transfery z państwa', 11.38],
+          ['Inne', 'Środki UE / inne', 7.82],
+          ['Dochody własne', 'Dochody bieżące', 74.17],
+          ['Transfery z państwa', 'Dochody bieżące', 23.02],
+          ['Środki UE / inne', 'Dochody bieżące', 1.88],
+          ['Środki UE / inne', 'Dochody majątkowe', 5.94],
+        ].map(([from, to, value]) => ({ from, to, value: (value as number) * 1_000_000 })),
+      },
     },
   })),
   seeded('Thin ring', () => ({
