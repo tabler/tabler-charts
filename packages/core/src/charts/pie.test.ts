@@ -94,9 +94,28 @@ describe('pie', () => {
 
   test('draws a track instead of slices when everything is zero', () => {
     const node = render({ data: [{ name: 'A', value: 0 }] })
-    expect(findByClass(node, 'tc-slice')).toHaveLength(0)
+    // The empty slice keeps a path without area, to grow from when data comes.
+    expect(findByClass(node, 'tc-slice').map((s) => s.attrs['data-arc'])).toEqual(['0 92 0 0 0 0'])
     expect(findByClass(node, 'tc-pie-track')).toHaveLength(1)
     expect(() => chartToString({ ...base, data: [] }, size)).not.toThrow()
+  })
+
+  test('an empty slice between others is a line in their gap', () => {
+    const node = render({
+      type: donut,
+      data: [
+        { name: 'A', value: 1 },
+        { name: 'B', value: 0 },
+        { name: 'C', value: 1 },
+      ],
+    })
+    const [, empty] = findByClass(node, 'tc-slice')
+    expect(empty?.attrs['data-arc']).toBe('57.04 92 3.1416 3.1416 0.0185 4')
+    // Every point of it lies on the radius where A ends and C starts.
+    const points = [...String(empty?.attrs.d).matchAll(/(-?[\d.]+),(-?[\d.]+)(?=[A-Z]|$)/g)]
+    expect(points.length).toBeGreaterThan(0)
+    for (const [, x] of points) expect(Math.abs(Number(x))).toBeLessThan(0.01)
+    expect(interactionOf({ type: donut, data: [{ name: 'B', value: 0 }, ...data] }).count).toBe(3)
   })
 
   test('draws pie gaps as a parallel stroke and donut gaps as a pad angle', () => {

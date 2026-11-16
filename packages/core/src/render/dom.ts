@@ -133,8 +133,14 @@ export function patchAttrs(el: Element, prev: Attrs, next: Attrs, update = false
   for (const name in next) {
     const value = next[name] as string | number
     if (prev[name] === value || !isValidAttr(name)) continue
-    // Where CSS cannot transition `d` (Safari), the morph feature animates it.
-    if (update && name === 'd' && features.morph?.(el, String(prev[name] ?? ''), String(value))) {
+    // Arcs sweep to their new angles; where CSS cannot transition `d` (Safari),
+    // the morph feature animates the other paths.
+    if (
+      update &&
+      name === 'd' &&
+      (features.sweep?.(el, prev, next) ||
+        features.morph?.(el, String(prev[name] ?? ''), String(value)))
+    ) {
       continue
     }
     setAttr(el, name, String(value))
