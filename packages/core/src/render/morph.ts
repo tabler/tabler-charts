@@ -8,11 +8,9 @@
  */
 
 import { round } from '../layout.ts'
+import { stop, tween } from './tween.ts'
 
 const NUMBER = /-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi
-
-/** The running morph of each path: its frame request and the numbers drawn now. */
-const running = /* @__PURE__ */ new WeakMap<Element, { frame: number; now: number[] }>()
 
 let native: boolean | undefined
 
@@ -23,9 +21,7 @@ let native: boolean | undefined
  */
 export function morph(el: Element, from: string, to: string): boolean {
   native ??= typeof CSS === 'undefined' || CSS.supports('d', 'path("M0 0")')
-  const current = running.get(el)
-  if (current) cancelAnimationFrame(current.frame)
-  running.delete(el)
+  const current = stop(el)
   // A chart without transitions (too big to animate, or resizing) has nothing to
   // morph: said here, before asking for the style of each of its paths.
   if (native || el.closest('.tc-static,[data-resizing]')) return false
@@ -42,24 +38,14 @@ export function morph(el: Element, from: string, to: string): boolean {
   }
 
   // An interrupted morph continues from where the path is now.
-  const origin = current?.now.length === end.length ? current.now : start
-  const state = { frame: 0, now: origin.slice() }
-  const begin = performance.now()
-  const step = (time: number) => {
-    const t = Math.min(1, Math.max(0, (time - begin) / duration))
-    // Ease out, close to the default --tc-easing (a custom easing is approximated).
-    const k = 1 - (1 - t) ** 3
-    let d = text[0] as string
-    end.forEach((value, i) => {
-      const v = (origin[i] as number) + (value - (origin[i] as number)) * k
-      state.now[i] = v
-      d += round(v) + (text[i + 1] as string)
-    })
-    el.setAttribute('d', t < 1 ? d : to)
-    if (t < 1) state.frame = requestAnimationFrame(step)
-    else running.delete(el)
-  }
-  running.set(el, state)
-  state.frame = requestAnimationFrame(step)
+  tween(
+    el,
+    current?.length === end.length ? current : start,
+    end,
+    duration,
+    (now) =>
+      now.reduce((d, value, i) => d + round(value) + (text[i + 1] as string), text[0] as string),
+    to,
+  )
   return true
 }

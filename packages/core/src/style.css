@@ -602,12 +602,17 @@
 .tc-line,
 .tc-area,
 .tc-bar,
-.tc-slice,
-.tc-gauge-arc,
-.tc-gauge-track,
 .tc-radar-ring,
 .tc-dots {
   transition: d var(--tc-duration) var(--tc-easing);
+}
+
+/* Slices and gauge arcs turn to their new angles, redrawn frame by frame (a
+   transition of d would bend them out of the ring): this only says for how long. */
+.tc-slice,
+.tc-gauge-arc,
+.tc-gauge-track {
+  transition: none var(--tc-duration);
 }
 
 /* Lines and areas draw in from the left (no fill mode, so the plot clip returns after). */

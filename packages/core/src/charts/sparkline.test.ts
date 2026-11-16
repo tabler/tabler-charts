@@ -107,6 +107,18 @@ describe('sparkline', () => {
     expect(hit.hitIndex(7)).toBeNull()
   })
 
+  test('tristate hover marks stay on the bar ends, whatever the magnitude', () => {
+    const hit = interactionOf({ variant: 'tristate', data: [40, -40, 0] })
+    const ys = [0, 1, 2].map((i) => hit.hitIndex(i)?.mark?.y as number)
+    // The win mark is at the top of the plot, the loss at the bottom, the draw in the middle.
+    expect(ys[0]).toBeGreaterThanOrEqual(0)
+    expect(ys[1]).toBeLessThanOrEqual(size.height)
+    expect(ys[0]).toBeLessThan(ys[2] as number)
+    expect(ys[1]).toBeGreaterThan(ys[2] as number)
+    expect(ys[2]).toBeCloseTo(size.height / 2, 0)
+    expect(hit.hitIndex(1)?.items[0]?.y).toBe(ys[1])
+  })
+
   test('hits bars by slot', () => {
     const hit = interactionOf({ variant: 'bar' })
     expect(hit.hitTest(6, 20)?.index).toBe(0)

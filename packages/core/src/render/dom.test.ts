@@ -363,3 +363,32 @@ describe('render() with the morph feature', () => {
     }
   })
 })
+
+describe('render() with the sweep feature', () => {
+  test('asks it what is left to patch on updates, never when hydrating', () => {
+    const saved = features.sweep
+    let taken = true
+    const sweep = vi.fn((el: Element): Record<string, string> | undefined =>
+      taken && el.localName === 'path' ? { d: 'M1,1', class: 'a' } : undefined,
+    )
+    features.sweep = sweep
+    try {
+      const box = document.createElement('div')
+      box.innerHTML = '<svg><path d="M0,0"></path></svg>'
+      const first = h('path', { d: 'M1,1' })
+      render(box, h('svg', null, first), box.firstElementChild as Element)
+      expect(sweep).not.toHaveBeenCalled()
+      const second = h('path', { d: 'M2,2', class: 'a' })
+      render(box, h('svg', null, second))
+      expect(sweep).toHaveBeenCalledWith(box.querySelector('path'), first, second)
+      // It took the path over; the other attributes are still patched.
+      expect(box.innerHTML).toBe('<svg><path d="M1,1" class="a"></path></svg>')
+      // No sweep: the patcher sets the path itself.
+      taken = false
+      render(box, h('svg', null, h('path', { d: 'M3,3', class: 'a' })))
+      expect(box.querySelector('path')?.getAttribute('d')).toBe('M3,3')
+    } finally {
+      features.sweep = saved
+    }
+  })
+})

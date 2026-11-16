@@ -618,6 +618,35 @@ const ITEMS: Item[] = [
       r: { max: 100 },
     },
   })),
+  seeded('Radar, one series', () => ({
+    title: 'Radar, one series',
+    note: 'Ten budget health measures in one series: filled, with a dot on every value, a single color and no legend. Long spoke labels wrap onto two lines.',
+    config: {
+      type: radar,
+      ...common,
+      aspectRatio: 1.2,
+      data: {
+        labels: [
+          'Samodzielność dochodowa',
+          'Nadwyżka operacyjna',
+          'Udział inwestycji',
+          'Obciążenie długiem',
+          'Prognoza dochodów',
+          'Realizacja wydatków',
+          'Pokrycie obsługi długu',
+          'Sztywność wydatków',
+          'Koszty administracji',
+          'Samodzielność finansowa',
+        ],
+        series: [
+          { name: 'Ocena', color: '#f59f00', values: [70, 100, 55, 90, 45, 75, 100, 45, 85, 30] },
+        ],
+      },
+      r: { max: 100, show: false },
+      points: true,
+      legend: false,
+    },
+  })),
   seeded('Radar, circles', () => ({
     title: 'Radar, circles',
     note: "grid: 'circle', no fill and a dot on every value; the outline alone carries each series.",

@@ -188,6 +188,20 @@ describe('gauge', () => {
     expect(svg).toContain('class="tc-gauge-arc"')
     expect(svg).toContain('>82%<')
   })
+
+  test('keeps the arc of the value and of the track with their paths, to sweep between values', () => {
+    const arcOf = (data: number, name: string) =>
+      (findByClass(render({ data, startAngle: -90, angle: 180 }), name)[0]?.arc ?? []).map(
+        (value) => Math.round(value * 1e4) / 1e4,
+      )
+    const [r0, r1, a0, a1] = arcOf(50, 'tc-gauge-arc')
+    expect(r1).toBeGreaterThan(r0 as number)
+    expect(a0).toBeCloseTo(-Math.PI / 2, 3)
+    expect(a1).toBeCloseTo(0, 3)
+    // Only the end of the arc turns with the value; the track stays.
+    expect(arcOf(100, 'tc-gauge-arc').slice(0, 4)).toEqual([r0, r1, a0, 1.5708])
+    expect(arcOf(50, 'tc-gauge-track')).toEqual(arcOf(100, 'tc-gauge-track'))
+  })
 })
 
 function ctx() {
