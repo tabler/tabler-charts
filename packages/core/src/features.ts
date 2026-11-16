@@ -8,6 +8,7 @@ import type { timeAxis } from './charts/time-axis.ts'
 import type { Interaction } from './interaction.ts'
 import type { hydrate } from './render/hydrate.ts'
 import type { morph } from './render/morph.ts'
+import type { sweep } from './render/sweep.ts'
 import type { log } from './scales/log.ts'
 import type { time, timePointScale } from './scales/time.ts'
 import type { areaPath, linePath, Point } from './shapes/path.ts'
@@ -35,6 +36,8 @@ export interface Features {
   hydrate?: typeof hydrate
   /** Path morphing on data updates where CSS cannot transition `d` (Safari). */
   morph?: typeof morph
+  /** Arcs turning to their new angles on data updates (set by pie, donut and gauge). */
+  sweep?: typeof sweep
   /** Line and area paths behind `series.type: 'line' | 'area'` in bar charts. */
   line?: { linePath: typeof linePath; areaPath: typeof areaPath }
   /** Reference lines and bands behind `annotations` in cartesian charts. */

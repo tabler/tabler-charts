@@ -359,8 +359,8 @@ const angleOf = (x: number, y: number): number => Math.atan2(y, x)
  * The same sector as {@link arcPath}, drawn with a fixed command structure:
  * every corner is always present (zero length when there is none) and each
  * ring is split into two half arcs, so the large-arc flag never flips.
- * Paths of different angles therefore interpolate with CSS `transition: d`,
- * which is what pie and donut slices need when data changes.
+ * Paths of different angles therefore keep their commands while an arc is
+ * redrawn frame by frame, turning to its new angles (see `sweep`).
  */
 export function arcPathStable(options: ArcOptions): string {
   const k = 10 ** Math.max(0, Math.min(12, Math.floor(options.precision ?? 2)))

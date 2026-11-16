@@ -7,7 +7,8 @@ import { expect, test } from '@playwright/test'
  * inside the chart (a mark that enters); nothing may compute to NaN. Catches
  * marks flying in from a corner, path morphs that loop out, and jumps.
  * WebKit morphs paths in JS (`@tabler/charts/morph`), outside the CSS
- * animations paused here, so it runs in Chromium and Firefox.
+ * animations paused here, so it runs in Chromium and Firefox. Slices and
+ * gauge arcs are swept in JS everywhere, and are looked at on their way instead.
  */
 
 const labels = (n: number, from = 0) => Array.from({ length: n }, (_, i) => `L${i + from}`)
@@ -105,7 +106,7 @@ for (const [index, [from, to, a, b]] of STEPS.entries()) {
     await page.goto('/sandbox.html')
     await page.locator('body[data-ready]').waitFor({ state: 'attached' })
     const issues = await page.evaluate(
-      ({ from, to, a, b }) => {
+      async ({ from, to, a, b }) => {
         const tc = (window as unknown as { tc: Record<string, unknown> }).tc
         const { Chart } = tc as {
           Chart: new (el: Element, c: object) => { update(c: object): void; render(): void }
@@ -141,12 +142,20 @@ for (const [index, [from, to, a, b]] of STEPS.entries()) {
           animation.pause()
           animation.currentTime = Number(timing?.delay ?? 0) + Number(timing?.duration ?? 0) / 2
         }
+        // Slices are swept frame by frame, not by CSS (see `sweep`): wait for
+        // them to be on their way, and later to arrive.
+        const swept = [...el.querySelectorAll('[data-arc]')]
+        const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+        if (swept.length) await wait(150)
         const mid = boxes()
+        const midway = swept.map((m) => m.getAttribute('d'))
         const nan = [...el.querySelectorAll(MARKS)].filter((m) =>
           /NaN/.test(getComputedStyle(m).getPropertyValue('d')),
         )
         finish()
+        if (swept.length) await wait(500)
         const end = boxes()
+        const moved = swept.some((m, i) => m.getAttribute('d') !== midway[i])
         const plot = (el.querySelector('svg.tc-chart') as SVGSVGElement).getBoundingClientRect()
         const found: string[] = []
         const label = (m: Element) =>
@@ -154,14 +163,22 @@ for (const [index, [from, to, a, b]] of STEPS.entries()) {
         const r = (b: DOMRect) =>
           `${Math.round(b.left)},${Math.round(b.top)} ${Math.round(b.width)}×${Math.round(b.height)}`
         const SLACK = 3
+        const pieBox = swept.length
+          ? (
+              el.querySelector('.tc-pie-slices, .tc-gauge-rings') as SVGGElement
+            ).getBoundingClientRect()
+          : plot
         for (const [mark, box] of mid) {
           if (!mark.isConnected || (box.width === 0 && box.height === 0)) continue
           const s = start.get(mark)
           const e = end.get(mark)
           // A mark that stays moves within the box of where it was and where it goes;
-          // one that enters or leaves stays inside the chart.
-          const area =
-            s && e
+          // one that enters or leaves stays inside the chart. A slice turns around
+          // the center instead, through places it neither starts nor ends at, and
+          // stays inside the pie.
+          const area = swept.includes(mark)
+            ? pieBox
+            : s && e
               ? {
                   left: Math.min(s.left, e.left),
                   top: Math.min(s.top, e.top),
@@ -182,7 +199,7 @@ for (const [index, [from, to, a, b]] of STEPS.entries()) {
         }
         for (const m of nan) found.push(`${label(m)} computes d to NaN`)
         // Something must have moved, or the check above checks nothing.
-        if (!running.length) found.push('no transition ran')
+        if (!running.length && !moved) found.push('no transition ran')
         return [...new Set(found)].slice(0, 8)
       },
       { from, to, a, b },
