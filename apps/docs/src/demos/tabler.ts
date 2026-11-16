@@ -56,7 +56,7 @@ export const tablerDemo: Demo = {
   id: 'tabler',
   title: 'Tabler',
   description:
-    'The Tabler preset (@tabler/charts-bootstrap/tabler.css, or scss/tabler): Tabler keeps data-bs-theme but prefixes its variables with tblr-, so charts sit on the card surface with Tabler’s muted gray, borders, radius, shadow and font, and the first series follows data-bs-theme-primary. Real @tabler/core in an iframe, charts declared with the data API.',
+    'The chart stylesheet reads Tabler’s --tblr-* variables first (primary and the named colors for the series, the card surface, borders, radius, shadow and font) and falls back to its own palette elsewhere. The Tabler preset (@tabler/charts-bootstrap/tabler.css, or scss/tabler) adds the data-bs-theme-* scopes, so data-bs-theme-primary works per subtree. Real @tabler/core in an iframe, charts declared with the data API.',
   mount(el, controls) {
     const frame = document.createElement('iframe')
     frame.title = 'Tabler page with charts'

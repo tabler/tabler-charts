@@ -6,6 +6,7 @@ import { line } from '../charts/line.ts'
 import { features } from '../features.ts'
 import { flush } from '../scheduler.ts'
 import { download } from './download.ts'
+import { pointer } from './pointer.ts'
 
 const data = { labels: ['Jan', 'Feb', 'Mar'], series: [{ name: 'A', values: [1, 2, 3] }] }
 const base = { type: line, data, width: 400, height: 200, locale: 'en-US' } as ChartConfig<object>
@@ -134,6 +135,31 @@ describe('download()', () => {
     flush()
     expect(el.querySelector('.tc-download')).toBeNull()
     expect(el.classList.contains('tc-container')).toBe(false)
+  })
+
+  test('hovering the menu clears the highlight, so no tooltip covers it', () => {
+    chart = new Chart(el, { ...base, plugins: [download(), pointer()], download: true })
+    const svg = el.querySelector('svg') as SVGSVGElement
+    svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 200 }) as DOMRect
+    const move = (target: Element, x: number) =>
+      target.dispatchEvent(
+        new PointerEvent('pointermove', {
+          clientX: x,
+          clientY: 100,
+          bubbles: true,
+          pointerType: 'mouse',
+        }),
+      )
+    move(svg, 200)
+    expect(chart.highlightSource).toBe('pointer')
+    toggle().click()
+    const click = vi.fn()
+    chart.on('click', click)
+    move(items()[0] as Element, 390)
+    expect(chart.highlightSource).toBeUndefined()
+    items()[0]?.click()
+    expect(saved).toHaveBeenCalled()
+    expect(click).not.toHaveBeenCalled()
   })
 
   test('destroying the chart removes the menu and its listeners', () => {

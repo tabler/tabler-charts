@@ -6,6 +6,12 @@
  *
  *   .my-chart { --tc-color-1: #066fd1; --tc-stroke-width: 3px; }
  *
+ * Colors, font, radius and shadow read Tabler's --tblr-* variables first (series 1 is
+ * --tblr-primary, the surface is --tblr-bg-surface, ...) and fall back to the values
+ * below, so charts take the theme of a Tabler page and keep their own look elsewhere.
+ * Tabler switches its variables with light-dark(), so the dark fallbacks only matter
+ * without Tabler.
+ *
  * Dark mode follows prefers-color-scheme and can be forced per subtree with
  * [data-theme="dark"] / [data-theme="light"].
  */
@@ -14,36 +20,37 @@
 
 :where(:root),
 :where([data-theme="light"]) {
-  /* Categorical series colors, used in this fixed order (validated for
-     color-vision deficiency between neighbours). Series 9+ use --tc-color-other. */
-  --tc-color-1: #2a78d6;
-  --tc-color-2: #eb6834;
-  --tc-color-3: #1baf7a;
-  --tc-color-4: #eda100;
-  --tc-color-5: #e87ba4;
-  --tc-color-6: #008300;
-  --tc-color-7: #4a3aa7;
-  --tc-color-8: #e34948;
-  --tc-color-other: #8a8983;
+  /* Categorical series colors, used in this fixed order: Tabler's named colors, with
+     fallbacks validated for color-vision deficiency between neighbours. Series 9+ use
+     --tc-color-other. */
+  --tc-color-1: var(--tblr-primary, #2a78d6);
+  --tc-color-2: var(--tblr-orange, #eb6834);
+  --tc-color-3: var(--tblr-teal, #1baf7a);
+  --tc-color-4: var(--tblr-yellow, #eda100);
+  --tc-color-5: var(--tblr-pink, #e87ba4);
+  --tc-color-6: var(--tblr-green, #008300);
+  --tc-color-7: var(--tblr-indigo, #4a3aa7);
+  --tc-color-8: var(--tblr-red, #e34948);
+  --tc-color-other: var(--tblr-secondary, #8a8983);
 
   /* Surface behind the chart: used for gaps between marks and rings around dots. */
-  --tc-surface: #ffffff;
-  --tc-text-color: #0b0b0b;
-  --tc-text-muted: #6f6e69;
-  --tc-grid-color: #e1e0d9;
-  --tc-baseline-color: #c3c2b7;
-  --tc-hover-color: rgb(11 11 11 / 4%);
-  --tc-tooltip-bg: #ffffff;
+  --tc-surface: var(--tblr-bg-surface, #ffffff);
+  --tc-text-color: var(--tblr-body-color, #0b0b0b);
+  --tc-text-muted: var(--tblr-secondary, #6f6e69);
+  --tc-grid-color: var(--tblr-border-color-translucent, #e1e0d9);
+  --tc-baseline-color: var(--tblr-border-color, #c3c2b7);
+  --tc-hover-color: rgba(var(--tblr-emphasis-color-rgb, 11, 11, 11), 0.04);
+  --tc-tooltip-bg: var(--tblr-bg-surface, #ffffff);
   /* Tokens defined through other tokens are repeated in every theme block: a custom
      property is substituted where it is declared, so a [data-theme] subtree would
      otherwise inherit the value already resolved on :root. */
   --tc-tooltip-color: var(--tc-text-color);
-  --tc-tooltip-border: rgb(11 11 11 / 10%);
-  --tc-tooltip-shadow: 0 4px 16px rgb(11 11 11 / 12%);
-  --tc-tooltip-radius: 6px;
+  --tc-tooltip-border: var(--tblr-border-color-translucent, rgb(11 11 11 / 10%));
+  --tc-tooltip-shadow: var(--tblr-box-shadow, 0 4px 16px rgb(11 11 11 / 12%));
+  --tc-tooltip-radius: var(--tblr-border-radius, 6px);
   --tc-focus-color: var(--tc-color-1);
 
-  --tc-font-family: inherit;
+  --tc-font-family: var(--tblr-body-font-family, inherit);
   --tc-font-size: 12px;
   --tc-stroke-width: 2px;
   --tc-grid-width: 1px;
@@ -63,51 +70,51 @@
 
 @media (prefers-color-scheme: dark) {
   :where(:root:not([data-theme="light"])) {
-    --tc-color-1: #3987e5;
-    --tc-color-2: #d95926;
-    --tc-color-3: #199e70;
-    --tc-color-4: #c98500;
-    --tc-color-5: #d55181;
-    --tc-color-6: #008300;
-    --tc-color-7: #9085e9;
-    --tc-color-8: #e66767;
-    --tc-color-other: #7c7b76;
+    --tc-color-1: var(--tblr-primary, #3987e5);
+    --tc-color-2: var(--tblr-orange, #d95926);
+    --tc-color-3: var(--tblr-teal, #199e70);
+    --tc-color-4: var(--tblr-yellow, #c98500);
+    --tc-color-5: var(--tblr-pink, #d55181);
+    --tc-color-6: var(--tblr-green, #008300);
+    --tc-color-7: var(--tblr-indigo, #9085e9);
+    --tc-color-8: var(--tblr-red, #e66767);
+    --tc-color-other: var(--tblr-secondary, #7c7b76);
 
-    --tc-surface: #1a1a19;
-    --tc-text-color: #ffffff;
-    --tc-text-muted: #a3a29c;
-    --tc-grid-color: #2c2c2a;
-    --tc-baseline-color: #4a4a46;
-    --tc-hover-color: rgb(255 255 255 / 6%);
-    --tc-tooltip-bg: #262625;
+    --tc-surface: var(--tblr-bg-surface, #1a1a19);
+    --tc-text-color: var(--tblr-body-color, #ffffff);
+    --tc-text-muted: var(--tblr-secondary, #a3a29c);
+    --tc-grid-color: var(--tblr-border-color-translucent, #2c2c2a);
+    --tc-baseline-color: var(--tblr-border-color, #4a4a46);
+    --tc-hover-color: rgba(var(--tblr-emphasis-color-rgb, 255, 255, 255), 0.06);
+    --tc-tooltip-bg: var(--tblr-bg-surface, #262625);
     --tc-tooltip-color: var(--tc-text-color);
-    --tc-tooltip-border: rgb(255 255 255 / 10%);
-    --tc-tooltip-shadow: 0 4px 16px rgb(0 0 0 / 40%);
+    --tc-tooltip-border: var(--tblr-border-color-translucent, rgb(255 255 255 / 10%));
+    --tc-tooltip-shadow: var(--tblr-box-shadow, 0 4px 16px rgb(0 0 0 / 40%));
     --tc-focus-color: var(--tc-color-1);
   }
 }
 
 :where([data-theme="dark"]) {
-  --tc-color-1: #3987e5;
-  --tc-color-2: #d95926;
-  --tc-color-3: #199e70;
-  --tc-color-4: #c98500;
-  --tc-color-5: #d55181;
-  --tc-color-6: #008300;
-  --tc-color-7: #9085e9;
-  --tc-color-8: #e66767;
-  --tc-color-other: #7c7b76;
+  --tc-color-1: var(--tblr-primary, #3987e5);
+  --tc-color-2: var(--tblr-orange, #d95926);
+  --tc-color-3: var(--tblr-teal, #199e70);
+  --tc-color-4: var(--tblr-yellow, #c98500);
+  --tc-color-5: var(--tblr-pink, #d55181);
+  --tc-color-6: var(--tblr-green, #008300);
+  --tc-color-7: var(--tblr-indigo, #9085e9);
+  --tc-color-8: var(--tblr-red, #e66767);
+  --tc-color-other: var(--tblr-secondary, #7c7b76);
 
-  --tc-surface: #1a1a19;
-  --tc-text-color: #ffffff;
-  --tc-text-muted: #a3a29c;
-  --tc-grid-color: #2c2c2a;
-  --tc-baseline-color: #4a4a46;
-  --tc-hover-color: rgb(255 255 255 / 6%);
-  --tc-tooltip-bg: #262625;
+  --tc-surface: var(--tblr-bg-surface, #1a1a19);
+  --tc-text-color: var(--tblr-body-color, #ffffff);
+  --tc-text-muted: var(--tblr-secondary, #a3a29c);
+  --tc-grid-color: var(--tblr-border-color-translucent, #2c2c2a);
+  --tc-baseline-color: var(--tblr-border-color, #4a4a46);
+  --tc-hover-color: rgba(var(--tblr-emphasis-color-rgb, 255, 255, 255), 0.06);
+  --tc-tooltip-bg: var(--tblr-bg-surface, #262625);
   --tc-tooltip-color: var(--tc-text-color);
-  --tc-tooltip-border: rgb(255 255 255 / 10%);
-  --tc-tooltip-shadow: 0 4px 16px rgb(0 0 0 / 40%);
+  --tc-tooltip-border: var(--tblr-border-color-translucent, rgb(255 255 255 / 10%));
+  --tc-tooltip-shadow: var(--tblr-box-shadow, 0 4px 16px rgb(0 0 0 / 40%));
   --tc-focus-color: var(--tc-color-1);
 }
 
@@ -917,12 +924,13 @@
 
 /* -- Download menu ---------------------------------------------------------- */
 
-/* A small button in the top right corner; its menu drops down below it. */
+/* A small button in the top right corner; its menu drops down below it.
+   Above the tooltip (which hides while the pointer is here). */
 .tc-download {
   position: absolute;
   top: 0;
   right: 0;
-  z-index: 5;
+  z-index: 11;
   font-family: var(--tc-font-family);
   font-size: var(--tc-font-size);
   line-height: 1.4;
