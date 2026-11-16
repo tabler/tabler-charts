@@ -28,7 +28,7 @@ module.exports = {
     { path: '.size/bootstrap-data-api.js', maxSize: '36.25KB' },
     { path: '.size/everything.js', maxSize: '38.5KB' },
     // Shipped as they are.
-    { path: 'packages/core/dist/style.css', maxSize: '3.75KB' },
+    { path: 'packages/core/dist/style.css', maxSize: '4KB' },
     { path: 'packages/elements/dist/tabler-charts.min.js', maxSize: '45.5KB' },
     { path: 'packages/bootstrap/dist/tabler-charts-bootstrap.min.js', maxSize: '45.5KB' },
     { path: 'packages/bootstrap/dist/bootstrap.css', maxSize: '600B' },

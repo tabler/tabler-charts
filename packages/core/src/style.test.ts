@@ -28,12 +28,35 @@ describe('style.css', () => {
     }
     for (const [scope, body] of Object.entries(scopes)) {
       for (const n of SLOTS) {
+        // Tabler's variable first, then the chart's own color.
         expect(body, `${scope} --tc-color-${n}`).toMatch(
-          new RegExp(`--tc-color-${n}:\\s*#[0-9a-f]{6}`),
+          new RegExp(`--tc-color-${n}:\\s*var\\(--tblr-[a-z-]+, #[0-9a-f]{6}\\)`),
         )
       }
-      expect(body, `${scope} --tc-surface`).toMatch(/--tc-surface:/)
+      expect(body, `${scope} --tc-surface`).toMatch(/--tc-surface: var\(--tblr-bg-surface, #/)
     }
+  })
+
+  test('reads every theme color, the font, radius and shadow from Tabler first', () => {
+    for (const [token, variable] of [
+      ['--tc-color-1', 'primary'],
+      ['--tc-surface', 'bg-surface'],
+      ['--tc-text-color', 'body-color'],
+      ['--tc-text-muted', 'secondary'],
+      ['--tc-grid-color', 'border-color-translucent'],
+      ['--tc-baseline-color', 'border-color'],
+      ['--tc-tooltip-bg', 'bg-surface'],
+      ['--tc-tooltip-border', 'border-color-translucent'],
+      ['--tc-tooltip-shadow', 'box-shadow'],
+      ['--tc-tooltip-radius', 'border-radius'],
+      ['--tc-font-family', 'body-font-family'],
+    ]) {
+      expect(
+        css.match(new RegExp(`${token}: var\\(--tblr-${variable}, `, 'g'))?.length,
+        token,
+      ).toBe(token === '--tc-tooltip-radius' || token === '--tc-font-family' ? 1 : 3)
+    }
+    expect(css.match(/--tc-hover-color: rgba\(var\(--tblr-emphasis-color-rgb, /g)?.length).toBe(3)
   })
 
   test('repeats derived tokens in every theme block', () => {

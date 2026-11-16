@@ -27,10 +27,12 @@ function rule(css: string, selector: string): string {
   return css.slice(start, css.indexOf('}', start))
 }
 
-/** `--tc-color-N` values (2–8) declared in a block of text. */
+/** `--tc-color-N` colors (2–8) declared in a block of text (the fallback of a `var()`). */
 const palette = (block: string) =>
   Object.fromEntries(
-    [...block.matchAll(/--tc-color-([2-8]):\s*(#[0-9a-f]{6})/g)].map((m) => [m[1], m[2]]),
+    [...block.matchAll(/--tc-color-([2-8]):\s*(?:var\(--tblr-[a-z-]+, )?(#[0-9a-f]{6})/g)].map(
+      (m) => [m[1], m[2]],
+    ),
   )
 
 describe('bootstrap mapping', () => {
@@ -90,9 +92,9 @@ describe('bootstrap mapping', () => {
       expect(tokens).toContain('--tc-grid-color: var(--tblr-border-color-translucent, #e1e0d9)')
       expect(tokens).toContain('--tc-font-family: var(--tblr-body-font-family, inherit)')
       expect(tabler).not.toContain('--bs-')
-      expect(palette(rule(tabler, ':where([data-bs-theme=dark])'))).toEqual(
-        palette(rule(compile(), ':where([data-bs-theme=dark])')),
-      )
+      // Series 2–8 stay with the core stylesheet, which reads Tabler's named colors.
+      expect(tabler).not.toMatch(/--tc-color-[2-8]/)
+      expect(tabler).not.toContain('[data-bs-theme=dark]')
     })
 
     test('can be configured with @use … with, or with variables before @import', () => {
@@ -108,7 +110,7 @@ describe('bootstrap mapping', () => {
       const built = readFileSync(new URL('../dist/tabler.css', import.meta.url), 'utf8')
       expect(built.startsWith('/*! @tabler/charts-bootstrap, Tabler preset | MIT */')).toBe(true)
       expect(built).toContain('--tc-color-1:var(--tblr-primary,#066fd1)')
-      expect(built).toContain(':where([data-bs-theme=dark]){--tc-color-2:#d95926')
+      expect(built).not.toContain('--tc-color-2')
     })
   })
 })

@@ -192,6 +192,8 @@ Everything visual is CSS. The stylesheet defines tokens on `:root` (light and da
 
 Tokens include `--tc-color-1` … `--tc-color-8`, `--tc-surface`, `--tc-text-color`, `--tc-text-muted`, `--tc-grid-color`, `--tc-baseline-color`, `--tc-font-family`, `--tc-font-size`, `--tc-stroke-width`, `--tc-area-opacity`, `--tc-duration`, `--tc-easing` and the `--tc-tooltip-*` set.
 
+On a [Tabler](https://tabler.io) page the colors come from the theme: each color token reads the matching `--tblr-*` variable first (`--tc-color-1` is `--tblr-primary`, series 2–8 are Tabler's orange, teal, yellow, pink, green, indigo and red, the surface is `--tblr-bg-surface`, text and borders, radius, shadow and font follow too) and falls back to the chart's own palette when the variable is not defined. Tabler switches its variables for dark mode itself; without Tabler the fallbacks have their own dark values.
+
 Colors given in data (`series.color`, slice, ring, heatmap and annotation colors, `series.dash`) may come from users: any CSS color works, `var(--…)` and `color-mix()` included, but a value that could inject CSS (a `;`, quotes, `url()` and the like) is ignored and the palette color stays.
 
 Dark mode follows `prefers-color-scheme`, and `data-theme="dark"` / `"light"` on any ancestor overrides it. `prefers-reduced-motion` turns animations off, and forced colors (Windows High Contrast) are supported.
