@@ -8,6 +8,7 @@ import { candlestick } from './charts/candlestick.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { parliament } from './charts/parliament.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
 import { scatter } from './charts/scatter.ts'
@@ -104,6 +105,11 @@ const TYPES: [string, ChartType<object>, () => unknown][] = [
           : { name: text(), value: num(), max: num(), min: chance(0.3) ? num() : undefined }
       return chance(0.3) ? list(one) : one()
     },
+  ],
+  [
+    'parliament',
+    parliament as ChartType<object>,
+    () => list(() => (chance(0.1) ? junk() : { name: text(), seats: num(), color: color() })),
   ],
   [
     'scatter',
@@ -268,6 +274,11 @@ test('numeric options that are not finite count as left out', () => {
     [pie, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],
     [donut, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],
     [gauge, slices, ['max', 'startAngle', 'angle', 'thickness', 'gap', 'cornerRadius']],
+    [
+      parliament,
+      [{ name: 'a', seats: 3 }],
+      ['total', 'rows', 'startAngle', 'angle', 'innerRadius', 'gap'],
+    ],
     [scatter, { series: [{ name: 'A', points: [{ x: 1, y: 2, size: 3 }] }] }, ['radius']],
     [sparkline, [1, 2, 3], ['pointRadius']],
     [

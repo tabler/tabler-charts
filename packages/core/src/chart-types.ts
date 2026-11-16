@@ -5,6 +5,7 @@ import { candlestick } from './charts/candlestick.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { parliament } from './charts/parliament.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
 import { sankey } from './charts/sankey.ts'
@@ -29,4 +30,5 @@ export const types: Readonly<Record<string, ChartType<never>>> = {
   candlestick,
   radar,
   sankey,
+  parliament,
 } as Record<string, ChartType<never>>

@@ -28,7 +28,9 @@ import {
   heatmap,
   type LineOptions,
   line,
+  type ParliamentOptions,
   type PieOptions,
+  parliament,
   pie,
   type RadarOptions,
   radar,
@@ -86,4 +88,8 @@ export const RadarChart: ChartComponent<RadarOptions> = /* @__PURE__ */ chartCom
 export const SankeyChart: ChartComponent<SankeyOptions> = /* @__PURE__ */ chartComponent(
   sankey,
   'SankeyChart',
+)
+export const ParliamentChart: ChartComponent<ParliamentOptions> = /* @__PURE__ */ chartComponent(
+  parliament,
+  'ParliamentChart',
 )
