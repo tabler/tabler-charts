@@ -915,6 +915,74 @@
   box-shadow: inset 0 0 0 1.5px var(--tc-series-color);
 }
 
+/* -- Download menu ---------------------------------------------------------- */
+
+/* A small button in the top right corner; its menu drops down below it. */
+.tc-download {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 5;
+  font-family: var(--tc-font-family);
+  font-size: var(--tc-font-size);
+  line-height: 1.4;
+}
+
+.tc-download-toggle,
+.tc-download-item {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font: inherit;
+  color: var(--tc-text-muted);
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tc-download-toggle {
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+
+.tc-download-toggle:hover,
+.tc-download-toggle[aria-expanded="true"],
+.tc-download-item:hover {
+  color: var(--tc-text-color);
+  background: var(--tc-hover-color);
+}
+
+.tc-download-toggle:focus-visible,
+.tc-download-item:focus-visible {
+  outline: 2px solid var(--tc-focus-color);
+  outline-offset: 1px;
+}
+
+.tc-download-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 80px;
+  margin-top: 2px;
+  padding: 4px;
+  color: var(--tc-tooltip-color);
+  background: var(--tc-tooltip-bg);
+  border: 1px solid var(--tc-tooltip-border);
+  border-radius: var(--tc-tooltip-radius);
+  box-shadow: var(--tc-tooltip-shadow);
+}
+
+.tc-download-item {
+  width: 100%;
+  padding: 4px 8px;
+  text-align: start;
+  white-space: nowrap;
+}
+
 /* -- Accessibility ---------------------------------------------------------- */
 
 /* Visually hidden but read by screen readers (data table, live announcements). */

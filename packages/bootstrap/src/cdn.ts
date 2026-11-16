@@ -12,6 +12,8 @@
  * and `data-observe` also initializes charts added later and destroys
  * removed ones.
  */
+// A script tag cannot import an entry: the download menu's saver comes along.
+import '@tabler/charts/export'
 import { init, observe } from './index.ts'
 
 if (typeof document !== 'undefined') {

@@ -63,7 +63,7 @@ Chart types have their own entries (`@tabler/charts/line`, `/bar`, `/pie` …). 
 | `@tabler/charts/decimate` | `decimate: 500` on line and area charts (LTTB downsampling) |
 | `@tabler/charts/annotations` | `annotations` on line, area, bar and candlestick charts |
 | `@tabler/charts/hydrate` | Taking over server-rendered markup node by node (otherwise it is replaced) |
-| `@tabler/charts/export` | `exportSVG()`, `exportImage()`, `downloadChart()` |
+| `@tabler/charts/export` | `exportSVG()`, `exportImage()`, `downloadChart()`, and the `download` menu option (also with the default `Chart`) |
 
 A feature you use but did not import throws an error that names the import.
 
@@ -224,6 +224,16 @@ await downloadChart(chart, { format: 'svg' })         // saves "<title>.svg"
 ```
 
 The export copies the computed styles into the SVG, so CSS theming comes along. It also draws the legend in, leaves hover marks out and paints the surface color behind the chart (`background: false` for none).
+
+Or let the chart offer it: `download: true` puts a small menu button in the chart's corner (`.tc-download`) with PNG and SVG. A list picks the formats, an object also sets the file name and the export options:
+
+```js
+new Chart('#sales', { type: line, data, download: true })
+new Chart('#sales', { type: line, data, download: ['png', 'svg', 'jpeg', 'webp'] })
+new Chart('#sales', { type: line, data, download: { formats: ['svg'], filename: 'sales', background: false, scale: 3 } })
+```
+
+The menu is a `download()` plugin (in the default `Chart`; install it yourself on the core). The saving comes from `import '@tabler/charts/export'`, so charts without a download menu never carry the export code; the chart tells you when the import is missing.
 
 ## Accessibility
 

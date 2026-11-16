@@ -56,6 +56,10 @@ describe('built package', () => {
       expect(exported[name]).toBeTypeOf('function')
       expect(all[name]).toBe(exported[name])
     }
+    // It also enables the download menu on the core.
+    const core = await import('../dist/core.js')
+    expect(core.features.export).toBe(exported.downloadChart)
+    expect(all.download).toBeTypeOf('function')
   })
 
   test('every chart type renders from the built entries', async () => {

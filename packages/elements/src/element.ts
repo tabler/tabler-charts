@@ -62,6 +62,7 @@ const ATTRIBUTES = [
   'value-labels',
   'sync',
   'shapes',
+  'download',
   'options',
 ] as const
 
@@ -217,6 +218,14 @@ export function createChartElement(setup: ChartElementSetup): new () => ChartEle
       )
       const table = attr('table')
       set('table', table === null ? undefined : table === 'visible' ? 'visible' : flag(table))
+      // download, download="true", download="svg png" or download="false".
+      const download = attr('download')
+      set(
+        'download',
+        download === null || download === '' || download === 'true' || download === 'false'
+          ? flag(download)
+          : download.split(/[\s,]+/).filter(Boolean),
+      )
       set('data', this.#data ?? this.#scriptData())
       // Nothing to draw yet: the chart is created once data arrives.
       if (config.data === undefined) return undefined

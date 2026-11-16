@@ -10,7 +10,7 @@
  * ```
  *
  * Page CSS does not reach inside: style the pieces with
- * `tabler-chart::part(root | chart | legend | tooltip | table)` and theme
+ * `tabler-chart::part(root | chart | legend | tooltip | table | download)` and theme
  * with tokens on the element itself (`tabler-chart { --tc-color-1: … }`,
  * `data-theme="dark"`). Tokens set on ancestors stop at the element, which
  * defines its own defaults; a `data-theme` on an ancestor is followed (the
@@ -27,6 +27,7 @@ const PARTS: readonly (readonly [string, string])[] = [
   [':scope > .tc-legend', 'legend'],
   [':scope > .tc-tooltip', 'tooltip'],
   [':scope > .tc-table-wrap', 'table'],
+  [':scope > .tc-download', 'download'],
 ]
 
 /** Shadow hosts whose ancestors' data-theme they follow. */

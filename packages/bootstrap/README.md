@@ -76,6 +76,7 @@ await init() // every [data-tc-chart] on the page
 - **Options:** every other `data-tc-*` attribute is an option in camelCase (`data-tc-aspect-ratio="3"` becomes `aspectRatio: 3`).
   - Values are parsed: `true` and `false`, numbers, and JSON objects or arrays.
   - `data-tc-legend="bottom"` moves the legend.
+  - `data-tc-download="true"` adds a download menu (PNG and SVG); `data-tc-download="svg png"` picks the formats.
   - `data-tc-options` takes a JSON object for the rest.
 - **Loading:** while `data-tc-src` loads, the element has `aria-busy="true"`. A failed load or broken markup is reported without stopping the other charts.
 

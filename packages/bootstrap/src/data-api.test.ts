@@ -1,5 +1,7 @@
 // @vitest-environment happy-dom
 import { flush } from '@tabler/charts'
+// The download attribute saves through the export entry.
+import '@tabler/charts/export'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { dispose, getChart, init, observe } from './index.ts'
 
@@ -19,7 +21,7 @@ describe('data API', () => {
     document.body.innerHTML = `
       <div id="a" data-tc-chart="bar" data-tc-width="400" data-tc-aspect-ratio="4"
         data-tc-stacked="true" data-tc-legend="bottom" data-tc-title="Visits" data-tc-locale="de-DE"
-        data-tc-options='{"radius": 0}'>
+        data-tc-download="svg, png" data-tc-options='{"radius": 0}'>
         <script type="application/json">${JSON.stringify(data)}</script>
       </div>
       <div id="b" data-tc-chart="donut" data-tc-data='[{"name":"A","value":1},{"name":"B","value":2}]'></div>`
@@ -33,22 +35,25 @@ describe('data API', () => {
       legend: { position: 'bottom' },
       title: 'Visits',
       locale: 'de-DE',
+      download: ['svg', 'png'],
       radius: 0,
       data,
     })
     expect(a.querySelector(':scope > svg.tc-chart-bar')?.getAttribute('height')).toBe('100')
+    expect(a.querySelectorAll(':scope > .tc-download .tc-download-item')).toHaveLength(2)
     expect(document.querySelectorAll('#b .tc-slice')).toHaveLength(2)
   })
 
   test('text options stay text, whatever they spell', async () => {
     document.body.innerHTML = `<div data-tc-chart="line" data-tc-title="2024" data-tc-description="true"
-      data-tc-sync="1" data-tc-width="400" data-tc-data='${JSON.stringify(data)}'></div>`
+      data-tc-sync="1" data-tc-width="400" data-tc-download="true" data-tc-data='${JSON.stringify(data)}'></div>`
     const [chart] = await init()
     expect(chart?.config).toMatchObject({
       title: '2024',
       description: 'true',
       sync: '1',
       width: 400,
+      download: true,
     })
     expect(document.querySelector('svg')?.getAttribute('aria-label')).toBe('2024')
   })

@@ -2,7 +2,9 @@
  * `@tabler/charts`: everything from `@tabler/charts/core`, with a `Chart`
  * that installs the built-in plugins (tooltip, legend, keyboard, …) and
  * every optional feature registered (time and log axes, decimation,
- * annotations, pattern fills, value labels, point shapes).
+ * annotations, pattern fills, value labels, point shapes). The one exception
+ * is the `download` menu's saver: `import '@tabler/charts/export'` adds it,
+ * so charts that never offer a download do not carry the export code.
  */
 
 import { annotationLayers, annotationValues } from './charts/annotations.ts'
@@ -41,8 +43,8 @@ addPost(labelsStep)
 export { Chart } from './chart-default.ts'
 export { types } from './chart-types.ts'
 export * from './core.ts'
-export type { DownloadOptions, ExportOptions, ExportTarget, ImageOptions } from './export.ts'
-export { downloadChart, exportImage, exportSVG } from './export.ts'
+export type { DownloadOptions, ExportOptions, ExportTarget, ImageOptions } from './export-chart.ts'
+export { downloadChart, exportImage, exportSVG } from './export-chart.ts'
 export type { LogScaleOptions } from './scales/log.ts'
 export type { TimeScale, TimeScaleOptions, TimeValue } from './scales/time.ts'
 export { log, lttb, lttbIndices, time, timePointScale }

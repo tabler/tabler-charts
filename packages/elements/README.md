@@ -48,6 +48,7 @@ The element renders into itself (light DOM), so the page CSS and the `--tc-*` to
 | `value-labels` | values on the marks: present (or `"true"`), or `"all"` for every point of a line |
 | `sync` | a group name: elements of the same group share the hover |
 | `shapes` | a point shape per series (present, or `"true"`) |
+| `download` | a download menu in the corner: present (or `"true"`) for PNG and SVG, or the formats, `download="svg png"` |
 | `options` | JSON with any other option, e.g. `options='{"stacked": true}'` |
 
 Data comes from the inline `<script type="application/json">`, or from the `data` property, which wins:
@@ -79,7 +80,7 @@ defineChartElement({ shadow })
 ```
 
 - **Styles:** the element renders into a shadow root and adopts the chart stylesheet itself, so you do not import `style.css`.
-- **Styling the pieces:** page CSS does not reach inside. Use `tabler-chart::part(root | chart | legend | tooltip | table)` instead.
+- **Styling the pieces:** page CSS does not reach inside. Use `tabler-chart::part(root | chart | legend | tooltip | table | download)` instead.
 - **Theming:** set tokens on the element itself (`tabler-chart { --tc-color-1: … }`), and `data-theme="dark"` on it or on an ancestor.
 
 ## Fewer types, smaller bundle

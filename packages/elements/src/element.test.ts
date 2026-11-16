@@ -1,5 +1,7 @@
 // @vitest-environment happy-dom
 import { flush, line } from '@tabler/charts'
+// The download attribute saves through the export entry.
+import '@tabler/charts/export'
 import { afterEach, describe, expect, test } from 'vitest'
 import { defineChartElement as defineCore } from './core.ts'
 import type { ChartElement } from './element.ts'
@@ -84,7 +86,7 @@ describe('<tabler-chart>', () => {
 
   test('maps attributes and the options JSON into the config', async () => {
     const el = await mount(
-      `<tabler-chart type="bar" width="400" aspect-ratio="4" legend="bottom" tooltip="false" animate="false" table="visible" patterns value-labels="all" shapes sync="board" locale="de-DE" options='{"stacked":true,"radius":0}'></tabler-chart>`,
+      `<tabler-chart type="bar" width="400" aspect-ratio="4" legend="bottom" tooltip="false" animate="false" table="visible" patterns value-labels="all" shapes sync="board" download="svg png" locale="de-DE" options='{"stacked":true,"radius":0}'></tabler-chart>`,
     )
     el.data = {
       labels: ['a'],
@@ -106,11 +108,22 @@ describe('<tabler-chart>', () => {
       valueLabels: { points: 'all' },
       sync: 'board',
       shapes: true,
+      download: ['svg', 'png'],
       locale: 'de-DE',
       stacked: true,
       radius: 0,
     })
     expect(el.querySelector('svg')?.getAttribute('height')).toBe('100')
+    expect(
+      Array.from(el.querySelectorAll('.tc-download-item'), (item) => item.textContent),
+    ).toEqual(['SVG', 'PNG'])
+    el.setAttribute('download', '')
+    flush()
+    expect(el.chart?.config.download).toBe(true)
+    el.setAttribute('download', 'false')
+    flush()
+    expect(el.chart?.config.download).toBe(false)
+    expect(el.querySelector('.tc-download')).toBeNull()
     expect(el.querySelector('.tc-legend')?.getAttribute('data-position')).toBe('bottom')
     // The options property merges over the attribute.
     el.options = { stacked: false }

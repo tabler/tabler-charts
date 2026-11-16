@@ -5,6 +5,7 @@ import type { logDomain, logTicks } from './charts/log-axis.ts'
 import type { patternFills } from './charts/patterns.ts'
 import type { markerPath } from './charts/point-shapes.ts'
 import type { timeAxis } from './charts/time-axis.ts'
+import type { downloadChart } from './export-chart.ts'
 import type { Interaction } from './interaction.ts'
 import type { hydrate } from './render/hydrate.ts'
 import type { morph } from './render/morph.ts'
@@ -51,6 +52,8 @@ export interface Features {
   post?: PostStep
   /** Point shapes by color slot, behind `shapes`. */
   'point-shapes'?: typeof markerPath
+  /** Saving a chart as a file, behind the `download` menu. */
+  export?: typeof downloadChart
 }
 
 export const features: Features = {}

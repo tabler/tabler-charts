@@ -5,6 +5,7 @@ import type { Locale, NumberFormat } from './format.ts'
 import { type Hit, hitKey, type Interaction } from './interaction.ts'
 import { defaultHidden, type LegendItem, type LegendOptions } from './legend.ts'
 import type { ChartPlugin, PluginInstance } from './plugin.ts'
+import type { DownloadOption } from './plugins/download.ts'
 import { render } from './render/dom.ts'
 import { renderToString } from './render/string.ts'
 import { observeResize } from './resize.ts'
@@ -146,6 +147,14 @@ export interface BaseOptions {
   table?: boolean | 'visible' | { visible?: boolean; maxRows?: number }
   /** Make the chart focusable and navigable with arrow keys. Defaults to `true`. */
   keyboard?: boolean
+  /**
+   * A download menu in the chart's corner: `true` offers PNG and SVG, a list
+   * picks the formats (`['png', 'svg', 'jpeg', 'webp']`), an object also
+   * sets the file name and the export options. Needs `@tabler/charts/export`
+   * imported, and on the core the `download()` plugin (the `Chart` of
+   * `@tabler/charts` has it).
+   */
+  download?: DownloadOption
   /**
    * Extra plugins, installed when the chart is created. The default `Chart`
    * from `@tabler/charts` already includes the built-in ones; the bare `Chart`
