@@ -84,6 +84,26 @@ Other scripts:
 
 Visual baselines are made on Linux in CI: run the **Visual** workflow with *update snapshots* and commit the `visual-baselines` artifact. Pushes and pull requests compare in Chromium only, without the leak checks; run the workflow with *full* for Firefox, WebKit and the leak checks too.
 
+### Releasing
+
+Releases are cut from a clean, up-to-date `main` with [release-it](https://github.com/release-it/release-it), configured in `.release-it.json`; the GitHub token comes from `gh auth token`. No npm login is needed: the **Release** workflow publishes.
+
+```bash
+pnpm release          # asks for the next version
+pnpm release patch    # or: minor, major, 0.1.0
+```
+
+It runs `pnpm check`, writes the same version to every package in `packages/*`, commits `chore: release vX.Y.Z`, tags it, pushes and creates a GitHub release with generated notes. Add `--dry-run` to see the steps without doing anything. For a pre-release use `pnpm release prepatch --preRelease=alpha` (`0.0.1-alpha.0`), then `pnpm release --preRelease=alpha` for the next ones; the GitHub release is marked as a pre-release and npm gets it under the `alpha` dist-tag, so `latest` stays on the last full release. The pushed tag starts `.github/workflows/release.yml`, which checks that the tag matches the versions, runs `pnpm check` again and publishes every package to npm with provenance (`pnpm -r publish`, which rewrites the `workspace:^` ranges). It authenticates with npm [trusted publishing](https://docs.npmjs.com/trusted-publishers): no token and no secret, each package on npmjs.com lists this repository and `release.yml` as its trusted publisher (package settings → Trusted Publisher → GitHub Actions, organization `tabler`, repository `tabler-charts`, workflow `release.yml`).
+
+Trusted publishing cannot create a package, so the first version of each package is published once by hand, after the release commit and tag exist:
+
+```bash
+npm login
+pnpm -r --filter "./packages/**" publish --access public --tag alpha
+```
+
+Then add the trusted publisher to each of the five packages; every later tag publishes from the workflow.
+
 ## License
 
 MIT

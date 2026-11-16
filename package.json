@@ -1,6 +1,7 @@
 {
   "name": "tabler-charts-monorepo",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
   "description": "Zero-dependency SVG charts styled with CSS — core, React, Vue, Bootstrap and Web Component.",
   "license": "MIT",
@@ -24,17 +25,20 @@
     "size": "node scripts/bundles.mjs && node scripts/check-size.mjs",
     "examples:build": "pnpm -r --filter \"./examples/**\" build",
     "visual": "playwright test",
-    "visual:update": "playwright test --update-snapshots"
+    "visual:update": "playwright test --update-snapshots",
+    "release": "GITHUB_TOKEN=\"${GITHUB_TOKEN:-$(gh auth token)}\" release-it"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@axe-core/playwright": "^4.13.0",
     "@biomejs/biome": "^2.5.14",
     "@playwright/test": "^1.63.0",
+    "@release-it/bumper": "^8.0.1",
     "@types/node": "^24.19.0",
     "happy-dom": "^20.14.5",
     "lightningcss": "^1.33.0",
     "publint": "^0.3.24",
+    "release-it": "^21.1.2",
     "rolldown": "^1.2.11",
     "tsdown": "^0.23.0",
     "typescript": "^7.0.2",
