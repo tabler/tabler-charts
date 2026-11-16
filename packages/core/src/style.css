@@ -924,12 +924,13 @@
 
 /* -- Download menu ---------------------------------------------------------- */
 
-/* A small button in the top right corner; its menu drops down below it. */
+/* A small button in the top right corner; its menu drops down below it.
+   Above the tooltip (which hides while the pointer is here). */
 .tc-download {
   position: absolute;
   top: 0;
   right: 0;
-  z-index: 5;
+  z-index: 11;
   font-family: var(--tc-font-family);
   font-size: var(--tc-font-size);
   line-height: 1.4;
