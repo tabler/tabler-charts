@@ -1,0 +1,62 @@
+name: Release
+
+# Publishes every package in packages/* to npm when a release tag is pushed.
+# `pnpm release` (release-it, see .release-it.json) bumps the versions,
+# commits, tags vX.Y.Z and creates the GitHub release; this workflow does the
+# publishing, so no npm credentials are needed on a laptop. It checks the tag
+# against the version in package.json, runs the same checks as CI and then
+# publishes with provenance. Needs the NPM_TOKEN secret: a granular access
+# token with publish rights to the @tabler organization.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  # Provenance attestations are signed with the workflow's OIDC token.
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check that the tag matches the version
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match version $version in package.json"
+            exit 1
+          fi
+          for pkg in packages/*/package.json; do
+            v="$(node -p "require('./$pkg').version")"
+            if [ "$v" != "$version" ]; then
+              echo "::error::$pkg is at $v, expected $version"
+              exit 1
+            fi
+          done
+
+      - name: Lint, typecheck, build, test, validate packages, size budget
+        run: pnpm check
+
+      # A tag checkout is a detached HEAD, which pnpm's git checks reject.
+      - name: Publish
+        run: pnpm -r --filter "./packages/**" publish --access public --no-git-checks --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

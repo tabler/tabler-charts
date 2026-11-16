@@ -86,14 +86,14 @@ Visual baselines are made on Linux in CI: run the **Visual** workflow with *upda
 
 ### Releasing
 
-Releases are cut from a clean, up-to-date `main` with [release-it](https://github.com/release-it/release-it), configured in `.release-it.json`. Log in to npm first (`npm login`, with publish rights to the `@tabler` organization); the GitHub token comes from `gh auth token`.
+Releases are cut from a clean, up-to-date `main` with [release-it](https://github.com/release-it/release-it), configured in `.release-it.json`; the GitHub token comes from `gh auth token`. No npm login is needed: the **Release** workflow publishes.
 
 ```bash
 pnpm release          # asks for the next version
 pnpm release patch    # or: minor, major, 0.1.0
 ```
 
-It runs `pnpm check`, writes the same version to every package in `packages/*`, commits `chore: release vX.Y.Z`, tags it, pushes, creates a GitHub release with generated notes and finally publishes the packages with `pnpm -r publish`. Add `--dry-run` to see the steps without doing anything.
+It runs `pnpm check`, writes the same version to every package in `packages/*`, commits `chore: release vX.Y.Z`, tags it, pushes and creates a GitHub release with generated notes. Add `--dry-run` to see the steps without doing anything. The pushed tag starts `.github/workflows/release.yml`, which checks that the tag matches the versions, runs `pnpm check` again and publishes every package to npm with provenance (`pnpm -r publish`, which rewrites the `workspace:^` ranges). It needs the `NPM_TOKEN` repository secret: a granular access token with publish rights to the `@tabler` organization.
 
 ## License
 

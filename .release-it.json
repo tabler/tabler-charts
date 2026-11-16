@@ -22,7 +22,6 @@
     }
   },
   "hooks": {
-    "before:init": "pnpm check",
-    "after:release": "pnpm -r --filter \"./packages/**\" publish --access public"
+    "before:init": "pnpm check"
   }
 }
