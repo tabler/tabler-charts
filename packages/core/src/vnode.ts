@@ -44,6 +44,12 @@ export interface VNode {
   children: Child[]
   /** Optional identity used by the keyed DOM patcher. */
   key: Key | undefined
+  /**
+   * The arc a path draws (radii, angles, pad angle, corner radius), kept out
+   * of the markup: the DOM patcher sweeps from the arc of the last render to
+   * this one (see `sweep`).
+   */
+  arc?: readonly number[]
 }
 
 /**

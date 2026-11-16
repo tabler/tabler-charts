@@ -95,7 +95,7 @@ describe('pie', () => {
   test('draws a track instead of slices when everything is zero', () => {
     const node = render({ data: [{ name: 'A', value: 0 }] })
     // The empty slice keeps a path without area, to grow from when data comes.
-    expect(findByClass(node, 'tc-slice').map((s) => s.attrs['data-arc'])).toEqual(['0 92 0 0 0 0'])
+    expect(findByClass(node, 'tc-slice').map((s) => s.arc)).toEqual([[0, 92, 0, 0, 0, 0]])
     expect(findByClass(node, 'tc-pie-track')).toHaveLength(1)
     expect(() => chartToString({ ...base, data: [] }, size)).not.toThrow()
   })
@@ -110,7 +110,10 @@ describe('pie', () => {
       ],
     })
     const [, empty] = findByClass(node, 'tc-slice')
-    expect(empty?.attrs['data-arc']).toBe('57.04 92 3.1416 3.1416 0.0185 4')
+    expect(empty?.arc?.[2]).toBeCloseTo(Math.PI)
+    expect(empty?.arc?.[3]).toBeCloseTo(Math.PI)
+    // The arc stays out of the markup.
+    expect(Object.keys(empty?.attrs ?? {})).toEqual(['class', 'd'])
     // Every point of it lies on the radius where A ends and C starts.
     const points = [...String(empty?.attrs.d).matchAll(/(-?[\d.]+),(-?[\d.]+)(?=[A-Z]|$)/g)]
     expect(points.length).toBeGreaterThan(0)

@@ -124,7 +124,9 @@ function patchNode(node: Node, next: Child): void {
 function patchElement(el: Element, next: VNode): void {
   const prev = rendered.get(el) as VNode
   if (prev === next) return
-  patchAttrs(el, prev.attrs, next.attrs, true)
+  // An arc sweeps to its new angles, setting its `d` itself on the way: the
+  // sweep feature then says what is left to patch.
+  patchAttrs(el, prev.attrs, features.sweep?.(el, prev, next) ?? next.attrs, true)
   patchChildren(el, next.children)
   rendered.set(el, next)
 }
@@ -133,14 +135,8 @@ export function patchAttrs(el: Element, prev: Attrs, next: Attrs, update = false
   for (const name in next) {
     const value = next[name] as string | number
     if (prev[name] === value || !isValidAttr(name)) continue
-    // Arcs sweep to their new angles; where CSS cannot transition `d` (Safari),
-    // the morph feature animates the other paths.
-    if (
-      update &&
-      name === 'd' &&
-      (features.sweep?.(el, prev, next) ||
-        features.morph?.(el, String(prev[name] ?? ''), String(value)))
-    ) {
+    // Where CSS cannot transition `d` (Safari), the morph feature animates it.
+    if (update && name === 'd' && features.morph?.(el, String(prev[name] ?? ''), String(value))) {
       continue
     }
     setAttr(el, name, String(value))

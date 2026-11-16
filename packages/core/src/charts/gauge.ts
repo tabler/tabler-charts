@@ -4,8 +4,8 @@ import { features } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
-import { arcData, sweep as sweepArcs } from '../render/sweep.ts'
-import { type ArcOptions, arcCentroid, arcPathStable, DEG, HALO } from '../shapes/arc.ts'
+import { arcNode, sweep as sweepArcs } from '../render/sweep.ts'
+import { arcCentroid, arcPathStable, DEG, HALO } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems, isRecord } from './clean.ts'
 import { groupAttrs, keyOf, legendItems } from './named.ts'
@@ -213,16 +213,14 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
   }
   ctx.onHitTest(interaction)
 
-  const arc = (name: string, options: ArcOptions) =>
-    h('path', { class: name, d: arcPathStable(options), 'data-arc': arcData(options) })
   const groups = rings.map((ring) =>
     h(
       'g',
       groupAttrs(ring.data, ring.index),
-      // Each arc is written next to its path, so a new value (or a new shape
-      // of the gauge) sweeps it around the center (see `sweep`).
-      arc('tc-gauge-track', { ...geometry(ring), endAngle: start + sweep }),
-      arc('tc-gauge-arc', geometry(ring)),
+      // Each path keeps its arc, so a new value (or a new shape of the gauge)
+      // sweeps it around the center (see `sweep`).
+      arcNode('tc-gauge-track', { ...geometry(ring), endAngle: start + sweep }),
+      arcNode('tc-gauge-arc', geometry(ring)),
     ),
   )
 
