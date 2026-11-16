@@ -37,7 +37,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # A pre-release (0.0.1-alpha.0) is published under its identifier as the
+      # npm dist-tag (alpha, beta, rc; "next" without one), so `latest` keeps
+      # pointing at the last full release.
       - name: Check that the tag matches the version
+        id: version
         run: |
           version="$(node -p "require('./package.json').version")"
           if [ "v$version" != "$GITHUB_REF_NAME" ]; then
@@ -51,12 +55,18 @@ jobs:
               exit 1
             fi
           done
+          case "$version" in
+            *-*) suffix="${version#*-}"; dist_tag="${suffix%%[.0-9]*}"; dist_tag="${dist_tag:-next}" ;;
+            *) dist_tag=latest ;;
+          esac
+          echo "dist_tag=$dist_tag" >> "$GITHUB_OUTPUT"
+          echo "Publishing $version as @$dist_tag"
 
       - name: Lint, typecheck, build, test, validate packages, size budget
         run: pnpm check
 
       # A tag checkout is a detached HEAD, which pnpm's git checks reject.
       - name: Publish
-        run: pnpm -r --filter "./packages/**" publish --access public --no-git-checks --provenance
+        run: pnpm -r --filter "./packages/**" publish --access public --no-git-checks --provenance --tag "${{ steps.version.outputs.dist_tag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

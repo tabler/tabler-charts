@@ -93,7 +93,7 @@ pnpm release          # asks for the next version
 pnpm release patch    # or: minor, major, 0.1.0
 ```
 
-It runs `pnpm check`, writes the same version to every package in `packages/*`, commits `chore: release vX.Y.Z`, tags it, pushes and creates a GitHub release with generated notes. Add `--dry-run` to see the steps without doing anything. The pushed tag starts `.github/workflows/release.yml`, which checks that the tag matches the versions, runs `pnpm check` again and publishes every package to npm with provenance (`pnpm -r publish`, which rewrites the `workspace:^` ranges). It needs the `NPM_TOKEN` repository secret: a granular access token with publish rights to the `@tabler` organization.
+It runs `pnpm check`, writes the same version to every package in `packages/*`, commits `chore: release vX.Y.Z`, tags it, pushes and creates a GitHub release with generated notes. Add `--dry-run` to see the steps without doing anything. For a pre-release use `pnpm release prepatch --preRelease=alpha` (`0.0.1-alpha.0`), then `pnpm release --preRelease=alpha` for the next ones; the GitHub release is marked as a pre-release and npm gets it under the `alpha` dist-tag, so `latest` stays on the last full release. The pushed tag starts `.github/workflows/release.yml`, which checks that the tag matches the versions, runs `pnpm check` again and publishes every package to npm with provenance (`pnpm -r publish`, which rewrites the `workspace:^` ranges). It needs the `NPM_TOKEN` repository secret: a granular access token with publish rights to the `@tabler` organization.
 
 ## License
 
