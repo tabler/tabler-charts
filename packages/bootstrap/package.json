@@ -1,6 +1,6 @@
 {
   "name": "@tabler/charts-bootstrap",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.0",
   "description": "Bootstrap 5.3 and Tabler theme mapping (CSS and SCSS) and a data API for @tabler/charts.",
   "keywords": [
     "charts",
@@ -10,7 +10,7 @@
     "tabler"
   ],
   "license": "MIT",
-  "author": "Pawe\u0142 Kuna",
+  "author": "Paweł Kuna",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tabler/tabler-charts.git",

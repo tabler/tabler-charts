@@ -1,6 +1,6 @@
 {
   "name": "@tabler/charts-elements",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.0",
   "description": "<tabler-chart> web component for @tabler/charts.",
   "keywords": [
     "charts",
@@ -10,7 +10,7 @@
     "tabler"
   ],
   "license": "MIT",
-  "author": "Pawe\u0142 Kuna",
+  "author": "Paweł Kuna",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tabler/tabler-charts.git",
