@@ -6,6 +6,7 @@ import { estimateTextWidth, type InsetsInput, innerRect, insets, round } from '.
 import { rectPath } from '../shapes/rect.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 import { cleanData, finite, isRecord, list, named } from './clean.ts'
+import { fit } from './fit.ts'
 import { groupAttrs, keyOf, legendItems } from './named.ts'
 
 /** A tile of a treemap, or a group of them. */
@@ -196,18 +197,6 @@ function layout(
       })
     }
   })
-}
-
-/** `text` cut to `width` pixels with an ellipsis, or `''` when not even a few letters fit. */
-function fit(text: string, width: number, fontSize: number): string {
-  if (estimateTextWidth(text, fontSize) <= width) return text
-  const chars = [...text]
-  while (chars.length > 2) {
-    chars.pop()
-    const cut = `${chars.join('').trimEnd()}…`
-    if (estimateTextWidth(cut, fontSize) <= width) return cut
-  }
-  return ''
 }
 
 function renderTreemap(options: TreemapOptions, ctx: RenderContext): ChildInput {

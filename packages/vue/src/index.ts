@@ -22,6 +22,8 @@ import {
   type CandlestickOptions,
   candlestick,
   donut,
+  type FunnelOptions,
+  funnel,
   type GaugeOptions,
   gauge,
   type HeatmapOptions,
@@ -98,4 +100,8 @@ export const ParliamentChart: ChartComponent<ParliamentOptions> = /* @__PURE__ *
 export const TreemapChart: ChartComponent<TreemapOptions> = /* @__PURE__ */ chartComponent(
   treemap,
   'TreemapChart',
+)
+export const FunnelChart: ChartComponent<FunnelOptions> = /* @__PURE__ */ chartComponent(
+  funnel,
+  'FunnelChart',
 )

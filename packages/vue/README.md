@@ -39,7 +39,7 @@ const data = { labels: ['Mon', 'Tue', 'Wed'], series: [{ name: 'Visitors', value
 </template>
 ```
 
-There is one component per chart type: `LineChart`, `AreaChart`, `BarChart`, `PieChart`, `DonutChart`, `GaugeChart`, `RadarChart`, `SankeyChart`, `ParliamentChart`, `TreemapChart`, `ScatterChart`, `HeatmapChart`, `CandlestickChart` and `Sparkline`. `TablerChart` takes the type as a prop:
+There is one component per chart type: `LineChart`, `AreaChart`, `BarChart`, `PieChart`, `DonutChart`, `GaugeChart`, `RadarChart`, `SankeyChart`, `ParliamentChart`, `TreemapChart`, `FunnelChart`, `ScatterChart`, `HeatmapChart`, `CandlestickChart` and `Sparkline`. `TablerChart` takes the type as a prop:
 
 ```vue
 <TablerChart :type="bar" :data="data" stacked />

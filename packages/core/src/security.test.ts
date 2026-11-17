@@ -9,6 +9,7 @@ import { type ChartConfig, chartToString } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import './annotations.ts'
 import { bar } from './charts/bar.ts'
+import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
@@ -61,6 +62,7 @@ const cases: [string, Record<string, unknown>][] = [
       ],
     },
   ],
+  ['funnel stage', { type: funnel, data: [{ name: 'A', value: 4, color: EVIL }] }],
   [
     'scatter series',
     { type: scatter, data: { series: [{ name: 'A', color: EVIL, points: [{ x: 1, y: 2 }] }] } },

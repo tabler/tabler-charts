@@ -15,6 +15,7 @@ export default defineConfig({
     'src/sankey.ts',
     'src/parliament.ts',
     'src/treemap.ts',
+    'src/funnel.ts',
     'src/heatmap.ts',
     'src/candlestick.ts',
     'src/annotations.ts',

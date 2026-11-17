@@ -175,6 +175,16 @@
         "default": "./dist/treemap.cjs"
       }
     },
+    "./funnel": {
+      "import": {
+        "types": "./dist/funnel.d.ts",
+        "default": "./dist/funnel.js"
+      },
+      "require": {
+        "types": "./dist/funnel.d.cts",
+        "default": "./dist/funnel.cjs"
+      }
+    },
     "./export": {
       "import": {
         "types": "./dist/export.d.ts",
