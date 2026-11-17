@@ -53,6 +53,7 @@ const ATTRIBUTES = [
   'label',
   'description',
   'locale',
+  'rtl',
   'legend',
   'tooltip',
   'animate',
@@ -202,6 +203,7 @@ export function createChartElement(setup: ChartElementSetup): new () => ChartEle
       set('title', attr('label') ?? undefined)
       set('description', attr('description') ?? undefined)
       set('locale', attr('locale') ?? undefined)
+      set('rtl', attr('rtl') === 'auto' ? 'auto' : flag(attr('rtl')))
       set('sync', attr('sync') ?? undefined)
       set('shapes', flag(attr('shapes')))
       const tip = attr('tooltip')

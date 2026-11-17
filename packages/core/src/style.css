@@ -617,7 +617,7 @@
 
 @keyframes tc-reveal {
   from {
-    clip-path: inset(0 100% 0 0);
+    clip-path: inset(0 var(--tc-reveal, 100% 0 0));
   }
   to {
     clip-path: inset(0);
@@ -659,7 +659,12 @@
   transition: none var(--tc-duration);
 }
 
-/* Lines and areas draw in from the left (no fill mode, so the plot clip returns after). */
+/* Lines and areas draw in from the left (no fill mode, so the plot clip returns after),
+   from the right in a right-to-left chart. */
+.tc-rtl {
+  --tc-reveal: 0 0 100%;
+}
+
 .tc-chart-line .tc-series-list,
 .tc-chart-area .tc-series-list {
   animation: tc-reveal calc(var(--tc-duration) * 2) var(--tc-easing);
@@ -767,8 +772,14 @@
   animation-name: tc-grow-x;
 }
 
-.tc-bar-horizontal.tc-bar-negative {
+/* Mirrored in a right-to-left chart. */
+.tc-bar-horizontal.tc-bar-negative,
+.tc-rtl .tc-bar-horizontal {
   transform-origin: 100% 50%;
+}
+
+.tc-rtl .tc-bar-horizontal.tc-bar-negative {
+  transform-origin: 0 50%;
 }
 
 /* Ticks and grid lines glide to new positions. */

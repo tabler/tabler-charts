@@ -781,6 +781,54 @@ const groups: [string, () => Case[]][] = [
         },
       },
       {
+        title: 'Right to left: grouped bars',
+        expect:
+          'rtl: true. Value axis on the right, months from the right, the first series on the right of each group.',
+        config: {
+          type: bar,
+          locale: 'ar-EG',
+          rtl: true,
+          data: {
+            labels: ['يناير', 'فبراير', 'مارس', 'أبريل'],
+            series: [
+              { name: 'المبيعات', values: [1200, 1850, 990, 2400] },
+              { name: 'التكاليف', values: [800, 1100, 700, 1500] },
+            ],
+          },
+        },
+      },
+      {
+        title: 'Right to left: a line over time',
+        expect:
+          'rtl: true. Time runs from the right; the tooltip names the date under the pointer.',
+        config: {
+          type: line,
+          locale: 'he-IL',
+          rtl: true,
+          x: { type: 'time', utc: true },
+          data: {
+            labels: range(60).map((i) => Date.UTC(2026, 0, 1 + i)),
+            series: [{ name: 'מבקרים', values: walk(60, 400, 40) }],
+          },
+        },
+      },
+      {
+        title: 'Right to left: horizontal bars',
+        expect:
+          'rtl: true. Names on the right, bars growing to the left (losses to the right), values beyond their ends.',
+        config: {
+          type: bar,
+          locale: 'ar-EG',
+          rtl: true,
+          orientation: 'horizontal',
+          valueLabels: true,
+          data: {
+            labels: ['القاهرة', 'الإسكندرية', 'الجيزة', 'أسوان'],
+            series: [{ name: 'الربح', values: [420, 310, -120, 90] }],
+          },
+        },
+      },
+      {
         title: 'Chinese labels',
         expect: 'Wide glyphs: labels thinned so they do not overlap.',
         config: {

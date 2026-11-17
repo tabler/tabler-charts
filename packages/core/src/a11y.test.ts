@@ -180,6 +180,18 @@ describe('Chart accessibility', () => {
     expect(live()).toContain('Feb')
   })
 
+  test('arrows follow the screen in a right-to-left chart', () => {
+    chart = new Chart(el, { ...base, rtl: true } as ChartConfig<object>)
+    key('ArrowLeft')
+    expect(live()).toContain('Jan')
+    key('ArrowLeft')
+    expect(live()).toContain('Feb')
+    key('ArrowRight')
+    expect(live()).toContain('Jan')
+    key('End')
+    expect(live()).toContain('Mar')
+  })
+
   test('walks series with up and down', () => {
     chart = new Chart(el, { ...base, type: bar } as ChartConfig<object>)
     key('ArrowRight')

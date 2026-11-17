@@ -165,6 +165,30 @@ describe('Chart', () => {
     chart.destroy()
   })
 
+  test("rtl: 'auto' follows the direction of the container", () => {
+    const rtl = () => el.querySelector('svg')?.classList.contains('tc-rtl')
+    const chart = new Chart(el, { type: dots, data: [1], width: 100, height: 50, rtl: 'auto' })
+    expect(rtl()).toBe(false)
+    expect(renders.at(-1)?.rtl).toBe(false)
+    el.style.direction = 'rtl'
+    chart.update({ rtl: 'auto' }).render()
+    expect(rtl()).toBe(true)
+    expect(renders.at(-1)?.rtl).toBe(true)
+    chart.update({ rtl: false }).render()
+    expect(rtl()).toBe(false)
+    chart.update({ rtl: true }).render()
+    expect(rtl()).toBe(true)
+    el.style.direction = ''
+    chart.destroy()
+  })
+
+  test('chartToString() renders right to left only when told to', () => {
+    const config = { type: dots, data: [1] }
+    const size = { width: 100, height: 50 }
+    expect(chartToString({ ...config, rtl: true }, size)).toContain('tc-rtl')
+    expect(chartToString({ ...config, rtl: 'auto' }, size)).not.toContain('tc-rtl')
+  })
+
   test('throws when the element does not exist', () => {
     expect(() => new Chart('#missing', { type: dots, data: [] })).toThrow(/not found/)
   })

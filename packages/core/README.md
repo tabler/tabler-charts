@@ -150,6 +150,7 @@ An option that is `NaN` or infinite (a `radius`, a `startAngle`, a `width`, a si
 | `aspectRatio` | `2` | |
 | `title`, `description` | | Accessible name and description; without a title the name lists the series ("line chart: Revenue, Costs") |
 | `locale` | runtime default | For `Intl` number and date formatting; set it for SSR |
+| `rtl` | `false` | Mirror line, area, bar and candlestick charts for right-to-left pages: value axis on the right, categories from the right (`x: { reverse: false }` keeps those). Horizontal bars grow to the left. `'auto'` follows the container's `direction` |
 | `fontSize` | `--tc-font-size` | Used to lay out labels; set it for SSR |
 | `id` | generated | Prefix of ids inside the SVG; set it for SSR |
 | `legend` | for 2+ entries | `false`, `true` or `{ position: 'bottom' }` |

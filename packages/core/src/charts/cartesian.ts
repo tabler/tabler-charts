@@ -107,6 +107,8 @@ export interface CategoryAxisOptions {
   type?: 'category' | 'time'
   /** Align time ticks to UTC instead of local time (use it for SSR). */
   utc?: boolean
+  /** Run the categories from the right. Defaults to the chart's `rtl`. */
+  reverse?: boolean
 }
 
 export interface CartesianOptions {
@@ -344,6 +346,12 @@ export function valueAxis(
   return { scale, ticks, probe: ticks(scale([0, 1])) }
 }
 
+/** Swap the left and right of `sides` in a right-to-left chart. */
+export const mirrorSides = <T extends { left: number; right: number }>(
+  sides: T,
+  rtl: boolean | undefined,
+): T => (rtl ? { ...sides, left: sides.right, right: sides.left } : sides)
+
 /**
  * Finish a layout that has its plot area, scales and ticks with what is
  * drawn around the marks: grid lines and annotation bands below them,
@@ -360,6 +368,8 @@ export function finishLayout(
 ): CartesianLayout {
   const { area, x, y, xTicks, yTicks, horizontal: flip } = plot
   const xOptions = options.x ?? {}
+  // The axis beside the plot: on the right in a right-to-left chart.
+  const side = ctx.rtl ? 'right' : 'left'
   // Annotations: bands under the series, lines above them (and below the axes).
   const notes = notesFeature(options)?.layers(options.annotations, {
     area,
@@ -371,10 +381,10 @@ export function finishLayout(
     time,
   })
   const values = options.y?.show !== false && [
-    axis({ position: flip ? 'bottom' : 'left', ticks: yTicks, area }),
+    axis({ position: flip ? 'bottom' : side, ticks: yTicks, area }),
   ]
   const categories = ((xOptions.show !== false && plot.labels.length > 0) || xOptions.line) && [
-    axis({ position: flip ? 'left' : 'bottom', ticks: xTicks, area, line: xOptions.line === true }),
+    axis({ position: flip ? side : 'bottom', ticks: xTicks, area, line: xOptions.line === true }),
   ]
   const present = (parts: (VNode | VNode[] | null | false | undefined)[]): VNode[] =>
     parts.flatMap((part) => part || [])
@@ -402,7 +412,10 @@ export function cartesianLayout(
   const xOptions = options.x ?? {}
   const { fontSize, locale, width, height } = ctx
   const overhang = layout.overhang ?? 0
-  const pad = insets(options.padding)
+  // Right to left, the sides are worked out as their mirror image, then swapped.
+  const rtl = ctx.rtl === true
+  const reverse = xOptions.reverse ?? rtl
+  const pad = mirrorSides(insets(options.padding), rtl)
   const labels = resolveLabels(data)
   const format = labelFormatter(options, ctx)
   const showY = yOptions.show !== false
@@ -434,8 +447,11 @@ export function cartesianLayout(
   // Margins: labels outside the plot, half a line above the top tick,
   // half of the first/last x label for point scales.
   const halfLine = Math.ceil((fontSize * LINE_HEIGHT) / 2)
-  const firstLabel = showX ? estimateTextWidth(edgeLabels[0] ?? '', fontSize) : 0
-  const lastLabel = showX ? estimateTextWidth(edgeLabels[edgeLabels.length - 1] ?? '', fontSize) : 0
+  // The label at the value axis' end of the plot, and the one at the other end.
+  const edgeWidth = (last: boolean) =>
+    showX ? estimateTextWidth(edgeLabels[last ? edgeLabels.length - 1 : 0] ?? '', fontSize) : 0
+  const firstLabel = edgeWidth(reverse !== rtl)
+  const lastLabel = edgeWidth(reverse === rtl)
   const edgeX = layout.scale === 'point'
   // On bands a label is centered half a step from the edge: only what is wider
   // than that needs margin (long labels on narrow bands, e.g. dates on candles).
@@ -462,11 +478,12 @@ export function cartesianLayout(
         overhang,
         EDGE / 2,
       ),
-    ...sides,
+    ...mirrorSides(sides, rtl),
   }
   const area = innerRect(width, height, margins)
 
-  const x = xAxis.scale([area.x, area.x + area.width])
+  const end = area.x + area.width
+  const x = xAxis.scale(reverse ? [end, area.x] : [area.x, end])
   const y = value.scale([area.y + area.height, area.y])
 
   // Nice ticks can outnumber the count asked for: on a short plot, thin them
@@ -592,6 +609,7 @@ export function categoryInteraction(
 
   return {
     count: labels.length,
+    reversed: x.range[1] < x.range[0],
     hitTest(px, py) {
       if (labels.length === 0) return null
       if (

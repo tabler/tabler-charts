@@ -11,6 +11,7 @@ import {
   type Label,
   labelFormatter,
   labelKey,
+  mirrorSides,
   resolveLabels,
   TICK_SPACING_X,
   valueAxis,
@@ -28,9 +29,10 @@ export function horizontalLayout(
 ): CartesianLayout {
   const yOptions = options.y ?? {}
   const xOptions = options.x ?? {}
-  const { fontSize, width, height } = ctx
+  const { fontSize, width, height, rtl } = ctx
   const overhang = layout.overhang ?? 0
-  const pad = insets(options.padding)
+  // Right to left, the sides are worked out as their mirror image, then swapped.
+  const pad = mirrorSides(insets(options.padding), rtl)
   const labels = resolveLabels(options.data)
   const format = labelFormatter(options, ctx)
   const value = valueAxis(options, ctx, layout, Math.round(width / TICK_SPACING_X))
@@ -46,21 +48,24 @@ export function horizontalLayout(
   const edgeLabel = (tick: Tick | undefined) =>
     showValues && tick ? Math.ceil(estimateTextWidth(tick.label, fontSize) / 2) : 0
 
-  const margins = {
-    top: pad.top + Math.max(overhang, EDGE / 2),
-    right: pad.right + Math.max(edgeLabel(probeValues[probeValues.length - 1]), overhang, EDGE),
-    bottom:
-      pad.bottom +
-      Math.max(showValues ? axisSize('bottom', probeValues, fontSize) : 0, overhang, EDGE / 2),
-    left:
-      pad.left +
-      Math.max(
-        showCategories ? axisSize('left', probeCategories, fontSize) : 0,
-        edgeLabel(probeValues[0]),
-        overhang,
-        EDGE,
-      ),
-  }
+  const margins = mirrorSides(
+    {
+      top: pad.top + Math.max(overhang, EDGE / 2),
+      right: pad.right + Math.max(edgeLabel(probeValues[probeValues.length - 1]), overhang, EDGE),
+      bottom:
+        pad.bottom +
+        Math.max(showValues ? axisSize('bottom', probeValues, fontSize) : 0, overhang, EDGE / 2),
+      left:
+        pad.left +
+        Math.max(
+          showCategories ? axisSize('left', probeCategories, fontSize) : 0,
+          edgeLabel(probeValues[0]),
+          overhang,
+          EDGE,
+        ),
+    },
+    rtl,
+  )
   const area = innerRect(width, height, margins)
 
   const keys = labels.map(labelKey)
@@ -68,7 +73,9 @@ export function horizontalLayout(
     paddingInner: layout.paddingInner ?? 0.3,
     paddingOuter: layout.paddingOuter ?? 0.15,
   })
-  const y = value.scale([area.x, area.x + area.width])
+  // Values grow away from the categories: to the left when those are on the right.
+  const end = area.x + area.width
+  const y = value.scale(rtl ? [end, area.x] : [area.x, end])
   const yTicks = thinTicks(value.ticks(y), 'bottom', fontSize)
   const xTicks = showCategories
     ? thinTicks(
