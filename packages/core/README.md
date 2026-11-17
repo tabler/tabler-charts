@@ -81,7 +81,7 @@ A feature you use but did not import throws an error that names the import.
 | `line` | `{ labels, series }` | `curve` (`'monotone'`, `'linear'`, `'step'` …), `points` (`'none'`, `'last'`, `'all'`), `area`, `stacked`, `connectNulls`, `decimate` |
 | `area` | `{ labels, series }` | as `line`, filled; `fill: 'gradient' \| 'solid'` |
 | `bar` | `{ labels, series }` | `stacked` (`true` or `'percent'`), `orientation: 'horizontal'`, `radius`, `gap`, `maxBarWidth`; `series[].type: 'line' \| 'area'` mixes in lines |
-| `pie`, `donut` | `[{ name, value }]` | `innerRadius`, `gap`, `cornerRadius`, `center` (text in the middle) |
+| `pie`, `donut` | `[{ name, value }]` | `innerRadius`, `gap`, `cornerRadius`, `center` (text in the middle), `maxSlices` (the rest is grouped into `othersLabel`) |
 | `gauge` | a number, a ring or rings | `max`, `startAngle`, `angle` (`270` for a dial), `thickness`, `center` |
 | `radar` | `{ labels, series }` | `grid: 'polygon' \| 'circle'`, `fill`, `points`, `r` (radial axis), `labelWidth` (long spoke labels wrap at their spaces, by default past a quarter of the width) |
 | `sankey` | `{ nodes?, links: [{ from, to, value }] }` | `nodeWidth`, `nodePadding`, `align: 'justify' \| 'left'`, `format`; nodes with a `color` make the legend |

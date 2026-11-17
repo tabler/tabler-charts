@@ -8,7 +8,8 @@ import { arcNode, sweep } from '../render/sweep.ts'
 import { arcCentroid, arcPathStable, DEG, HALO, padAngleForGap } from '../shapes/arc.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems } from './clean.ts'
-import { groupAttrs, keyOf, legendItems } from './named.ts'
+import { groupAttrs, keyOf } from './named.ts'
+import { groupLegend, groupSlices } from './others.ts'
 
 /** One slice of a pie or donut. */
 export interface PieSlice {
@@ -30,6 +31,15 @@ export interface PieSlice {
 
 export interface PieOptions {
   data: readonly PieSlice[]
+  /**
+   * The most slices drawn, the one for the rest included: with more entries
+   * than that, the largest `maxSlices - 1` keep a slice of their own and the
+   * others share one, named by `othersLabel`, after them. Not set (or `0`),
+   * every entry is a slice.
+   */
+  maxSlices?: number
+  /** Name of the slice that groups the rest. Defaults to `'Others'`. */
+  othersLabel?: string
   /** Hole size relative to the radius, `0…0.95`. Defaults to `0` (`0.62` for `donut`). */
   innerRadius?: number
   /** Gap between slices in pixels, drawn as surface. Defaults to `2`. */
@@ -62,9 +72,9 @@ function layoutSlices(
   options: PieOptions,
   hidden: ReadonlySet<string>,
 ): { slices: Slice[]; total: number } {
-  const visible = options.data
-    .map((data, index) => ({ data, index, value: Math.max(0, data.value || 0) }))
-    .filter((slice) => !hidden.has(keyOf(slice.data)))
+  const visible = groupSlices(options.data, options.maxSlices, options.othersLabel).filter(
+    (slice) => !hidden.has(keyOf(slice.data)),
+  )
   const total = visible.reduce((sum, slice) => sum + slice.value, 0)
   let angle = (options.startAngle ?? 0) * DEG
   const slices = visible.map((slice) => {
@@ -248,7 +258,8 @@ function pieType(name: string, defaults: { inner: number; corner: number }): Cha
       features.sweep = sweep
       return renderPie(options, ctx, defaults)
     },
-    legend: (options) => legendItems(options.data),
+    legend: (options) =>
+      groupLegend(groupSlices(options.data, options.maxSlices, options.othersLabel)),
     table: pieTable,
     valueLabels: { marks: 'slice' },
   }

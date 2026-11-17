@@ -294,7 +294,7 @@ test('numeric options that are not finite count as left out', () => {
     [bar, series, ['radius', 'maxBarWidth', 'gap', 'groupPadding']],
     [radar, series, ['pointRadius', 'startAngle']],
     [heatmap, series, ['min', 'max', 'gap', 'radius']],
-    [pie, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],
+    [pie, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle', 'maxSlices']],
     [donut, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],
     [gauge, slices, ['max', 'startAngle', 'angle', 'thickness', 'gap', 'cornerRadius']],
     [

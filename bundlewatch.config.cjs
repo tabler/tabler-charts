@@ -11,7 +11,7 @@ module.exports = {
     // Typical imports, bundled and minified by scripts/bundles.mjs.
     { path: '.size/core-line.js', maxSize: '11.75KB' },
     { path: '.size/core-bar.js', maxSize: '11.5KB' },
-    { path: '.size/core-pie.js', maxSize: '8.25KB' },
+    { path: '.size/core-pie.js', maxSize: '8.5KB' },
     { path: '.size/core-gauge.js', maxSize: '8.5KB' },
     { path: '.size/core-radar.js', maxSize: '8.75KB' },
     { path: '.size/core-sankey.js', maxSize: '8KB' },
@@ -32,8 +32,8 @@ module.exports = {
     { path: '.size/everything.js', maxSize: '42KB' },
     // Shipped as they are.
     { path: 'packages/core/dist/style.css', maxSize: '4.25KB' },
-    { path: 'packages/elements/dist/tabler-charts.min.js', maxSize: '47.5KB' },
-    { path: 'packages/bootstrap/dist/tabler-charts-bootstrap.min.js', maxSize: '47.5KB' },
+    { path: 'packages/elements/dist/tabler-charts.min.js', maxSize: '47.75KB' },
+    { path: 'packages/bootstrap/dist/tabler-charts-bootstrap.min.js', maxSize: '47.75KB' },
     { path: 'packages/bootstrap/dist/bootstrap.css', maxSize: '600B' },
     { path: 'packages/bootstrap/dist/tabler.css', maxSize: '600B' },
   ],

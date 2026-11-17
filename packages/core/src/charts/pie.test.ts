@@ -204,3 +204,47 @@ describe('donut', () => {
     expect(chartToString({ ...base, type: donut }, size)).toMatchSnapshot()
   })
 })
+
+describe('maxSlices', () => {
+  const many = [5, 30, 10, 20, 8, 15, 12].map((value, i) => ({ name: `n${i}`, value }))
+  const options = { data: many, maxSlices: 4 }
+
+  test('every entry is a slice unless maxSlices is set', () => {
+    expect(findByClass(render({ data: many }), 'tc-series').length).toBe(7)
+    expect(findByClass(render({ data: many, maxSlices: 0 }), 'tc-series').length).toBe(7)
+    expect(findByClass(render({ data: many, maxSlices: 7 }), 'tc-series').length).toBe(7)
+  })
+
+  test('groups the smallest entries into one last slice in the color of the rest', () => {
+    const groups = findByClass(render(options), 'tc-series')
+    expect(groups.map((g) => g.attrs['data-series'])).toEqual(['n1', 'n3', 'n5', 'Others'])
+    expect(groups.map((g) => g.attrs.class)).toEqual([
+      'tc-series tc-series-2',
+      'tc-series tc-series-4',
+      'tc-series tc-series-6',
+      'tc-series tc-series-9',
+    ])
+    const named = findByClass(render({ ...options, othersLabel: 'Inne' }), 'tc-series')
+    expect(named[3]?.attrs['data-series']).toBe('Inne')
+  })
+
+  test('the legend and the table have the rest as one entry', () => {
+    expect(donut.legend?.(options)).toEqual([
+      { key: 'n1', name: 'n1', index: 1 },
+      { key: 'n3', name: 'n3', index: 3 },
+      { key: 'n5', name: 'n5', index: 5 },
+      { key: '__others__', name: 'Others', index: 8 },
+    ])
+    const table = pie.table?.(
+      options,
+      renderContext({ ...base, ...options }, size, 'p', () => {}, new Set()),
+      100,
+    )
+    expect(table?.rows).toEqual([
+      ['n1', '30', '30%'],
+      ['n3', '20', '20%'],
+      ['n5', '15', '15%'],
+      ['Others', '35', '35%'],
+    ])
+  })
+})
