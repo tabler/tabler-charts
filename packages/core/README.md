@@ -81,12 +81,13 @@ A feature you use but did not import throws an error that names the import.
 | `line` | `{ labels, series }` | `curve` (`'monotone'`, `'linear'`, `'step'` …), `points` (`'none'`, `'last'`, `'all'`), `area`, `stacked`, `connectNulls`, `decimate` |
 | `area` | `{ labels, series }` | as `line`, filled; `fill: 'gradient' \| 'solid'` |
 | `bar` | `{ labels, series }` | `stacked` (`true` or `'percent'`), `orientation: 'horizontal'`, `radius`, `gap`, `maxBarWidth`; `series[].type: 'line' \| 'area'` mixes in lines |
-| `pie`, `donut` | `[{ name, value }]` | `innerRadius`, `gap`, `cornerRadius`, `center` (text in the middle) |
+| `pie`, `donut` | `[{ name, value }]` | `innerRadius`, `gap`, `cornerRadius`, `center` (text in the middle), `maxSlices` (the rest is grouped into `othersLabel`) |
 | `gauge` | a number, a ring or rings | `max`, `startAngle`, `angle` (`270` for a dial), `thickness`, `center` |
 | `radar` | `{ labels, series }` | `grid: 'polygon' \| 'circle'`, `fill`, `points`, `r` (radial axis), `labelWidth` (long spoke labels wrap at their spaces, by default past a quarter of the width) |
 | `sankey` | `{ nodes?, links: [{ from, to, value }] }` | `nodeWidth`, `nodePadding`, `align: 'justify' \| 'left'`, `format`; nodes with a `color` make the legend |
 | `parliament` | `[{ name, seats }]` | `total` (vacant seats), `rows`, `angle` (`180` for a hemicycle), `innerRadius`, `gap`, `center` |
 | `treemap` | `[{ name, value }]`, or groups `[{ name, children }]` | `gap`, `radius`, `labels` (names and values in the tiles), `format`; `--tc-treemap-opacity` fades the tiles |
+| `percentageBar` | `[{ name, value }]` | `order: 'data' \| 'size'`, `maxSlices` (the rest is grouped into `othersLabel`), `gap`, `radius`, `format`; a strip 16 px tall unless `height` is set |
 | `funnel` | `[{ name, value }]`, in the order of the process | `labels` (name, value and share of the first stage above every stage), `radius`, `format`; `--tc-funnel-color` is the color the stages shade towards |
 | `scatter` | `{ series: [{ name, points: [{ x, y, size? }] }] }` | `radius`, `size` (bubble radii); points with `size` are bubbles |
 | `heatmap` | `{ labels, series }` (rows) | `min`, `max`, `ranges`, `colors` + `mid` (scales), `colorBy: 'series'` |
@@ -128,6 +129,21 @@ new Chart('#el', { type: bar, data, valueLabels: true })
 
 A chart type of your own gets labels from its hits like the built-in ones. Its `valueLabels` says what its marks are, when not bars or points (`{ marks: 'slice' }` for shares inside slices, `{ marks: 'cell' }` for values in the middle of cells), and where its number format is (`{ format: (options) => options.format }`).
 
+### Right to left
+
+`rtl` mirrors line, area, bar, candlestick, scatter, heatmap, sparkline and sankey charts for right-to-left pages: the value axis on the right, categories from the right, flows running to the left, the arrow keys following the screen. The legend, the tooltip and the download menu follow the chart: they read right to left (the menu in the left corner) even on a left-to-right page.
+
+```ts
+// <html dir="rtl">
+new Chart('#sales', {
+  type: bar,
+  rtl: 'auto', // follows the container's direction; `true` mirrors on any page (and in SSR)
+  locale: 'ar-EG',
+  data,
+  // x: { reverse: false }, // keep the categories from the left
+})
+```
+
 ### Synced hover
 
 Charts with the same `sync` group share the hover: the category under the pointer is highlighted in every chart of the group, with its crosshair and tooltip, and they clear together. Categories are matched by label, so the charts need not have the same data; a chart without that label clears. Keyboard highlights stay in their own chart. On the core, add the `sync()` plugin.
@@ -151,6 +167,7 @@ An option that is `NaN` or infinite (a `radius`, a `startAngle`, a `width`, a si
 | `aspectRatio` | `2` | |
 | `title`, `description` | | Accessible name and description; without a title the name lists the series ("line chart: Revenue, Costs") |
 | `locale` | runtime default | For `Intl` number and date formatting; set it for SSR |
+| `rtl` | `false` | Mirror cartesian charts, heatmaps, sparklines and sankey diagrams for right-to-left pages: value axis on the right, categories from the right (`x: { reverse: false }` keeps those). Horizontal bars grow to the left. `'auto'` follows the container's `direction` |
 | `fontSize` | `--tc-font-size` | Used to lay out labels; set it for SSR |
 | `id` | generated | Prefix of ids inside the SVG; set it for SSR |
 | `legend` | for 2+ entries | `false`, `true` or `{ position: 'bottom' }` |

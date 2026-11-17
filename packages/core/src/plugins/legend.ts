@@ -60,6 +60,8 @@ export function legend(): ChartPlugin {
             bound = true
           }
           el.dataset.position = legend.position
+          // A right-to-left chart reads right to left, whatever the page around it.
+          el.dir = chart.rtl ? 'rtl' : ''
           render(el, legendContent(legend.items, hidden), adopt)
           adopt = null
           place()

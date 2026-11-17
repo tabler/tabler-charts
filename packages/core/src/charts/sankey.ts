@@ -8,6 +8,7 @@ import {
   innerRect,
   insets,
   LINE_HEIGHT,
+  mirrorSides,
   type Rect,
   round,
 } from '../layout.ts'
@@ -206,7 +207,9 @@ function layout(options: SankeyOptions, ctx: RenderContext): Layout {
   const { width, height, fontSize, locale } = ctx
   const nodeWidth = Math.max(1, options.nodeWidth ?? 12)
   const nodePadding = Math.max(0, options.nodePadding ?? 16)
-  const area = innerRect(width, height, insets(options.padding))
+  // Right to left, the layout is worked out as its mirror image, then flipped.
+  const { rtl } = ctx
+  const area = innerRect(width, height, mirrorSides(insets(options.padding), rtl))
   const { nodes, links, columns } = graph(options.data, ctx.hidden, options.align !== 'left')
   const format = formatDetail(options.format, locale)
 
@@ -259,7 +262,8 @@ function layout(options: SankeyOptions, ctx: RenderContext): Layout {
     const total = col.reduce((s, n) => s + n.value * k, 0) + (col.length - 1) * pad
     let y = plot.y + (plot.height - total) / 2
     for (const n of col) {
-      n.x = plot.x + (columns > 1 ? c * step : (plot.width - nodeWidth) / 2)
+      const x = plot.x + (columns > 1 ? c * step : (plot.width - nodeWidth) / 2)
+      n.x = rtl ? width - x - nodeWidth : x
       n.y = y
       n.height = n.value * k
       y += n.height + pad
@@ -300,13 +304,19 @@ function layout(options: SankeyOptions, ctx: RenderContext): Layout {
       value: showValue ? truncate(value, room, fontSize) : '',
     }
   })
+  if (rtl) plot.x = width - plot.x - plot.width
   return { nodes, links, plot, nodeWidth, labels }
 }
 
+/** The x of a link's ends: the facing edges of its source and its target. */
+const linkEnds = (link: Link, nodeWidth: number): [number, number] =>
+  link.source.x > link.target.x
+    ? [link.source.x, link.target.x + nodeWidth]
+    : [link.source.x + nodeWidth, link.target.x]
+
 /** Path of a link: two cubic Béziers between the slices at its ends. */
 function linkPath(link: Link, nodeWidth: number): string {
-  const x0 = link.source.x + nodeWidth
-  const x1 = link.target.x
+  const [x0, x1] = linkEnds(link, nodeWidth)
   const xm = (x0 + x1) / 2
   const { sy, ty, width } = link
   const p = (...v: number[]) => v.map(round).join(',')
@@ -321,8 +331,7 @@ const cubic = (a: number, b: number, c: number, d: number, t: number): number =>
 
 /** Whether `(px, py)` lies inside the ribbon of `link`. */
 function inLink(link: Link, nodeWidth: number, px: number, py: number): boolean {
-  const x0 = link.source.x + nodeWidth
-  const x1 = link.target.x
+  const [x0, x1] = linkEnds(link, nodeWidth)
   if (px < Math.min(x0, x1) || px > Math.max(x0, x1) || x0 === x1) return false
   const xm = (x0 + x1) / 2
   // x(t) is monotone, so bisection finds the t under the pointer.
@@ -348,7 +357,7 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
     y: n.y,
   })
   const linkItem = (link: Link): HitItem => ({
-    name: `${link.source.data.name} → ${link.target.data.name}`,
+    name: `${link.source.data.name} ${ctx.rtl ? '←' : '→'} ${link.target.data.name}`,
     seriesIndex: link.index,
     color: colorOf(link.source),
     value: link.data.value,
@@ -456,9 +465,11 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
       nodes.map((n, i) => {
         const label = labels[i] as NodeLabel
         if (!label.name && !label.value) return null
-        const x = round(label.side === 'left' ? n.x - LABEL_GAP : n.x + nodeWidth + LABEL_GAP)
+        // The label's side is the one of the left-to-right layout: mirrored with it.
+        const before = (label.side === 'left') !== (ctx.rtl === true)
+        const x = round(before ? n.x - LABEL_GAP : n.x + nodeWidth + LABEL_GAP)
         const y = round(n.y + n.height / 2)
-        const anchor = label.side === 'left' ? 'end' : 'start'
+        const anchor = before ? 'end' : 'start'
         return h(
           'g',
           { key: n.data.name, class: 'tc-sankey-label' },

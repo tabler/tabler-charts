@@ -119,8 +119,10 @@ export function valueLabels(
         const reach = (horizontal ? width / 2 : height / 2) + GAP
         const sign = down ? 1 : -1
         const along = y + sign * reach
+        // Sideways, bars grow to the right, or to the left in a right-to-left chart.
+        const side = ctx.rtl ? -sign : sign
         candidates.push(
-          horizontal ? at(item.x - sign * reach, y, false) : at(item.x, along, false),
+          horizontal ? at(item.x - side * reach, y, false) : at(item.x, along, false),
           // A label wider than its bar may lean off a taller neighbour.
           ...(horizontal
             ? []
@@ -128,7 +130,7 @@ export function valueLabels(
                 at(box.x + width / 2 - 3, along, false),
                 at(box.x + box.width - width / 2 + 3, along, false),
               ]),
-          horizontal ? at(item.x + sign * reach, y, true) : at(item.x, y - sign * reach, true),
+          horizontal ? at(item.x + side * reach, y, true) : at(item.x, y - sign * reach, true),
         )
       } else {
         candidates.push(at(box.x + box.width / 2, box.y + box.height / 2, true))

@@ -63,6 +63,8 @@ export interface Interaction {
   hitIndex(index: number, seriesIndex?: number): Hit | null
   /** Number of categories. */
   count: number
+  /** Categories run from the right: the left arrow key goes to the next one. */
+  reversed?: boolean
 }
 
 /** Identity of a hit, used to emit hover changes only when it changes. */

@@ -36,6 +36,16 @@ describe('placeTooltip()', () => {
     expect(placeTooltip({ x: 350, y: 100 }, size, bounds)).toEqual({ x: 238, y: 80, side: 'left' })
   })
 
+  test('right to left: sits left of the anchor, right only near the left edge', () => {
+    const rtl = (x: number) => placeTooltip({ x, y: 100 }, size, bounds, 12, true)
+    expect(rtl(300)).toEqual({ x: 188, y: 80, side: 'left' })
+    expect(rtl(50)).toEqual({ x: 62, y: 80, side: 'right' })
+    // Where nothing fits, it stays on its own side, clamped.
+    expect(
+      placeTooltip({ x: 50, y: 100 }, { width: 380, height: 40 }, bounds, 12, true),
+    ).toMatchObject({ side: 'left', x: 0 })
+  })
+
   test('stays inside the container vertically and when nothing fits', () => {
     expect(placeTooltip({ x: 100, y: 5 }, size, bounds).y).toBe(0)
     expect(placeTooltip({ x: 100, y: 195 }, size, bounds).y).toBe(160)

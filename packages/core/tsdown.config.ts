@@ -14,6 +14,7 @@ export default defineConfig({
     'src/radar.ts',
     'src/sankey.ts',
     'src/parliament.ts',
+    'src/percentage-bar.ts',
     'src/treemap.ts',
     'src/funnel.ts',
     'src/heatmap.ts',

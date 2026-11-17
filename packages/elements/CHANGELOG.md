@@ -1,5 +1,22 @@
 # @tabler/charts-elements
 
+## 0.2.0
+
+### Minor Changes
+
+- d664260: Added `percentageBar` chart type that shows parts of a whole as segments of one horizontal bar.
+- e8c4b2a: Added `rtl` option that mirrors charts, legend, tooltip and download menu for right-to-left pages.
+- fc08c1c: Added `treemap` chart type that shows parts of a whole as tiles, with `children` entries for groups.
+
+### Patch Changes
+
+- Updated dependencies [d664260]
+- Updated dependencies [c7de5e8]
+- Updated dependencies [4d22484]
+- Updated dependencies [e8c4b2a]
+- Updated dependencies [fc08c1c]
+  - @tabler/charts@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes

@@ -5,6 +5,7 @@
  * the same on every load.
  */
 import '@tabler/charts/style.css'
+import '@tabler/charts/export'
 import './site.css'
 import {
   area,
@@ -19,6 +20,7 @@ import {
   line,
   pie,
   radar,
+  sankey,
   scatter,
   sparkline,
 } from '@tabler/charts'
@@ -778,6 +780,133 @@ const groups: [string, () => Case[]][] = [
             labels: ['يناير', 'فبراير', 'مارس', 'أبريل'],
             series: [{ name: 'المبيعات', values: [1200, 1850, 990, 2400] }],
           },
+        },
+      },
+      {
+        title: 'Right to left: grouped bars',
+        expect:
+          'rtl: true. Value axis on the right, months from the right, the first series on the right of each group.',
+        config: {
+          type: bar,
+          locale: 'ar-EG',
+          rtl: true,
+          data: {
+            labels: ['يناير', 'فبراير', 'مارس', 'أبريل'],
+            series: [
+              { name: 'المبيعات', values: [1200, 1850, 990, 2400] },
+              { name: 'التكاليف', values: [800, 1100, 700, 1500] },
+            ],
+          },
+        },
+      },
+      {
+        title: 'Right to left: a line over time',
+        expect:
+          'rtl: true. Time runs from the right; the tooltip names the date under the pointer.',
+        config: {
+          type: line,
+          locale: 'he-IL',
+          rtl: true,
+          x: { type: 'time', utc: true },
+          data: {
+            labels: range(60).map((i) => Date.UTC(2026, 0, 1 + i)),
+            series: [{ name: 'מבקרים', values: walk(60, 400, 40) }],
+          },
+        },
+      },
+      {
+        title: 'Right to left: horizontal bars',
+        expect:
+          'rtl: true. Names on the right, bars growing to the left (losses to the right), values beyond their ends.',
+        config: {
+          type: bar,
+          locale: 'ar-EG',
+          rtl: true,
+          orientation: 'horizontal',
+          valueLabels: true,
+          data: {
+            labels: ['القاهرة', 'الإسكندرية', 'الجيزة', 'أسوان'],
+            series: [{ name: 'الربح', values: [420, 310, -120, 90] }],
+          },
+        },
+      },
+      {
+        title: 'Right to left on a left-to-right page',
+        expect:
+          'rtl: true on this English page: the legend starts from the right, the download button sits in the left corner, the tooltip opens left of the pointer.',
+        config: {
+          type: line,
+          locale: 'ar-EG',
+          rtl: true,
+          download: true,
+          data: {
+            labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو'],
+            series: [
+              { name: 'المبيعات', values: [1200, 1850, 990, 2400, 2100] },
+              { name: 'التكاليف', values: [800, 1100, 700, 1500, 1350] },
+            ],
+          },
+        },
+      },
+      {
+        title: 'Right to left: scatter',
+        expect: 'rtl: true. The value axis on the right, x growing to the left.',
+        config: {
+          type: scatter,
+          locale: 'ar-EG',
+          rtl: true,
+          data: {
+            series: [
+              {
+                name: 'المتاجر',
+                points: range(24).map((i) => ({ x: 10 + i * 4, y: 20 + ((i * 37) % 60) })),
+              },
+            ],
+          },
+        },
+      },
+      {
+        title: 'Right to left: heatmap',
+        expect: 'rtl: true. Days named on the right, weeks from the right.',
+        config: {
+          type: heatmap,
+          locale: 'ar-EG',
+          rtl: true,
+          data: {
+            labels: range(8).map((i) => `${i + 1}`),
+            series: ['الاثنين', 'الثلاثاء', 'الأربعاء'].map((name, row) => ({
+              name,
+              values: range(8).map((i) => (i * 7 + row * 11) % 23),
+            })),
+          },
+        },
+      },
+      {
+        title: 'Right to left: sankey',
+        expect:
+          'rtl: true. Sources on the right, flows running to the left, labels on the outer sides.',
+        config: {
+          type: sankey,
+          locale: 'ar-EG',
+          rtl: true,
+          data: {
+            links: [
+              { from: 'الرواتب', to: 'الدخل', value: 60 },
+              { from: 'الأرباح', to: 'الدخل', value: 20 },
+              { from: 'الدخل', to: 'الإيجار', value: 30 },
+              { from: 'الدخل', to: 'المدخرات', value: 50 },
+            ],
+          },
+        },
+      },
+      {
+        title: 'Right to left: sparkline',
+        expect: 'rtl: true. The latest value (the highest) on the left.',
+        config: {
+          type: sparkline,
+          rtl: true,
+          aspectRatio: 6,
+          data: [3, 4, 3, 5, 6, 5, 8, 9, 12],
         },
       },
       {

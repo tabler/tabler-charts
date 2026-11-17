@@ -26,6 +26,8 @@ export interface RenderContext {
   onHitTest(interaction: Interaction): void
   /** Keys of legend entries (series) currently hidden. */
   hidden: ReadonlySet<string>
+  /** Lay the chart out right to left (the `rtl` option, resolved). */
+  rtl?: boolean
 }
 
 /**
@@ -88,6 +90,14 @@ export interface BaseOptions {
   class?: ClassValue
   /** Locale for number and date formatting. Set it explicitly for SSR. */
   locale?: Locale
+  /**
+   * Mirror the layout for right-to-left pages: the value axis on the right
+   * and categories running from the right (`x.reverse` overrides the latter).
+   * `'auto'` follows the `direction` of the container (left to right in SSR).
+   * The legend, the tooltip and the download menu read right to left with it.
+   * Cartesian charts, heatmaps, sparklines and sankey diagrams. Defaults to `false`.
+   */
+  rtl?: boolean | 'auto'
   /**
    * Font size used to lay out labels. In the browser it is read from the
    * `--tc-font-size` custom property of the container when not set; set it
@@ -210,6 +220,7 @@ function renderContent<O extends object>(
   onHitTest: (interaction: Interaction) => void,
   hidden: ReadonlySet<string>,
   fontSize?: number,
+  rtl?: boolean,
 ): ChildInput {
   let found: Interaction | undefined
   const ctx = renderContext(
@@ -222,6 +233,7 @@ function renderContent<O extends object>(
     },
     hidden,
     fontSize,
+    rtl,
   )
   const content = config.type.render(config, ctx)
   // Optional features finish the content (point shapes, value labels).
@@ -236,8 +248,10 @@ export function renderContext<O extends object>(
   onHitTest: (interaction: Interaction) => void,
   hidden: ReadonlySet<string>,
   measuredFontSize?: number,
+  rtl: boolean = config.rtl === true,
 ): RenderContext {
   return {
+    rtl,
     width: size.width,
     height: size.height,
     fontSize: config.fontSize ?? measuredFontSize ?? DEFAULT_FONT_SIZE,
@@ -324,6 +338,7 @@ function composeChart(
   underlay?: ChildInput,
   overlay?: ChildInput,
   extraAttrs?: Props,
+  rtl: boolean = config.rtl === true,
 ): VNode {
   const { width, height } = size
   const descId = config.description ? `${id}-desc` : undefined
@@ -340,6 +355,7 @@ function composeChart(
         'tc-chart',
         `tc-chart-${config.type.name}`,
         still && 'tc-static',
+        rtl && 'tc-rtl',
         fills?.[0],
         config.class,
       ],
@@ -428,6 +444,7 @@ interface Content<O extends object> {
   height: number
   hidden: string
   fontSize: number | undefined
+  rtl: boolean
   content: ChildInput
   /** Whether the content renders without transitions. */
   still: boolean
@@ -490,6 +507,8 @@ export class Chart<O extends object = object> {
    * forces the browser to restyle the page, so new data alone reuses it.
    */
   #font: number | undefined
+  /** The resolved `rtl` option, read with the font size (`'auto'` asks the container). */
+  #rtl = false
 
   constructor(
     target: Element | string,
@@ -535,6 +554,23 @@ export class Chart<O extends object = object> {
       if (reserved) measured = { ...measured, height: measured.height - reserved }
     }
     return resolveSize(this.#cfg, measured)
+  }
+
+  /**
+   * Whether the chart is laid out right to left: the `rtl` option, with
+   * `'auto'` read from the container (together with the font size).
+   */
+  get rtl(): boolean {
+    const cfg = this.#cfg
+    if (this.#font === undefined) {
+      this.#rtl =
+        cfg.rtl === 'auto'
+          ? typeof getComputedStyle === 'function' &&
+            getComputedStyle(this.element).direction === 'rtl'
+          : cfg.rtl === true
+      this.#font = cfg.fontSize ?? this.#measureFontSize()
+    }
+    return this.#rtl
   }
 
   /** Font size used by the last render (explicit, measured, or the default). */
@@ -696,7 +732,7 @@ export class Chart<O extends object = object> {
   ): { content: Content<O>; stale: boolean; changed: boolean } {
     const cfg = this.#cfg
     const hiddenKey = [...hidden].sort().join('\u0000')
-    this.#font ??= cfg.fontSize ?? this.#measureFontSize()
+    const rtl = this.rtl
     const fontSize = cfg.fontSize ?? this.#font
 
     let cache = this.#cache
@@ -705,7 +741,8 @@ export class Chart<O extends object = object> {
       changed ||
       cache?.width !== size.width ||
       cache.height !== size.height ||
-      cache.fontSize !== fontSize
+      cache.fontSize !== fontSize ||
+      cache.rtl !== rtl
     if (!cache || stale) {
       this.#current = undefined
       const content = renderContent(
@@ -717,6 +754,7 @@ export class Chart<O extends object = object> {
         },
         hidden,
         fontSize,
+        rtl,
       )
       cache = {
         cfg,
@@ -724,6 +762,7 @@ export class Chart<O extends object = object> {
         height: size.height,
         hidden: hiddenKey,
         fontSize,
+        rtl,
         content,
         still: isStatic(cfg as ChartConfig<object>, content),
       }
@@ -769,6 +808,7 @@ export class Chart<O extends object = object> {
       under.length ? under : undefined,
       over.length ? over : undefined,
       attrs,
+      content.rtl,
     )
   }
 

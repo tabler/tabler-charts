@@ -321,6 +321,17 @@
   opacity: 0.25;
 }
 
+/* Percentage bar: segments in their colors, gliding as the shares change. */
+.tc-segment {
+  fill: var(--tc-series-color);
+  transition: var(--tc-duration) var(--tc-easing);
+  transition-property: x, width;
+}
+
+.tc-percentage-bar-track {
+  fill: var(--tc-grid-color);
+}
+
 /* Treemap tiles in their group's color (--tc-treemap-opacity fades them), gliding
    to their place as the data changes. */
 .tc-tile {
@@ -649,7 +660,7 @@
 
 @keyframes tc-reveal {
   from {
-    clip-path: inset(0 100% 0 0);
+    clip-path: inset(0 var(--tc-reveal, 100% 0 0));
   }
   to {
     clip-path: inset(0);
@@ -691,7 +702,12 @@
   transition: none var(--tc-duration);
 }
 
-/* Lines and areas draw in from the left (no fill mode, so the plot clip returns after). */
+/* Lines and areas draw in from the left (no fill mode, so the plot clip returns after),
+   from the right in a right-to-left chart. */
+.tc-rtl {
+  --tc-reveal: 0 0 100%;
+}
+
 .tc-chart-line .tc-series-list,
 .tc-chart-area .tc-series-list {
   animation: tc-reveal calc(var(--tc-duration) * 2) var(--tc-easing);
@@ -708,6 +724,7 @@
 .tc-series-list .tc-point,
 .tc-heatmap-cells,
 .tc-treemap-tiles,
+.tc-percentage-bar,
 .tc-funnel-stages,
 .tc-candles,
 .tc-tick,
@@ -800,8 +817,14 @@
   animation-name: tc-grow-x;
 }
 
-.tc-bar-horizontal.tc-bar-negative {
+/* Mirrored in a right-to-left chart. */
+.tc-bar-horizontal.tc-bar-negative,
+.tc-rtl .tc-bar-horizontal {
   transform-origin: 100% 50%;
+}
+
+.tc-rtl .tc-bar-horizontal.tc-bar-negative {
+  transform-origin: 0 50%;
 }
 
 /* Ticks and grid lines glide to new positions. */
@@ -860,9 +883,10 @@
   opacity: 0.35;
 }
 
-/* The hovered cell or tile gets a ring in the text color, visible on any shade. */
+/* The hovered cell, tile or segment gets a ring in the text color, visible on any shade. */
 .tc-chart-heatmap .tc-hover-mark,
-.tc-chart-treemap .tc-hover-mark {
+.tc-chart-treemap .tc-hover-mark,
+.tc-chart-percentage-bar .tc-hover-mark {
   fill: none;
   stroke: var(--tc-text-color);
   stroke-width: 2px;
@@ -1012,8 +1036,9 @@
 
 /* -- Download menu ---------------------------------------------------------- */
 
-/* A small button in the top right corner; its menu drops down below it.
-   Above the tooltip (which hides while the pointer is here). */
+/* A small button in the top right corner (the left one in a right-to-left
+   chart); its menu drops down below it. Above the tooltip (which hides while
+   the pointer is here). */
 .tc-download {
   position: absolute;
   top: 0;
@@ -1070,6 +1095,12 @@
   border: 1px solid var(--tc-grid-color);
   border-radius: var(--tc-tooltip-radius);
   box-shadow: var(--tc-tooltip-shadow);
+}
+
+.tc-download[dir="rtl"],
+[dir="rtl"] > * > .tc-download-menu {
+  right: auto;
+  left: 0;
 }
 
 .tc-download-item {

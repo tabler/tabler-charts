@@ -191,6 +191,8 @@ export function download(): ChartPlugin {
               ),
             ),
           )
+          // In the corner the chart starts from: the left one, right to left.
+          el.dir = chart.rtl ? 'rtl' : ''
           host.classList.add('tc-container')
           if (!el.isConnected) host.appendChild(el)
         },

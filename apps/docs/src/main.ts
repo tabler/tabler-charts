@@ -17,9 +17,11 @@ import { lineDemo } from './demos/line.ts'
 import { numberFormatDemo } from './demos/number-format.ts'
 import { parliamentDemo } from './demos/parliament.ts'
 import { patternsDemo } from './demos/patterns.ts'
+import { percentageBarDemo } from './demos/percentage-bar.ts'
 import { pieDemo } from './demos/pie.ts'
 import { radarDemo } from './demos/radar.ts'
 import { reactDemo } from './demos/react.tsx'
+import { rtlDemo } from './demos/rtl.ts'
 import { sankeyDemo } from './demos/sankey.ts'
 import { scatterDemo } from './demos/scatter.ts'
 import { sparklineDemo } from './demos/sparkline.ts'
@@ -41,6 +43,7 @@ const demos: Demo[] = [
   pieDemo,
   gaugeDemo,
   parliamentDemo,
+  percentageBarDemo,
   treemapDemo,
   funnelDemo,
   radarDemo,
@@ -51,6 +54,7 @@ const demos: Demo[] = [
   patternsDemo,
   valueLabelsDemo,
   numberFormatDemo,
+  rtlDemo,
   syncDemo,
   exportDemo,
   customType,

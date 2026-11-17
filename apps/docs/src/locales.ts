@@ -2,7 +2,8 @@
  * Locales: the same three charts once per locale. The data is fixed, so the
  * only things that differ between sections are the `locale` option and the
  * translated names: digits, separators, currency, month names and calendars
- * all come from `Intl`.
+ * all come from `Intl`. Right-to-left locales also set `rtl`, which mirrors
+ * the layout of their charts.
  */
 import '@tabler/charts/style.css'
 import './site.css'
@@ -14,6 +15,8 @@ interface LocaleCase {
   tag: string
   /** What to look for in this locale. */
   note: string
+  /** A right-to-left script: its charts take `rtl: true` in a `dir="rtl"` container. */
+  rtl?: boolean
   revenueTitle: string
   visitorsTitle: string
   salesTitle: string
@@ -123,7 +126,8 @@ const LOCALES: LocaleCase[] = [
   },
   {
     tag: 'ar-EG',
-    note: 'Right-to-left script, Eastern Arabic digits, Arabic separators.',
+    note: 'Right-to-left script, Eastern Arabic digits, Arabic separators. With rtl: true the value axis is on the right and the months run from the right.',
+    rtl: true,
     revenueTitle: 'الإيرادات الشهرية',
     visitorsTitle: 'الزوار يوميًا',
     salesTitle: 'المبيعات حسب البلد',
@@ -132,7 +136,8 @@ const LOCALES: LocaleCase[] = [
   },
   {
     tag: 'fa-IR',
-    note: 'Right-to-left, Persian digits and the Solar Hijri calendar: the dates read 1404–1405.',
+    note: 'Right-to-left, Persian digits and the Solar Hijri calendar: the dates read 1404–1405, from the right with rtl: true.',
+    rtl: true,
     revenueTitle: 'درآمد ماهانه',
     visitorsTitle: 'بازدیدکنندگان روزانه',
     salesTitle: 'فروش بر اساس کشور',
@@ -141,7 +146,8 @@ const LOCALES: LocaleCase[] = [
   },
   {
     tag: 'he-IL',
-    note: 'Right-to-left script with Western digits.',
+    note: 'Right-to-left script with Western digits; rtl: true mirrors the charts.',
+    rtl: true,
     revenueTitle: 'הכנסות חודשיות',
     visitorsTitle: 'מבקרים יומיים',
     salesTitle: 'מכירות לפי מדינה',
@@ -232,7 +238,7 @@ if (count) count.textContent = String(LOCALES.length)
 
 const english = new Intl.DisplayNames('en', { type: 'language' })
 
-function card(grid: HTMLElement, lang: string, title: string): HTMLElement {
+function card(grid: HTMLElement, lang: string, title: string, rtl: boolean): HTMLElement {
   const figure = document.createElement('figure')
   figure.className = 'gallery-item'
   figure.dataset.title = title
@@ -243,13 +249,15 @@ function card(grid: HTMLElement, lang: string, title: string): HTMLElement {
   caption.append(strong)
   const host = document.createElement('div')
   host.lang = lang
+  // The legend and the tooltip are HTML: they follow the direction of the container.
+  if (rtl) host.dir = 'rtl'
   figure.append(caption, host)
   grid.append(figure)
   return host
 }
 
 for (const item of LOCALES) {
-  const { tag } = item
+  const { tag, rtl = false } = item
   // The language part alone: `hi-IN-u-nu-deva` is Hindi, whatever its digits.
   const lang = new Intl.Locale(tag).language
   const native = new Intl.DisplayNames(tag, { type: 'language' }).of(lang) ?? tag
@@ -289,9 +297,10 @@ for (const item of LOCALES) {
   root.append(heading, note, grid)
 
   const month = new Intl.DateTimeFormat(tag, { month: 'short', timeZone: 'UTC' })
-  new Chart(card(grid, lang, item.revenueTitle), {
+  new Chart(card(grid, lang, item.revenueTitle, rtl), {
     type: bar,
     locale: tag,
+    rtl,
     title: item.revenueTitle,
     y: { format: { ...USD, notation: 'compact' } },
     data: {
@@ -301,9 +310,10 @@ for (const item of LOCALES) {
     },
   })
 
-  new Chart(card(grid, lang, item.visitorsTitle), {
+  new Chart(card(grid, lang, item.visitorsTitle, rtl), {
     type: line,
     locale: tag,
+    rtl,
     title: item.visitorsTitle,
     points: 'none',
     x: { type: 'time', utc: true },
@@ -311,9 +321,10 @@ for (const item of LOCALES) {
   })
 
   const region = new Intl.DisplayNames(tag, { type: 'region' })
-  new Chart(card(grid, lang, item.salesTitle), {
+  new Chart(card(grid, lang, item.salesTitle, rtl), {
     type: donut,
     locale: tag,
+    rtl,
     title: item.salesTitle,
     format: { ...USD, notation: 'compact' },
     data: SALES.map(([code, value]) => ({ name: region.of(code) ?? code, value })),

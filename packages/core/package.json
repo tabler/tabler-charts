@@ -1,6 +1,6 @@
 {
   "name": "@tabler/charts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Zero-dependency SVG charts styled with CSS.",
   "keywords": [
     "charts",
@@ -163,6 +163,16 @@
       "require": {
         "types": "./dist/parliament.d.cts",
         "default": "./dist/parliament.cjs"
+      }
+    },
+    "./percentage-bar": {
+      "import": {
+        "types": "./dist/percentage-bar.d.ts",
+        "default": "./dist/percentage-bar.js"
+      },
+      "require": {
+        "types": "./dist/percentage-bar.d.cts",
+        "default": "./dist/percentage-bar.cjs"
       }
     },
     "./treemap": {
