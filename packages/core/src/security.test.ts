@@ -15,6 +15,7 @@ import { line } from './charts/line.ts'
 import { parliament } from './charts/parliament.ts'
 import { pie } from './charts/pie.ts'
 import { scatter } from './charts/scatter.ts'
+import { treemap } from './charts/treemap.ts'
 import { flush } from './scheduler.ts'
 import { normalizeStyle } from './vnode.ts'
 
@@ -50,6 +51,16 @@ const cases: [string, Record<string, unknown>][] = [
   ],
   ['gauge ring', { type: gauge, data: { name: 'A', value: 4, color: EVIL } }],
   ['parliament party', { type: parliament, data: [{ name: 'A', seats: 4, color: EVIL }] }],
+  [
+    'treemap tile',
+    {
+      type: treemap,
+      data: [
+        { name: 'A', value: 4, color: EVIL },
+        { name: 'B', children: [{ name: 'C', value: 2, color: EVIL }] },
+      ],
+    },
+  ],
   [
     'scatter series',
     { type: scatter, data: { series: [{ name: 'A', color: EVIL, points: [{ x: 1, y: 2 }] }] } },

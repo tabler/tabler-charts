@@ -36,6 +36,8 @@ import {
   sankey,
   scatter,
   sparkline,
+  type TreemapOptions,
+  treemap,
 } from '@tabler/charts'
 import { type ChartComponent, chartComponent } from './chart.tsx'
 
@@ -88,4 +90,8 @@ export const SankeyChart: ChartComponent<SankeyOptions> = /* @__PURE__ */ chartC
 export const ParliamentChart: ChartComponent<ParliamentOptions> = /* @__PURE__ */ chartComponent(
   parliament,
   'ParliamentChart',
+)
+export const TreemapChart: ChartComponent<TreemapOptions> = /* @__PURE__ */ chartComponent(
+  treemap,
+  'TreemapChart',
 )

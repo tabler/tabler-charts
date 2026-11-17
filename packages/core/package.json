@@ -165,6 +165,16 @@
         "default": "./dist/parliament.cjs"
       }
     },
+    "./treemap": {
+      "import": {
+        "types": "./dist/treemap.d.ts",
+        "default": "./dist/treemap.js"
+      },
+      "require": {
+        "types": "./dist/treemap.d.cts",
+        "default": "./dist/treemap.cjs"
+      }
+    },
     "./export": {
       "import": {
         "types": "./dist/export.d.ts",

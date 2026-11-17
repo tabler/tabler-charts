@@ -11,6 +11,7 @@ import { radar } from './charts/radar.ts'
 import { sankey } from './charts/sankey.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
+import { treemap } from './charts/treemap.ts'
 
 /**
  * Every built-in chart type by its name, for charts declared in markup
@@ -31,4 +32,5 @@ export const types: Readonly<Record<string, ChartType<never>>> = {
   radar,
   sankey,
   parliament,
+  treemap,
 } as Record<string, ChartType<never>>

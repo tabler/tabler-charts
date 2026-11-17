@@ -5,6 +5,7 @@ import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets, round } from '../layout.ts'
 import { band } from '../scales/band.ts'
 import { extent } from '../scales/extent.ts'
+import { rectPath } from '../shapes/rect.ts'
 import { h, type StyleValue } from '../vnode.ts'
 import {
   type CartesianData,
@@ -99,18 +100,6 @@ interface Paint {
   style?: StyleValue
   color: string
   empty?: boolean
-}
-
-/** A rounded rectangle as path data, for the hover ring. */
-function ringPath(x: number, y: number, w: number, hgt: number, r: number): string {
-  const rr = Math.max(0, Math.min(r, w / 2, hgt / 2))
-  const n = round
-  return (
-    `M${n(x + rr)},${n(y)}H${n(x + w - rr)}A${n(rr)},${n(rr)},0,0,1,${n(x + w)},${n(y + rr)}` +
-    `V${n(y + hgt - rr)}A${n(rr)},${n(rr)},0,0,1,${n(x + w - rr)},${n(y + hgt)}` +
-    `H${n(x + rr)}A${n(rr)},${n(rr)},0,0,1,${n(x)},${n(y + hgt - rr)}` +
-    `V${n(y + rr)}A${n(rr)},${n(rr)},0,0,1,${n(x + rr)},${n(y)}Z`
-  )
 }
 
 function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
@@ -243,7 +232,7 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
       seriesIndex: j,
       // A ring just outside the hovered cell.
       mark: {
-        d: ringPath(cellX(i) - 2, cellY(j) - 2, cellW + 4, cellH + 4, radius + 2),
+        d: rectPath(cellX(i) - 2, cellY(j) - 2, cellW + 4, cellH + 4, radius + 2),
         x: 0,
         y: 0,
       },

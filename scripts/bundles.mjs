@@ -38,6 +38,10 @@ const CASES = [
     `export { Chart } from '${DIST}core.js'; export { parliament } from '${DIST}parliament.js'`,
   ],
   [
+    'core + treemap',
+    `export { Chart } from '${DIST}core.js'; export { treemap } from '${DIST}treemap.js'`,
+  ],
+  [
     'core + heatmap',
     `export { Chart } from '${DIST}core.js'; export { heatmap } from '${DIST}heatmap.js'`,
   ],

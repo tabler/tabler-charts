@@ -45,7 +45,7 @@ new Chart('#visitors', {
 
 ## Chart types
 
-`line` · `area` · `bar` (grouped, stacked, 100%, horizontal, mixed with lines) · `pie` / `donut` · `gauge` · `radar` · `sankey` · `parliament` · `scatter` / bubble · `heatmap` · `candlestick` · `sparkline` (including tristate)
+`line` · `area` · `bar` (grouped, stacked, 100%, horizontal, mixed with lines) · `pie` / `donut` · `gauge` · `radar` · `sankey` · `parliament` · `treemap` · `scatter` / bubble · `heatmap` · `candlestick` · `sparkline` (including tristate)
 
 Plus annotations (target lines and bands), time and log axes, LTTB decimation for long series, and export to SVG, PNG, JPEG or WebP (also as a download menu on the chart).
 
