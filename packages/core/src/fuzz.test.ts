@@ -4,6 +4,7 @@ import type { ChartConfig, ChartType } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
+import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
@@ -100,6 +101,7 @@ function randomConfig(): ChartConfig<object> {
     'sparkline',
     'gauge',
     'heatmap',
+    'calendar',
     'candlestick',
     'radar',
   ])
@@ -131,6 +133,25 @@ function randomConfig(): ChartConfig<object> {
       fill: maybe(0.3, false),
       points: maybe(0.3, true),
       r: { min: maybe(0.2, -20), max: maybe(0.2, 50) },
+    } as ChartConfig<object>
+  }
+  if (kind === 'calendar') {
+    const days = series(n, len).map((s) => ({
+      ...s,
+      values: s.values.map((v, i) => ({
+        date: Date.UTC(2026, 0, 1 + i * pick([1, 2, 9])),
+        value: v,
+      })),
+    }))
+    return {
+      type: calendar,
+      ...base,
+      data: n === 0 ? (days[0]?.values ?? []) : { series: days },
+      weeks: maybe(0.3, pick([1, 4, 12])),
+      utc: maybe(0.5, true),
+      weekStart: maybe(0.3, 0),
+      levels: maybe(0.2, pick([1, 2, 9])),
+      max: maybe(0.2, pick([0, 10])),
     } as ChartConfig<object>
   }
   if (kind === 'heatmap') {

@@ -11,6 +11,7 @@ import { expect, test } from 'vitest'
 import './annotations.ts'
 import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
+import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
@@ -62,6 +63,7 @@ function config(): ChartConfig<object> {
     'sparkline',
     'gauge',
     'heatmap',
+    'calendar',
     'candlestick',
     'radar',
   ])
@@ -119,6 +121,19 @@ function config(): ChartConfig<object> {
         data: { labels: labels.map(String), series: series(pick([1, 2, 3]), len) },
         grid: rnd() < 0.3 ? 'circle' : undefined,
         points: rnd() < 0.3,
+      } as never
+    case 'calendar':
+      return {
+        type: calendar,
+        ...common,
+        utc: true,
+        data: {
+          series: series(pick([1, 2]), len).map((s) => ({
+            name: s.name,
+            values: s.values.map((value, i) => ({ date: Date.UTC(2026, 2, 1 + i * 3), value })),
+          })),
+        },
+        weeks: rnd() < 0.3 ? 8 : undefined,
       } as never
     case 'heatmap':
       return {

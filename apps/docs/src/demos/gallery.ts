@@ -4,6 +4,7 @@ import {
   Chart,
   type ChartConfig,
   type ChartType,
+  calendar,
   candlestick,
   donut,
   gauge,
@@ -476,6 +477,32 @@ const ITEMS: Item[] = [
       },
     },
     style: { '--tc-heat-color': '#2fb344' },
+  })),
+  seeded('Contribution calendar', () => ({
+    title: 'Contribution calendar',
+    note: 'Calendar: a year of days as a low strip of small squares, two kinds that add up (the legend filters them), green, a quiet fortnight in August.',
+    config: {
+      type: calendar,
+      ...common,
+      aspectRatio: undefined,
+      utc: true,
+      data: {
+        series: ['Commits', 'Reviews'].map((name, k) => ({
+          name,
+          values: Array.from({ length: 52 * 7 }, (_, i) => {
+            const date = Date.UTC(2026, 0, 5 + i)
+            const weekday = i % 7 // 5 January 2026 is a Monday
+            // Weekdays busy, weekends quiet, a fortnight away in August.
+            const away = i >= 217 && i < 231
+            const rate = away ? 0 : weekday < 5 ? 1 : 0.25
+            return { date, value: Math.round(rnd() ** 2 * (k ? 5 : 12) * rate) }
+          }),
+        })),
+      },
+      legend: { position: 'bottom' },
+    },
+    style: { '--tc-heat-color': '#2fb344' },
+    span: 2,
   })),
   seeded('Uptime SLA', () => ({
     title: 'Uptime SLA',
