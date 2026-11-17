@@ -94,7 +94,7 @@ export interface BaseOptions {
    * Mirror the layout for right-to-left pages: the value axis on the right
    * and categories running from the right (`x.reverse` overrides the latter).
    * `'auto'` follows the `direction` of the container (left to right in SSR).
-   * Line, area, bar and candlestick charts. Defaults to `false`.
+   * Cartesian charts, heatmaps, sparklines and sankey diagrams. Defaults to `false`.
    */
   rtl?: boolean | 'auto'
   /**

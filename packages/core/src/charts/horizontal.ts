@@ -1,6 +1,6 @@
 import type { RenderContext } from '../chart.ts'
 import { axisSize, bandTicks, type Tick, thinTicks } from '../components/axis.ts'
-import { estimateTextWidth, innerRect, insets } from '../layout.ts'
+import { estimateTextWidth, innerRect, insets, mirrorSides } from '../layout.ts'
 import { type BandKey, band } from '../scales/band.ts'
 import {
   type CartesianLayout,
@@ -11,7 +11,6 @@ import {
   type Label,
   labelFormatter,
   labelKey,
-  mirrorSides,
   resolveLabels,
   TICK_SPACING_X,
   valueAxis,

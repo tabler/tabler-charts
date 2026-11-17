@@ -10,6 +10,7 @@ import {
   innerRect,
   insets,
   LINE_HEIGHT,
+  mirrorSides,
   type Rect,
 } from '../layout.ts'
 import { type BandKey, type BandScale, band, point } from '../scales/band.ts'
@@ -345,12 +346,6 @@ export function valueAxis(
   const ticks = (of: LinearScale) => valueTicks(of, axis, count, format, ctx.locale)
   return { scale, ticks, probe: ticks(scale([0, 1])) }
 }
-
-/** Swap the left and right of `sides` in a right-to-left chart. */
-export const mirrorSides = <T extends { left: number; right: number }>(
-  sides: T,
-  rtl: boolean | undefined,
-): T => (rtl ? { ...sides, left: sides.right, right: sides.left } : sides)
 
 /**
  * Finish a layout that has its plot area, scales and ticks with what is

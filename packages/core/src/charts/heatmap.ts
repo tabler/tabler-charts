@@ -2,7 +2,14 @@ import type { ChartType, LegendItem, RenderContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, thinTicks } from '../components/axis.ts'
 import { formatNumber, type Locale, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
-import { estimateTextWidth, type InsetsInput, innerRect, insets, round } from '../layout.ts'
+import {
+  estimateTextWidth,
+  type InsetsInput,
+  innerRect,
+  insets,
+  mirrorSides,
+  round,
+} from '../layout.ts'
 import { band } from '../scales/band.ts'
 import { extent } from '../scales/extent.ts'
 import { rectPath } from '../shapes/rect.ts'
@@ -165,7 +172,9 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
   }
 
   // Margins for the labels, then one band per column and per row.
-  const pad = insets(options.padding, 0)
+  // Right to left, the sides are worked out as their mirror image, then swapped.
+  const { rtl } = ctx
+  const pad = mirrorSides(insets(options.padding, 0), rtl)
   const showX = options.x?.show !== false && labels.length > 0
   const showY = options.y?.show !== false && rows.length > 0
   const rowTicks = rows.map((s, i) => ({ value: i, position: 0, label: s.name }))
@@ -180,15 +189,23 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
       )
     : 0
   const halfColumn = (width - pad.left - pad.right - left) / Math.max(1, labels.length) / 2
-  const area = innerRect(width, height, {
-    top: pad.top,
-    right: pad.right + Math.max(0, Math.ceil(lastLabel / 2 - halfColumn)),
-    bottom: pad.bottom + bottom,
-    left: pad.left + left,
-  })
+  const area = innerRect(
+    width,
+    height,
+    mirrorSides(
+      {
+        top: pad.top,
+        right: pad.right + Math.max(0, Math.ceil(lastLabel / 2 - halfColumn)),
+        bottom: pad.bottom + bottom,
+        left: pad.left + left,
+      },
+      rtl,
+    ),
+  )
+  const end = area.x + area.width
   const x = band(
     labels.map((_, i) => i),
-    [area.x, area.x + area.width],
+    rtl ? [end, area.x] : [area.x, end],
   )
   const y = band(
     rows.map((_, i) => i),
@@ -241,12 +258,14 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
 
   const interaction: Interaction = {
     count: labels.length,
+    reversed: rtl === true,
     hitIndex: (i, row) => hitAt(i, row),
     hitTest(px, py) {
       if (px < area.x || px > area.x + area.width || py < area.y || py > area.y + area.height) {
         return null
       }
-      const i = Math.min(labels.length - 1, Math.floor((px - area.x) / (x.step || 1)))
+      const column = Math.min(labels.length - 1, Math.floor((px - area.x) / (x.step || 1)))
+      const i = rtl ? labels.length - 1 - column : column
       const j = Math.min(rows.length - 1, Math.floor((py - area.y) / (y.step || 1)))
       return hitAt(i, j)
     },
@@ -292,7 +311,7 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
   return [
     h('g', { class: 'tc-heatmap-cells' }, cells),
     showX && axis({ position: 'bottom', ticks: xTicks, area }),
-    showY && axis({ position: 'left', ticks: yTicks, area }),
+    showY && axis({ position: rtl ? 'right' : 'left', ticks: yTicks, area }),
   ]
 }
 

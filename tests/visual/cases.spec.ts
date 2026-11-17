@@ -59,7 +59,7 @@ async function findings(page: Page): Promise<string[]> {
           found.push(`${el.localName} is position: fixed`)
       }
       const marks = svg.querySelectorAll(
-        '.tc-line, .tc-area, .tc-bar, .tc-slice, .tc-point, .tc-dots, .tc-cell, .tc-candle-body, .tc-gauge-arc',
+        '.tc-line, .tc-area, .tc-bar, .tc-slice, .tc-point, .tc-dots, .tc-cell, .tc-candle-body, .tc-gauge-arc, .tc-sankey-node',
       ).length
       if (!marks) found.push('no marks')
       return found
