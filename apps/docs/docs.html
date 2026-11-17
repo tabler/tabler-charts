@@ -196,7 +196,7 @@ const chart = new Chart('#sales', {
                 <tr><td><code>title</code>, <code>description</code></td><td></td><td>Accessible name and description of the chart</td></tr>
                 <tr><td><code>locale</code></td><td>runtime default</td><td>For number and date formatting; set it for server rendering</td></tr>
                 <tr><td><code>legend</code></td><td>for 2+ series</td><td><code>false</code>, <code>true</code> or <code>{ position: 'bottom' }</code></td></tr>
-                <tr><td><code>tooltip</code></td><td><code>true</code></td><td><code>false</code>, or <code>{ format, footer }</code> for custom content</td></tr>
+                <tr><td><code>tooltip</code></td><td><code>true</code></td><td><code>false</code>, or <code>{ theme, format, footer }</code>: <code>theme: 'light'</code> for a white tooltip instead of the dark one, <code>format</code> and <code>footer</code> for custom content</td></tr>
                 <tr><td><code>crosshair</code></td><td><code>true</code></td><td></td></tr>
                 <tr><td><code>valueLabels</code></td><td><code>false</code></td><td>Values written on the marks; <code>{ points: 'all' }</code> for every point</td></tr>
                 <tr><td><code>animate</code></td><td><code>true</code></td><td>Transitions between data; off under <code>prefers-reduced-motion</code></td></tr>
@@ -276,7 +276,8 @@ const off = chart.on('hover', ({ hit }) =&gt; {})   // also: click, legend-toggl
             Tokens include <code>--tc-color-1</code> … <code>--tc-color-8</code>, <code>--tc-surface</code>,
             <code>--tc-text-color</code>, <code>--tc-text-muted</code>, <code>--tc-grid-color</code>,
             <code>--tc-font-family</code>, <code>--tc-font-size</code>, <code>--tc-stroke-width</code>,
-            <code>--tc-area-opacity</code>, <code>--tc-duration</code> and the <code>--tc-tooltip-*</code> set.
+            <code>--tc-area-opacity</code>, <code>--tc-duration</code> and the <code>--tc-tooltip-*</code> set
+            (<code>--tc-tooltip-light-*</code> for the white variant).
           </p>
           <p>
             Dark mode follows <code>prefers-color-scheme</code>; <code>data-theme="dark"</code> or

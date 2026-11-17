@@ -40,14 +40,21 @@
   --tc-grid-color: var(--tblr-border-color-translucent, #e1e0d9);
   --tc-baseline-color: var(--tblr-border-color, #c3c2b7);
   --tc-hover-color: rgba(var(--tblr-emphasis-color-rgb, 11, 11, 11), 0.04);
-  --tc-tooltip-bg: var(--tblr-bg-surface, #ffffff);
+  /* The tooltip is a dark box with light text (tooltip: { theme: 'light' } switches
+     to the --tc-tooltip-light-* set below); both keep their colors in dark mode. */
+  --tc-tooltip-bg: var(--tblr-dark, #0b0b0b);
+  --tc-tooltip-color: #ffffff;
+  --tc-tooltip-muted: rgb(255 255 255 / 70%);
+  --tc-tooltip-border: rgb(255 255 255 / 12%);
+  --tc-tooltip-shadow: var(--tblr-box-shadow, 0 4px 16px rgb(11 11 11 / 12%));
+  --tc-tooltip-radius: var(--tblr-border-radius, 6px);
+  --tc-tooltip-light-bg: #ffffff;
+  --tc-tooltip-light-color: #0b0b0b;
+  --tc-tooltip-light-muted: #6f6e69;
+  --tc-tooltip-light-border: rgb(11 11 11 / 10%);
   /* Tokens defined through other tokens are repeated in every theme block: a custom
      property is substituted where it is declared, so a [data-theme] subtree would
      otherwise inherit the value already resolved on :root. */
-  --tc-tooltip-color: var(--tc-text-color);
-  --tc-tooltip-border: var(--tblr-border-color-translucent, rgb(11 11 11 / 10%));
-  --tc-tooltip-shadow: var(--tblr-box-shadow, 0 4px 16px rgb(11 11 11 / 12%));
-  --tc-tooltip-radius: var(--tblr-border-radius, 6px);
   --tc-focus-color: var(--tc-color-1);
 
   --tc-font-family: var(--tblr-body-font-family, inherit);
@@ -86,9 +93,7 @@
     --tc-grid-color: var(--tblr-border-color-translucent, #2c2c2a);
     --tc-baseline-color: var(--tblr-border-color, #4a4a46);
     --tc-hover-color: rgba(var(--tblr-emphasis-color-rgb, 255, 255, 255), 0.06);
-    --tc-tooltip-bg: var(--tblr-bg-surface, #262625);
-    --tc-tooltip-color: var(--tc-text-color);
-    --tc-tooltip-border: var(--tblr-border-color-translucent, rgb(255 255 255 / 10%));
+    --tc-tooltip-bg: var(--tblr-dark, #262625);
     --tc-tooltip-shadow: var(--tblr-box-shadow, 0 4px 16px rgb(0 0 0 / 40%));
     --tc-focus-color: var(--tc-color-1);
   }
@@ -111,9 +116,7 @@
   --tc-grid-color: var(--tblr-border-color-translucent, #2c2c2a);
   --tc-baseline-color: var(--tblr-border-color, #4a4a46);
   --tc-hover-color: rgba(var(--tblr-emphasis-color-rgb, 255, 255, 255), 0.06);
-  --tc-tooltip-bg: var(--tblr-bg-surface, #262625);
-  --tc-tooltip-color: var(--tc-text-color);
-  --tc-tooltip-border: var(--tblr-border-color-translucent, rgb(255 255 255 / 10%));
+  --tc-tooltip-bg: var(--tblr-dark, #262625);
   --tc-tooltip-shadow: var(--tblr-box-shadow, 0 4px 16px rgb(0 0 0 / 40%));
   --tc-focus-color: var(--tc-color-1);
 }
@@ -838,6 +841,19 @@
   transition: opacity var(--tc-duration-fast) var(--tc-easing);
 }
 
+/* tooltip: { theme: 'light' }: the white variant takes its own tokens. */
+.tc-tooltip-light {
+  --tc-tooltip-bg: var(--tc-tooltip-light-bg);
+  --tc-tooltip-color: var(--tc-tooltip-light-color);
+  --tc-tooltip-muted: var(--tc-tooltip-light-muted);
+  --tc-tooltip-border: var(--tc-tooltip-light-border);
+}
+
+/* Pattern lines and dots of the swatches read on the tooltip, not the surface. */
+.tc-tooltip .tc-series {
+  --tc-pattern-ink: var(--tc-pattern-color, var(--tc-tooltip-bg));
+}
+
 /* Only a visible tooltip glides between positions; a hidden one jumps into place. */
 .tc-tooltip[data-visible] {
   opacity: 1;
@@ -868,7 +884,7 @@
 
 .tc-tooltip-name {
   flex: 1;
-  color: var(--tc-text-muted);
+  color: var(--tc-tooltip-muted);
 }
 
 .tc-tooltip-value {
@@ -998,9 +1014,9 @@
   min-width: 80px;
   margin-top: 2px;
   padding: 4px;
-  color: var(--tc-tooltip-color);
-  background: var(--tc-tooltip-bg);
-  border: 1px solid var(--tc-tooltip-border);
+  color: var(--tc-text-color);
+  background: var(--tc-surface);
+  border: 1px solid var(--tc-grid-color);
   border-radius: var(--tc-tooltip-radius);
   box-shadow: var(--tc-tooltip-shadow);
 }

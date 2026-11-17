@@ -45,8 +45,7 @@ describe('style.css', () => {
       ['--tc-text-muted', 'secondary'],
       ['--tc-grid-color', 'border-color-translucent'],
       ['--tc-baseline-color', 'border-color'],
-      ['--tc-tooltip-bg', 'bg-surface'],
-      ['--tc-tooltip-border', 'border-color-translucent'],
+      ['--tc-tooltip-bg', 'dark'],
       ['--tc-tooltip-shadow', 'box-shadow'],
       ['--tc-tooltip-radius', 'border-radius'],
       ['--tc-font-family', 'body-font-family'],
@@ -61,8 +60,32 @@ describe('style.css', () => {
 
   test('repeats derived tokens in every theme block', () => {
     // Otherwise a [data-theme="dark"] subtree inherits the light value resolved on :root.
-    for (const token of ['--tc-tooltip-color', '--tc-focus-color']) {
+    for (const token of ['--tc-focus-color']) {
       expect(css.match(new RegExp(`${token}: var\\(`, 'g'))?.length, token).toBe(3)
+    }
+  })
+
+  test('keeps both tooltip variants their colors in dark mode', () => {
+    // The dark tooltip is dark and the light one white on every page, so their
+    // text and border colors are literals, declared once.
+    for (const [token, value] of [
+      ['--tc-tooltip-color', '#ffffff'],
+      ['--tc-tooltip-muted', 'rgb(255 255 255 / 70%)'],
+      ['--tc-tooltip-light-bg', '#ffffff'],
+      ['--tc-tooltip-light-color', '#0b0b0b'],
+      ['--tc-tooltip-light-muted', '#6f6e69'],
+    ]) {
+      // Declared once (the .tc-tooltip-light block only points the dark tokens at the light ones).
+      expect(
+        css.match(new RegExp(`${token}: (?!var\\(--tc-tooltip-light)`, 'g'))?.length,
+        token,
+      ).toBe(1)
+      expect(css).toContain(`${token}: ${value};`)
+    }
+    for (const token of ['bg', 'color', 'muted', 'border']) {
+      expect(block('.tc-tooltip-light ')).toContain(
+        `--tc-tooltip-${token}: var(--tc-tooltip-light-${token})`,
+      )
     }
   })
 
@@ -101,6 +124,7 @@ describe('style.css', () => {
       'tc-hover-mark',
       'tc-hover-band',
       'tc-tooltip',
+      'tc-tooltip-light',
       'tc-tooltip-title',
       'tc-tooltip-item',
       'tc-tooltip-swatch',

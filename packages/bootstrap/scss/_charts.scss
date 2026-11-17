@@ -26,8 +26,11 @@ $tc-text-muted: var(--#{$tc-prefix}secondary-color, #6f6e69) !default;
 $tc-grid-color: var(--#{$tc-prefix}border-color-translucent, #e1e0d9) !default;
 $tc-baseline-color: var(--#{$tc-prefix}border-color, #c3c2b7) !default;
 $tc-hover-color: rgba(var(--#{$tc-prefix}emphasis-color-rgb, 11, 11, 11), 0.05) !default;
-$tc-tooltip-bg: var(--#{$tc-prefix}body-bg, #fff) !default;
-$tc-tooltip-border: var(--#{$tc-prefix}border-color-translucent, rgb(11 11 11 / 10%)) !default;
+// The tooltip takes Bootstrap's tooltip colors: the emphasis color on the body background.
+$tc-tooltip-bg: var(--#{$tc-prefix}emphasis-color, #0b0b0b) !default;
+$tc-tooltip-color: var(--#{$tc-prefix}body-bg, #fff) !default;
+$tc-tooltip-muted: rgba(var(--#{$tc-prefix}body-bg-rgb, 255, 255, 255), 0.7) !default;
+$tc-tooltip-border: rgba(var(--#{$tc-prefix}body-bg-rgb, 255, 255, 255), 0.12) !default;
 $tc-tooltip-shadow: var(--#{$tc-prefix}box-shadow, 0 4px 16px rgb(11 11 11 / 12%)) !default;
 $tc-tooltip-radius: var(--#{$tc-prefix}border-radius, 6px) !default;
 $tc-font-family: var(--#{$tc-prefix}body-font-family, inherit) !default;
@@ -60,12 +63,13 @@ $tc-palette-dark: (
   --tc-focus-color: #{$tc-series-1};
   --tc-surface: #{$tc-surface};
   --tc-text-color: #{$tc-text-color};
-  --tc-tooltip-color: #{$tc-text-color};
   --tc-text-muted: #{$tc-text-muted};
   --tc-grid-color: #{$tc-grid-color};
   --tc-baseline-color: #{$tc-baseline-color};
   --tc-hover-color: #{$tc-hover-color};
   --tc-tooltip-bg: #{$tc-tooltip-bg};
+  --tc-tooltip-color: #{$tc-tooltip-color};
+  --tc-tooltip-muted: #{$tc-tooltip-muted};
   --tc-tooltip-border: #{$tc-tooltip-border};
   --tc-tooltip-shadow: #{$tc-tooltip-shadow};
   --tc-tooltip-radius: #{$tc-tooltip-radius};

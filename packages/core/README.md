@@ -145,7 +145,7 @@ An option that is `NaN` or infinite (a `radius`, a `startAngle`, a `width`, a si
 | `fontSize` | `--tc-font-size` | Used to lay out labels; set it for SSR |
 | `id` | generated | Prefix of ids inside the SVG; set it for SSR |
 | `legend` | for 2+ entries | `false`, `true` or `{ position: 'bottom' }` |
-| `tooltip` | `true` | `false` or `{ format, footer }` for custom content |
+| `tooltip` | `true` | `false`, or `{ theme, format, footer }`: `theme: 'light'` for a white tooltip instead of the dark one, `format` and `footer` for custom content |
 | `crosshair` | `true` | |
 | `table` | `true` | Hidden data table for screen readers; `'visible'` shows it |
 | `keyboard` | `true` | Arrow keys walk the data; sparklines opt out |
@@ -191,7 +191,7 @@ Everything visual is CSS. The stylesheet defines tokens on `:root` (light and da
 .revenue-chart .tc-series-2 .tc-line { stroke-dasharray: 4 4; }
 ```
 
-Tokens include `--tc-color-1` … `--tc-color-8`, `--tc-surface`, `--tc-text-color`, `--tc-text-muted`, `--tc-grid-color`, `--tc-baseline-color`, `--tc-font-family`, `--tc-font-size`, `--tc-stroke-width`, `--tc-area-opacity`, `--tc-duration`, `--tc-easing` and the `--tc-tooltip-*` set.
+Tokens include `--tc-color-1` … `--tc-color-8`, `--tc-surface`, `--tc-text-color`, `--tc-text-muted`, `--tc-grid-color`, `--tc-baseline-color`, `--tc-font-family`, `--tc-font-size`, `--tc-stroke-width`, `--tc-area-opacity`, `--tc-duration`, `--tc-easing` and the `--tc-tooltip-*` set (`-bg`, `-color`, `-muted`, `-border`, `-shadow`, `-radius`, and `--tc-tooltip-light-*` for the white variant).
 
 On a [Tabler](https://tabler.io) page the colors come from the theme: each color token reads the matching `--tblr-*` variable first (`--tc-color-1` is `--tblr-primary`, series 2–8 are Tabler's orange, teal, yellow, pink, green, indigo and red, the surface is `--tblr-bg-surface`, text and borders, radius, shadow and font follow too) and falls back to the chart's own palette when the variable is not defined. Tabler switches its variables for dark mode itself; without Tabler the fallbacks have their own dark values.
 

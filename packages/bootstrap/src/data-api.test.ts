@@ -20,7 +20,7 @@ describe('data API', () => {
   test('creates charts from data-tc-* attributes and inline JSON', async () => {
     document.body.innerHTML = `
       <div id="a" data-tc-chart="bar" data-tc-width="400" data-tc-aspect-ratio="4"
-        data-tc-stacked="true" data-tc-legend="bottom" data-tc-title="Visits" data-tc-locale="de-DE"
+        data-tc-stacked="true" data-tc-legend="bottom" data-tc-tooltip="light" data-tc-title="Visits" data-tc-locale="de-DE"
         data-tc-download="svg, png" data-tc-options='{"radius": 0}'>
         <script type="application/json">${JSON.stringify(data)}</script>
       </div>
@@ -33,6 +33,7 @@ describe('data API', () => {
       aspectRatio: 4,
       stacked: true,
       legend: { position: 'bottom' },
+      tooltip: { theme: 'light' },
       title: 'Visits',
       locale: 'de-DE',
       download: ['svg', 'png'],

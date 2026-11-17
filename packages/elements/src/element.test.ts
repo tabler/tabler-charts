@@ -69,18 +69,25 @@ describe('<tabler-chart>', () => {
 
   test('removing an attribute or an option takes it out of the chart', async () => {
     const el = await mount(
-      `<tabler-chart type="bar" width="400" height="200" label="Sales" legend="false"></tabler-chart>`,
+      `<tabler-chart type="bar" width="400" height="200" label="Sales" legend="false" tooltip="light"></tabler-chart>`,
     )
     el.options = { stacked: true }
     el.data = data
     flush()
-    expect(el.chart?.config).toMatchObject({ title: 'Sales', legend: false, stacked: true })
+    expect(el.chart?.config).toMatchObject({
+      title: 'Sales',
+      legend: false,
+      tooltip: { theme: 'light' },
+      stacked: true,
+    })
     el.removeAttribute('label')
     el.removeAttribute('legend')
+    el.removeAttribute('tooltip')
     el.options = {}
     flush()
     expect(el.chart?.config.title).toBeUndefined()
     expect(el.chart?.config.legend).toBeUndefined()
+    expect(el.chart?.config.tooltip).toBeUndefined()
     expect(el.chart?.config).not.toHaveProperty('stacked')
   })
 
