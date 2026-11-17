@@ -12,10 +12,46 @@ name: Visual
 # (the slowest tests): a runner of a private repository has two cores, so
 # Playwright runs one test at a time on it. Run it by hand with "full" for
 # Firefox, WebKit and the leak checks too, split into jobs run side by side.
+#
+# Pushes and pull requests run it only when something that can change a
+# screenshot changed: code, styles, markup, the baselines, dependencies or
+# this file. Docs, changesets and the other workflows skip it.
 on:
   push:
     branches: [main]
+    paths:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.mjs"
+      - "**/*.cjs"
+      - "**/*.vue"
+      - "**/*.css"
+      - "**/*.scss"
+      - "**/*.html"
+      - "**/*.svg"
+      - "tests/visual/**"
+      - "**/package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/visual.yml"
   pull_request:
+    paths:
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.js"
+      - "**/*.jsx"
+      - "**/*.mjs"
+      - "**/*.cjs"
+      - "**/*.vue"
+      - "**/*.css"
+      - "**/*.scss"
+      - "**/*.html"
+      - "**/*.svg"
+      - "tests/visual/**"
+      - "**/package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/visual.yml"
   workflow_dispatch:
     inputs:
       update-snapshots:
