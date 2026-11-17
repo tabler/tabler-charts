@@ -70,8 +70,12 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      # The full history: `changeset version` looks up the commit that added
+      # each changeset, and in a shallow clone it deepens it with `git fetch`,
+      # which has no credentials here.
       - uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - uses: pnpm/action-setup@v6
