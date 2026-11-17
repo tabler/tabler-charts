@@ -87,7 +87,7 @@ A feature you use but did not import throws an error that names the import.
 | `sankey` | `{ nodes?, links: [{ from, to, value }] }` | `nodeWidth`, `nodePadding`, `align: 'justify' \| 'left'`, `format`; nodes with a `color` make the legend |
 | `parliament` | `[{ name, seats }]` | `total` (vacant seats), `rows`, `angle` (`180` for a hemicycle), `innerRadius`, `gap`, `center` |
 | `treemap` | `[{ name, value }]`, or groups `[{ name, children }]` | `gap`, `radius`, `labels` (names and values in the tiles), `format`; `--tc-treemap-opacity` fades the tiles |
-| `percentageBar` | `[{ name, value }]` | `order: 'data' \| 'size'`, `gap`, `radius`, `format`; a strip 16 px tall unless `height` is set |
+| `percentageBar` | `[{ name, value }]` | `order: 'data' \| 'size'`, `maxSlices` (the rest is grouped into `othersLabel`), `gap`, `radius`, `format`; a strip 16 px tall unless `height` is set |
 | `scatter` | `{ series: [{ name, points: [{ x, y, size? }] }] }` | `radius`, `size` (bubble radii); points with `size` are bubbles |
 | `heatmap` | `{ labels, series }` (rows) | `min`, `max`, `ranges`, `colors` + `mid` (scales), `colorBy: 'series'` |
 | `candlestick` | `[{ x, open, high, low, close }]` | time axes, `maxCandleWidth` |

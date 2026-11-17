@@ -112,6 +112,72 @@ describe('percentage bar', () => {
     expect(findByClass(render(), 'tc-percentage-bar-track').length).toBe(0)
   })
 
+  describe('maxSlices', () => {
+    const many = [5, 30, 10, 20, 8, 15, 12].map((value, i) => ({ name: `n${i}`, value }))
+
+    test('groups the smallest entries into one last segment in the color of the rest', () => {
+      const node = render({ data: many, maxSlices: 4, gap: 0 })
+      const groups = findByClass(node, 'tc-series')
+      // The three largest keep their place and their slot; 5 + 10 + 8 + 12 = 35 are the rest.
+      expect(groups.map((g) => g.attrs['data-series'])).toEqual(['n1', 'n3', 'n5', 'Others'])
+      expect(groups.map((g) => g.attrs.class)).toEqual([
+        'tc-series tc-series-2',
+        'tc-series tc-series-4',
+        'tc-series tc-series-6',
+        'tc-series tc-series-9',
+      ])
+      expect(segmentsOf(node).map((s) => s.width)).toEqual([120, 80, 60, 140])
+    })
+
+    test('no more entries than the limit: no segment for the rest', () => {
+      const node = render({ data: many, maxSlices: 7 })
+      expect(findByClass(node, 'tc-series').length).toBe(7)
+      expect(findByClass(render({ data: many }), 'tc-series').length).toBe(7)
+      const ten = Array.from({ length: 12 }, (_, i) => ({ name: `n${i}`, value: i + 1 }))
+      // Nine by default: eight entries and the rest.
+      expect(findByClass(render({ data: ten }), 'tc-series').length).toBe(9)
+      expect(findByClass(render({ data: ten, maxSlices: 0 }), 'tc-series').length).toBe(12)
+    })
+
+    test("the rest stays last with order: 'size', under its own label", () => {
+      const node = render({ data: many, maxSlices: 4, order: 'size', othersLabel: 'Inne', gap: 0 })
+      expect(findByClass(node, 'tc-series').map((g) => g.attrs['data-series'])).toEqual([
+        'n1',
+        'n3',
+        'n5',
+        'Inne',
+      ])
+    })
+
+    test('the legend, the tooltip and the table have the rest as one entry', () => {
+      const options = { data: many, maxSlices: 4 }
+      expect(percentageBar.legend?.(options)).toEqual([
+        { key: 'n1', name: 'n1', index: 1 },
+        { key: 'n3', name: 'n3', index: 3 },
+        { key: 'n5', name: 'n5', index: 5 },
+        { key: '__others__', name: 'Others', index: 8 },
+      ])
+      const hit = interactionOf(options).hitTest(390, 8)
+      expect(hit?.items[0]).toMatchObject({ name: 'Others', value: 35, text: '35 (35%)' })
+      expect(percentageBar.table?.(options, ctx(), 100)?.rows).toEqual([
+        ['n1', '30', '30%'],
+        ['n3', '20', '20%'],
+        ['n5', '15', '15%'],
+        ['Others', '35', '35%'],
+      ])
+    })
+
+    test('hiding an entry does not pull another out of the rest', () => {
+      const hidden = many.map((d, i) => (i === 1 ? { ...d, hidden: true } : d))
+      const node = render({ data: hidden, maxSlices: 4, gap: 0 })
+      expect(findByClass(node, 'tc-series').map((g) => g.attrs['data-series'])).toEqual([
+        'n3',
+        'n5',
+        'Others',
+      ])
+    })
+  })
+
   test('hit testing finds the segment under the pointer, with its value and share', () => {
     const interaction = interactionOf()
     expect(interaction.count).toBe(4)

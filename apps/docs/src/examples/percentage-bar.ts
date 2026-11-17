@@ -11,6 +11,7 @@ new Chart('#chart', {
     { name: 'Overdue', value: 38, color: 'var(--tc-color-8)' },
   ],
   // height: 16, // a strip by default; any height works
+  // maxSlices: 5, // the four largest and one segment for the others
   // order: 'size', // the largest segment first
   // gap: 2, radius: 4, // space between the segments and their corners
   locale: 'en-US',

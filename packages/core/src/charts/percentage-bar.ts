@@ -3,9 +3,10 @@ import type { ChartType, RenderContext } from '../chart.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets, round } from '../layout.ts'
+import type { LegendItem } from '../legend.ts'
 import { type ChildInput, type ClassValue, h } from '../vnode.ts'
 import { cleanItems } from './clean.ts'
-import { groupAttrs, keyOf, legendItems } from './named.ts'
+import { groupAttrs, keyOf } from './named.ts'
 
 /** One segment of a percentage bar. */
 export interface PercentageBarSegment {
@@ -29,9 +30,20 @@ export interface PercentageBarOptions {
   data: readonly PercentageBarSegment[]
   /**
    * Order of the segments along the bar: as in the data (`'data'`, the
-   * default) or the largest first (`'size'`). Colors follow the data either way.
+   * default) or the largest first (`'size'`). Colors follow the data either
+   * way, and the segment of the rest always comes last.
    */
   order?: 'data' | 'size'
+  /**
+   * The most segments drawn, the one for the rest included: with more entries
+   * than that, the largest `maxSlices - 1` keep a segment of their own and
+   * the others share one, named by `othersLabel`, at the end of the bar.
+   * Defaults to `9` (the eight palette colors and the rest); `0` never
+   * groups.
+   */
+  maxSlices?: number
+  /** Name of the segment that groups the rest. Defaults to `'Others'`. */
+  othersLabel?: string
   /** Space between segments in pixels, drawn as surface. Defaults to `2`. */
   gap?: number
   /** Corner radius of the segments. Defaults to `4`. */
@@ -45,11 +57,49 @@ export interface PercentageBarOptions {
 /** Height of the chart when neither `height` nor `aspectRatio` is set: a strip. */
 const HEIGHT = 16
 
+/** Legend key of the segment that groups the rest. */
+const OTHERS = '__others__'
+
 interface Segment {
   data: PercentageBarSegment
-  /** Position in `data` (the color slot). */
+  /** Position in `data` (the color slot); past the data for the rest. */
   index: number
   value: number
+}
+
+/**
+ * The segments of the data in its order: every entry, or with more of them
+ * than `maxSlices`, the largest ones and one segment for the rest (in the
+ * color of the slots past the palette). Hidden entries count here, so hiding
+ * one does not pull another out of the rest.
+ */
+function group(options: PercentageBarOptions): Segment[] {
+  const all = options.data.map((data, index) => ({
+    data,
+    index,
+    value: Math.max(0, data.value || 0),
+  }))
+  const max = options.maxSlices
+  // (Zero never groups; anything else that is not a count is the default.)
+  const limit =
+    max === 0
+      ? Number.POSITIVE_INFINITY
+      : Number.isFinite(max) && (max as number) > 0
+        ? Math.max(1, Math.round(max as number))
+        : 9
+  if (all.length <= limit) return all
+  const kept = new Set(
+    [...all].sort((a, b) => b.value - a.value || a.index - b.index).slice(0, limit - 1),
+  )
+  const value = all.reduce((sum, segment) => (kept.has(segment) ? sum : sum + segment.value), 0)
+  return [
+    ...all.filter((segment) => kept.has(segment)),
+    {
+      data: { name: options.othersLabel ?? 'Others', id: OTHERS, value },
+      index: Math.max(8, all.length),
+      value,
+    },
+  ]
 }
 
 /** The visible segments in their order along the bar, and their sum. */
@@ -57,11 +107,28 @@ function segmentsOf(
   options: PercentageBarOptions,
   hidden: ReadonlySet<string>,
 ): { segments: Segment[]; total: number } {
-  const segments = options.data
-    .map((data, index) => ({ data, index, value: Math.max(0, data.value || 0) }))
-    .filter((segment) => !hidden.has(keyOf(segment.data)))
-  if (options.order === 'size') segments.sort((a, b) => b.value - a.value || a.index - b.index)
+  const count = options.data.length
+  const segments = group(options).filter((segment) => !hidden.has(keyOf(segment.data)))
+  if (options.order === 'size') {
+    // (The rest stays last, whatever its size.)
+    segments.sort(
+      (a, b) =>
+        Number(a.index >= count) - Number(b.index >= count) ||
+        b.value - a.value ||
+        a.index - b.index,
+    )
+  }
   return { segments, total: segments.reduce((sum, segment) => sum + segment.value, 0) }
+}
+
+/** Legend: the segments as drawn, the rest included. */
+function percentageBarLegend(options: PercentageBarOptions): LegendItem[] {
+  return group(options).map(({ data, index }) => {
+    const item: LegendItem = { key: keyOf(data), name: data.name, index }
+    if (data.color) item.color = data.color
+    if (data.hidden) item.hidden = true
+    return item
+  })
 }
 
 function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext): ChildInput {
@@ -206,7 +273,7 @@ export const percentageBar: ChartType<PercentageBarOptions> = {
     }
   },
   render: renderPercentageBar,
-  legend: (options) => legendItems(options.data),
+  legend: percentageBarLegend,
   table: percentageBarTable,
   valueLabels: { marks: 'cell' },
 }

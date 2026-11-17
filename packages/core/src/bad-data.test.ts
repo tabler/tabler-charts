@@ -303,7 +303,7 @@ test('numeric options that are not finite count as left out', () => {
       ['total', 'rows', 'startAngle', 'angle', 'innerRadius', 'gap'],
     ],
     [treemap, slices, ['gap', 'radius']],
-    [percentageBar, slices, ['gap', 'radius']],
+    [percentageBar, slices, ['gap', 'radius', 'maxSlices']],
     [scatter, { series: [{ name: 'A', points: [{ x: 1, y: 2, size: 3 }] }] }, ['radius']],
     [sparkline, [1, 2, 3], ['pointRadius']],
     [
