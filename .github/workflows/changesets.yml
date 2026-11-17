@@ -29,9 +29,9 @@ jobs:
     outputs:
       comment-body: ${{ steps.status.outputs.comment-body }}
     steps:
+      # The repository is private, and pr-status fetches the base branch
+      # with git, so the checkout's credentials must stay on disk.
       - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
 
       - id: status
         uses: changesets/action/pr-status@v2
