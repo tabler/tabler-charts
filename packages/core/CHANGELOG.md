@@ -1,5 +1,18 @@
 # @tabler/charts
 
+## 0.2.0
+
+### Minor Changes
+
+- d664260: Added `percentageBar` chart type that shows parts of a whole as segments of one horizontal bar.
+- c7de5e8: Added `maxSlices` option to `pie` and `donut` charts; slices past nine are now grouped into `Others` by default.
+- e8c4b2a: Added `rtl` option that mirrors charts, legend, tooltip and download menu for right-to-left pages.
+- fc08c1c: Added `treemap` chart type that shows parts of a whole as tiles, with `children` entries for groups.
+
+### Patch Changes
+
+- 4d22484: Fixed axis labels overlapping the plot on right-to-left pages.
+
 ## 0.1.0
 
 ### Minor Changes
