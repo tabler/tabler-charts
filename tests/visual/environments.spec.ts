@@ -5,7 +5,7 @@ import { installTextChecks } from './text-checks.ts'
 /**
  * Hostile page CSS and unusual containers (environment.html?case=…): the
  * chart must get a size, fit its container without widening the page,
- * keep its labels inside and apart, and hovering a bar must highlight that
+ * keep its labels inside, apart and off the plot, and hovering a bar must highlight that
  * bar with the tooltip next to the pointer (pointer coordinates survive
  * transforms, zoom and scrolling).
  */
@@ -50,6 +50,12 @@ for (const item of ENVIRONMENTS) {
       const check = (window as unknown as { __tcTextIssues: (svg: Element) => string[] })
         .__tcTextIssues
       issues.push(...check(svg))
+      // Value labels end before the plot (a page direction must not flip their anchor).
+      const plot = svg.querySelector('.tc-grid-y')?.getBoundingClientRect()
+      for (const text of svg.querySelectorAll('.tc-axis-left text')) {
+        const over = plot ? text.getBoundingClientRect().right - plot.left : 0
+        if (over > 1) issues.push(`"${text.textContent}" ${Math.round(over)} px over the plot`)
+      }
       return { issues }
     })
 
