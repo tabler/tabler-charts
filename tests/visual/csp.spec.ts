@@ -54,7 +54,7 @@ async function open(page: Page, path: string): Promise<string[]> {
 const violations = (page: Page) =>
   page.evaluate(() => (window as unknown as { __csp: string[] }).__csp)
 
-for (const path of ['/', '/cases.html']) {
+for (const path of ['/', '/cases.html', '/examples.html']) {
   test(`charts render under a strict CSP: ${path}`, async ({ page }) => {
     const errors = await open(page, path)
     await page.locator('svg.tc-chart').first().waitFor()

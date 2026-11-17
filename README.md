@@ -56,7 +56,7 @@ Plus annotations (target lines and bands), time and log axes, LTTB decimation fo
 
 ```
 packages/   the five packages above
-apps/docs/  the playground (every chart type and option, both themes)
+apps/docs/  the playground (every chart type and option, both themes) and the examples page (~100 charts of real data)
 examples/   SSR examples for Next.js, Nuxt and Astro
 tests/      Playwright visual, accessibility (axe) and export tests
 docs/       PLAN.md: architecture and roadmap
