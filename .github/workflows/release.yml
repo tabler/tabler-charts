@@ -13,7 +13,10 @@ name: Release
 # - once that pull request is merged, so nothing is pending and the versions
 #   are not in npm yet, `pack` runs the full check and packs the tarballs,
 #   and `publish` publishes them, creates the git tags
-#   (@tabler/charts@X.Y.Z, one per package) and the GitHub releases.
+#   (@tabler/charts@X.Y.Z, one per package) and one GitHub release, for
+#   @tabler/charts only: the five packages share a version, so a release per
+#   package would list the same version five times. Its notes are that
+#   version's section of packages/core/CHANGELOG.md.
 #
 # Publishing authenticates with npm trusted publishing: the publish job's
 # OIDC token is exchanged by pnpm for a short-lived grant, so there is no npm
@@ -149,7 +152,27 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - uses: changesets/action/publish@v2
+      - id: publish
+        uses: changesets/action/publish@v2
         with:
           pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
-          create-github-releases: true
+          # The action would create a release per package; the step below
+          # creates the only one. The tags are still pushed.
+          create-github-releases: false
+
+      - name: Create the GitHub release for @tabler/charts
+        if: steps.publish.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISHED_PACKAGES: ${{ steps.publish.outputs.published-packages }}
+        run: |
+          version=$(jq -r '.[] | select(.name == "@tabler/charts") | .version' <<<"$PUBLISHED_PACKAGES")
+          if [ -z "$version" ]; then
+            echo "@tabler/charts was not published, so there is no release to create."
+            exit 0
+          fi
+          notes="$RUNNER_TEMP/release-notes.md"
+          awk -v heading="## $version" '$0 == heading { on = 1; next } /^## / { on = 0 } on' packages/core/CHANGELOG.md > "$notes"
+          flags=()
+          if [[ "$version" == *-* ]]; then flags+=(--prerelease); fi
+          gh release create "@tabler/charts@$version" --verify-tag --title "v$version" --notes-file "$notes" "${flags[@]}"
