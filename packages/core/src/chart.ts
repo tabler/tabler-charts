@@ -95,7 +95,8 @@ export interface BaseOptions {
    * and categories running from the right (`x.reverse` overrides the latter).
    * `'auto'` follows the `direction` of the container (left to right in SSR).
    * The legend, the tooltip and the download menu read right to left with it.
-   * Cartesian charts, heatmaps, sparklines and sankey diagrams. Defaults to `false`.
+   * Cartesian charts, heatmaps, sparklines, sankey diagrams and percentage
+   * bars. Defaults to `false`.
    */
   rtl?: boolean | 'auto'
   /**

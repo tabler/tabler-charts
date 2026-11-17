@@ -130,7 +130,7 @@ A chart type of your own gets labels from its hits like the built-in ones. Its `
 
 ### Right to left
 
-`rtl` mirrors line, area, bar, candlestick, scatter, heatmap, sparkline and sankey charts for right-to-left pages: the value axis on the right, categories from the right, flows running to the left, the arrow keys following the screen. The legend, the tooltip and the download menu follow the chart: they read right to left (the menu in the left corner) even on a left-to-right page.
+`rtl` mirrors line, area, bar, candlestick, scatter, heatmap, sparkline, sankey and percentage bar charts for right-to-left pages: the value axis on the right, categories from the right, flows running to the left, the arrow keys following the screen. The legend, the tooltip and the download menu follow the chart: they read right to left (the menu in the left corner) even on a left-to-right page.
 
 ```ts
 // <html dir="rtl">

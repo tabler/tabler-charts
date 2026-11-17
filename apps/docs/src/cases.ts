@@ -18,6 +18,7 @@ import {
   gauge,
   heatmap,
   line,
+  percentageBar,
   pie,
   radar,
   sankey,
@@ -907,6 +908,22 @@ const groups: [string, () => Case[]][] = [
           rtl: true,
           aspectRatio: 6,
           data: [3, 4, 3, 5, 6, 5, 8, 9, 12],
+        },
+      },
+      {
+        title: 'Right to left: percentage bar',
+        expect:
+          'rtl: true. The bar starts from the right: the first (largest) segment is on the right.',
+        config: {
+          type: percentageBar,
+          locale: 'ar-EG',
+          rtl: true,
+          data: [
+            { name: 'مدفوعة', value: 50 },
+            { name: 'مفتوحة', value: 30 },
+            { name: 'مسودة', value: 15 },
+            { name: 'متأخرة', value: 5 },
+          ],
         },
       },
       {
