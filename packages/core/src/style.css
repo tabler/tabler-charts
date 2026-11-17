@@ -134,6 +134,8 @@
   letter-spacing: normal;
   word-spacing: normal;
   text-transform: none;
+  /* The plot is laid out left to right: a page's `rtl` would flip `text-anchor`. */
+  direction: ltr;
   color: var(--tc-text-color);
   -webkit-tap-highlight-color: transparent;
 }
