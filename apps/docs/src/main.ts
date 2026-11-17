@@ -16,6 +16,7 @@ import { lineDemo } from './demos/line.ts'
 import { numberFormatDemo } from './demos/number-format.ts'
 import { parliamentDemo } from './demos/parliament.ts'
 import { patternsDemo } from './demos/patterns.ts'
+import { percentageBarDemo } from './demos/percentage-bar.ts'
 import { pieDemo } from './demos/pie.ts'
 import { radarDemo } from './demos/radar.ts'
 import { reactDemo } from './demos/react.tsx'
@@ -40,6 +41,7 @@ const demos: Demo[] = [
   pieDemo,
   gaugeDemo,
   parliamentDemo,
+  percentageBarDemo,
   treemapDemo,
   radarDemo,
   sankeyDemo,
