@@ -1,0 +1,49 @@
+name: Changesets
+
+# Comments on every pull request with its Changesets status: whether it has a
+# changeset in .changeset/ and which packages it releases, or a reminder to
+# add one with `pnpm changeset`. The comment is updated on every push.
+#
+# `pull_request_target` runs on the base branch's workflow with write access
+# to pull requests, which is what commenting needs, but it must never run
+# the pull request's own code: the status job only checks the repository out
+# and reads the changeset files, and the comment job checks nothing out.
+on:
+  pull_request_target:
+
+permissions: {}
+
+concurrency:
+  group: changesets-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  status:
+    name: Changesets status
+    # The version pull request opened by the Release workflow never has one.
+    if: ${{ !startsWith(github.head_ref, 'changeset-release/') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      comment-body: ${{ steps.status.outputs.comment-body }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - id: status
+        uses: changesets/action/pr-status@v2
+
+  comment:
+    name: Comment on the pull request
+    needs: status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: changesets/action/pr-comment@v2
+        with:
+          body: ${{ needs.status.outputs.comment-body }}

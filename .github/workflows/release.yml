@@ -1,35 +1,52 @@
 name: Release
 
-# Publishes every package in packages/* to npm when a release tag is pushed.
-# `pnpm release` (release-it, see .release-it.json) bumps the versions,
-# commits, tags vX.Y.Z and creates the GitHub release; this workflow does the
-# publishing, so no npm credentials are needed anywhere. It checks the tag
-# against the version in package.json, runs the same checks as CI and then
-# publishes with provenance through npm trusted publishing: pnpm exchanges the
-# workflow's OIDC token for a short-lived publish grant, so there is no npm
-# token and no .npmrc. Each package on npmjs.com must list this repository
-# and this workflow file (release.yml) as its trusted publisher. Trusted
-# publishing cannot create a package, so the very first version of each
-# package is published once by hand (see README).
+# Versions and publishes the packages in packages/* with Changesets
+# (https://github.com/changesets/changesets). Every pull request that changes
+# a package adds a changeset in .changeset/ (`pnpm changeset`); the
+# "Changesets" workflow comments on pull requests that forget one.
+#
+# On every push to main:
+# - with changesets pending, `version` opens or updates the pull request
+#   "chore: version packages", which applies them: one version for all five
+#   packages (they are a fixed group in .changeset/config.json), CHANGELOG.md
+#   in each package, and the changesets deleted;
+# - once that pull request is merged, so nothing is pending and the versions
+#   are not in npm yet, `pack` runs the full check and packs the tarballs,
+#   and `publish` publishes them, creates the git tags
+#   (@tabler/charts@X.Y.Z, one per package) and the GitHub releases.
+#
+# Publishing authenticates with npm trusted publishing: the publish job's
+# OIDC token is exchanged by pnpm for a short-lived grant, so there is no npm
+# token and no .npmrc. Each package on npmjs.com lists this repository and
+# this file (release.yml) as its trusted publisher. The split into jobs keeps
+# that token away from the build and the versioning.
+#
+# Pre-releases: `pnpm changeset pre enter alpha` (committed as
+# .changeset/pre.json) makes every version from then on an alpha
+# (0.1.0-alpha.0, alpha.1, ...); `pnpm changeset pre exit` ends it.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
 
-permissions:
-  contents: read
-  # The OIDC token is what authenticates the publish and signs the provenance.
-  id-token: write
+permissions: {}
 
 concurrency:
   group: release-${{ github.ref }}
 
 jobs:
-  publish:
-    name: Publish to npm
+  select-mode:
+    name: Select mode
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.select-mode.outputs.mode }}
+      publish-plan-artifact-id: ${{ steps.select-mode.outputs.publish-plan-artifact-id }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v6
 
@@ -40,34 +57,94 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # A pre-release (0.0.1-alpha.0) is published under its identifier as the
-      # npm dist-tag (alpha, beta, rc; "next" without one), so `latest` keeps
-      # pointing at the last full release.
-      - name: Check that the tag matches the version
-        id: version
-        run: |
-          version="$(node -p "require('./package.json').version")"
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::tag $GITHUB_REF_NAME does not match version $version in package.json"
-            exit 1
-          fi
-          for pkg in packages/*/package.json; do
-            v="$(node -p "require('./$pkg').version")"
-            if [ "$v" != "$version" ]; then
-              echo "::error::$pkg is at $v, expected $version"
-              exit 1
-            fi
-          done
-          case "$version" in
-            *-*) suffix="${version#*-}"; dist_tag="${suffix%%[.0-9]*}"; dist_tag="${dist_tag:-next}" ;;
-            *) dist_tag=latest ;;
-          esac
-          echo "dist_tag=$dist_tag" >> "$GITHUB_OUTPUT"
-          echo "Publishing $version as @$dist_tag"
+      - id: select-mode
+        uses: changesets/action/select-mode@v2
+
+  version:
+    name: Open the version pull request
+    if: needs.select-mode.outputs.mode == 'version'
+    needs: select-mode
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: changesets/action/version@v2
+        with:
+          script: pnpm changeset version && pnpm install --lockfile-only
+          commit-message: "chore: version packages"
+          pr-title: "chore: version packages"
+
+  pack:
+    name: Check and pack
+    if: needs.select-mode.outputs.mode == 'publish'
+    needs: select-mode
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      pack-dir-artifact-id: ${{ steps.pack.outputs.pack-dir-artifact-id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
 
       - name: Lint, typecheck, build, test, validate packages, size budget
         run: pnpm check
 
-      # A tag checkout is a detached HEAD, which pnpm's git checks reject.
-      - name: Publish
-        run: pnpm -r --filter "./packages/**" publish --access public --no-git-checks --provenance --tag "${{ steps.version.outputs.dist_tag }}"
+      # `pnpm pack` per package: it rewrites the workspace:^ ranges.
+      - id: pack
+        uses: changesets/action/pack@v2
+        with:
+          publish-plan-artifact-id: ${{ needs.select-mode.outputs.publish-plan-artifact-id }}
+
+  publish:
+    name: Publish to npm
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: changesets/action/publish@v2
+        with:
+          pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
+          create-github-releases: true
