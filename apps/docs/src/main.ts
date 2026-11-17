@@ -26,6 +26,7 @@ import { sparklineDemo } from './demos/sparkline.ts'
 import { syncDemo } from './demos/sync.ts'
 import { tablerDemo } from './demos/tabler.ts'
 import { timeDemo } from './demos/time.ts'
+import { treemapDemo } from './demos/treemap.ts'
 import { valueLabelsDemo } from './demos/value-labels.ts'
 import { vueDemo } from './demos/vue.ts'
 import { setupThemeSwitch } from './theme.ts'
@@ -41,6 +42,7 @@ const demos: Demo[] = [
   gaugeDemo,
   parliamentDemo,
   percentageBarDemo,
+  treemapDemo,
   radarDemo,
   sankeyDemo,
   heatmapDemo,

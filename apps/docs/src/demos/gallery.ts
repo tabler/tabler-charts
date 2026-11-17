@@ -19,6 +19,7 @@ import {
   sankey,
   scatter,
   sparkline,
+  treemap,
 } from '@tabler/charts'
 
 /** A config for any chart type; cast to `ChartConfig` where it is used. */
@@ -683,6 +684,44 @@ const ITEMS: Item[] = [
         { name: 'Trzecia Droga', seats: 65, color: '#ffc62a' },
         { name: 'Lewica', seats: 26, color: '#8e2a7b' },
         { name: 'Konfederacja', seats: 18, color: '#1d3f8a' },
+      ],
+    },
+  })),
+  seeded('Treemap', () => ({
+    title: 'Treemap',
+    note: 'Disk usage by folder: three groups in their palette colors and two tiles of their own, values in compact bytes; names and values are written where they fit.',
+    span: 2,
+    config: {
+      type: treemap,
+      ...common,
+      aspectRatio: 2.2,
+      format: { style: 'unit', unit: 'gigabyte', notation: 'compact' },
+      data: [
+        {
+          name: 'Media',
+          children: [
+            { name: 'Videos', value: 212 },
+            { name: 'Photos', value: 96 },
+            { name: 'Music', value: 41 },
+          ],
+        },
+        {
+          name: 'Projects',
+          children: [
+            { name: 'node_modules', value: 74 },
+            { name: 'Builds', value: 38 },
+            { name: 'Sources', value: 12 },
+          ],
+        },
+        {
+          name: 'System',
+          children: [
+            { name: 'Applications', value: 58 },
+            { name: 'Caches', value: 27 },
+          ],
+        },
+        { name: 'Downloads', value: 33 },
+        { name: 'Documents', value: 9 },
       ],
     },
   })),

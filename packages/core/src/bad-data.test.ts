@@ -14,6 +14,7 @@ import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
+import { treemap } from './charts/treemap.ts'
 import { chartToString } from './core.ts'
 import './annotations.ts'
 import './decimate.ts'
@@ -111,6 +112,22 @@ const TYPES: [string, ChartType<object>, () => unknown][] = [
     'parliament',
     parliament as ChartType<object>,
     () => list(() => (chance(0.1) ? junk() : { name: text(), seats: num(), color: color() })),
+  ],
+  [
+    'treemap',
+    treemap as ChartType<object>,
+    () => {
+      const node = (depth: number): unknown =>
+        chance(0.1)
+          ? junk()
+          : {
+              name: text(),
+              value: num(),
+              color: color(),
+              children: depth < 3 && chance(0.3) ? list(() => node(depth + 1)) : undefined,
+            }
+      return list(() => node(0))
+    },
   ],
   [
     'percentage bar',
@@ -285,6 +302,7 @@ test('numeric options that are not finite count as left out', () => {
       [{ name: 'a', seats: 3 }],
       ['total', 'rows', 'startAngle', 'angle', 'innerRadius', 'gap'],
     ],
+    [treemap, slices, ['gap', 'radius']],
     [percentageBar, slices, ['gap', 'radius']],
     [scatter, { series: [{ name: 'A', points: [{ x: 1, y: 2, size: 3 }] }] }, ['radius']],
     [sparkline, [1, 2, 3], ['pointRadius']],

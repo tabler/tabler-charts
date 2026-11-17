@@ -66,6 +66,8 @@ export type { ScatterOptions, ScatterPoint, ScatterSeries } from './charts/scatt
 export { scatter } from './charts/scatter.ts'
 export type { SparklineOptions } from './charts/sparkline.ts'
 export { sparkline } from './charts/sparkline.ts'
+export type { TreemapNode, TreemapOptions } from './charts/treemap.ts'
+export { treemap } from './charts/treemap.ts'
 export type { AxisOptions, AxisPosition, LinearTicksOptions, Tick } from './components/axis.ts'
 export { axis, axisSize, bandTicks, linearTicks, thinTicks } from './components/axis.ts'
 export type { GridOptions } from './components/grid.ts'
