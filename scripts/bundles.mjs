@@ -50,6 +50,10 @@ const CASES = [
     `export { Chart } from '${DIST}core.js'; export { percentageBar } from '${DIST}percentage-bar.js'`,
   ],
   [
+    'core + calendar',
+    `export { Chart } from '${DIST}core.js'; export { calendar } from '${DIST}calendar.js'`,
+  ],
+  [
     'core + heatmap',
     `export { Chart } from '${DIST}core.js'; export { heatmap } from '${DIST}heatmap.js'`,
   ],

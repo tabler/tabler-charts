@@ -4,6 +4,7 @@ import type { ChartConfig, ChartType } from './chart.ts'
 import { Chart } from './chart.ts'
 import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
+import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
@@ -120,6 +121,29 @@ const CANDLE_STATES: Record<string, unknown> = {
   negative: values(20, (i) => i).map((i) => candle(i as number, -1)),
 }
 
+const day = (i: number): { date: number; value: number | null } => ({
+  date: Date.UTC(2026, 0, 5 + i),
+  value: wave(0, i),
+})
+const days = (n: number, f: (i: number) => ReturnType<typeof day>) =>
+  Array.from({ length: n }, (_, i) => f(i))
+const CALENDAR_STATES: Record<string, unknown> = {
+  empty: [],
+  one: [day(0)],
+  'all zero': days(14, (i) => ({ ...day(i), value: 0 })),
+  'all null': days(14, (i) => ({ ...day(i), value: null })),
+  regular: days(30, day),
+  shifted: days(30, (i) => day(i + 7)),
+  'two series': {
+    series: [
+      { name: 'A', values: days(30, day) },
+      { name: 'B', values: days(10, (i) => day(i * 3)) },
+    ],
+  },
+  'all hidden': { series: [{ name: 'A', hidden: true, values: days(30, day) }] },
+  year: days(365, day),
+}
+
 const SPARK_STATES: Record<string, unknown> = {
   empty: [],
   one: [5],
@@ -145,6 +169,7 @@ const FAMILIES: Family[] = [
   { types: [gauge] as ChartType<object>[], states: GAUGE_STATES },
   { types: [scatter] as ChartType<object>[], states: SCATTER_STATES },
   { types: [candlestick] as ChartType<object>[], states: CANDLE_STATES },
+  { types: [calendar] as ChartType<object>[], states: CALENDAR_STATES },
   { types: [sparkline] as ChartType<object>[], states: SPARK_STATES },
 ]
 

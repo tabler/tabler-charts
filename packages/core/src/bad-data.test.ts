@@ -4,6 +4,7 @@ import type { ChartConfig, ChartType } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
+import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
 import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
@@ -82,11 +83,32 @@ const series = (): unknown =>
 const seriesData = (): unknown =>
   chance(0.08) ? junk() : { labels: chance(0.15) ? junk() : list(text), series: list(series) }
 
+const entry = (): unknown =>
+  chance(0.1)
+    ? junk()
+    : {
+        date: chance(0.3)
+          ? junk()
+          : pick(['2026-01-05', Date.UTC(2026, 0, 9), new Date(2026, 1, 1)]),
+        value: num(),
+      }
+const calendarData = (): unknown =>
+  chance(0.08)
+    ? junk()
+    : chance(0.3)
+      ? list(entry)
+      : {
+          series: list(() =>
+            chance(0.1) ? junk() : { name: text(), values: list(entry), color: color() },
+          ),
+        }
+
 const TYPES: [string, ChartType<object>, () => unknown][] = [
   ['line', line as ChartType<object>, seriesData],
   ['area', area as ChartType<object>, seriesData],
   ['bar', bar as ChartType<object>, seriesData],
   ['heatmap', heatmap as ChartType<object>, seriesData],
+  ['calendar', calendar as ChartType<object>, calendarData],
   ['radar', radar as ChartType<object>, seriesData],
   [
     'pie',
@@ -300,6 +322,11 @@ test('numeric options that are not finite count as left out', () => {
     [bar, series, ['radius', 'maxBarWidth', 'gap', 'groupPadding']],
     [radar, series, ['pointRadius', 'startAngle']],
     [heatmap, series, ['min', 'max', 'gap', 'radius']],
+    [
+      calendar,
+      [{ date: '2026-01-05', value: 1 }],
+      ['min', 'max', 'mid', 'gap', 'radius', 'levels', 'weeks', 'weekStart', 'from', 'to'],
+    ],
     [pie, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle', 'maxSlices']],
     [donut, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],
     [gauge, slices, ['max', 'startAngle', 'angle', 'thickness', 'gap', 'cornerRadius']],

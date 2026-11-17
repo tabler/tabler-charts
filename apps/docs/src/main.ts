@@ -4,6 +4,7 @@ import { createControls, type Demo } from './demo.ts'
 import { areaDemo } from './demos/area.ts'
 import { barDemo } from './demos/bar.ts'
 import { bootstrapDemo } from './demos/bootstrap.ts'
+import { calendarDemo } from './demos/calendar.ts'
 import { candlestickDemo } from './demos/candlestick.ts'
 import { customType } from './demos/custom-type.ts'
 import { decimateDemo } from './demos/decimate.ts'
@@ -49,6 +50,7 @@ const demos: Demo[] = [
   radarDemo,
   sankeyDemo,
   heatmapDemo,
+  calendarDemo,
   candlestickDemo,
   scatterDemo,
   patternsDemo,

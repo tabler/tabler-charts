@@ -15,7 +15,9 @@ import {
   area,
   type BarOptions,
   bar,
+  type CalendarOptions,
   type CandlestickOptions,
+  calendar,
   candlestick,
   donut,
   type FunnelOptions,
@@ -78,6 +80,10 @@ export const GaugeChart: ChartComponent<GaugeOptions> = /* @__PURE__ */ chartCom
 export const HeatmapChart: ChartComponent<HeatmapOptions> = /* @__PURE__ */ chartComponent(
   heatmap,
   'HeatmapChart',
+)
+export const CalendarChart: ChartComponent<CalendarOptions> = /* @__PURE__ */ chartComponent(
+  calendar,
+  'CalendarChart',
 )
 export const CandlestickChart: ChartComponent<CandlestickOptions> = /* @__PURE__ */ chartComponent(
   candlestick,

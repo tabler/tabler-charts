@@ -48,6 +48,12 @@ export function keyboard(): ChartPlugin {
         // Arrows follow the screen: categories from the right swap them.
         if (interaction.reversed && /^Arrow(L|R)/.test(key))
           key = key === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft'
+        // In a grid a column is `rows` categories away, and Up/Down walk a column.
+        let column = interaction.rows ?? 1
+        if (interaction.rows && /^Arrow(U|D)/.test(key)) {
+          key = key === 'ArrowUp' ? 'ArrowLeft' : 'ArrowRight'
+          column = 1
+        }
         const current = chart.highlightSource === 'index' ? chart.active : null
         const last = interaction.count - 1
         const index = current?.index
@@ -57,10 +63,10 @@ export function keyboard(): ChartPlugin {
 
         switch (key) {
           case 'ArrowRight':
-            go(index === undefined ? 0 : Math.min(last, index + 1), focused)
+            go(index === undefined ? 0 : Math.min(last, index + column), focused)
             return true
           case 'ArrowLeft':
-            go(index === undefined ? last : Math.max(0, index - 1), focused)
+            go(index === undefined ? last : Math.max(0, index - column), focused)
             return true
           case 'Home':
             go(0, focused)
