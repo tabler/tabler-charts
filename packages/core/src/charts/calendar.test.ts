@@ -235,6 +235,47 @@ describe('calendar', () => {
     expect(interactionOf().rows).toBe(7)
   })
 
+  test('colors shade through a scale; diverging centers two hues on zero', () => {
+    const data = [
+      { date: '2026-10-05', value: -10 },
+      { date: '2026-10-06', value: -2 },
+      { date: '2026-10-07', value: 0 },
+      { date: '2026-10-08', value: 5 },
+    ]
+    const fills = (config: Partial<ChartConfig<CalendarOptions>>) =>
+      cells(render({ data, ...config })).map(
+        (c) => String(c.attrs.style ?? '').match(/--tc-cell-fill:(.*)$/)?.[1],
+      )
+    // −10 … 10 around 0 in four steps: full blue, (−2 rounds to) neutral, neutral, half red.
+    expect(fills({ colors: 'diverging' })).toEqual([
+      'var(--tc-color-1)',
+      'var(--tc-grid-color)',
+      'var(--tc-grid-color)',
+      'color-mix(in oklab,var(--tc-color-8) 50%,var(--tc-grid-color))',
+    ])
+    // The scale names its ends by their values, with one swatch per step.
+    const node = render({ data, colors: 'diverging' })
+    const scale = findByClass(node, 'tc-calendar-scale')[0] ?? node
+    expect(findByClass(scale, 'tc-tick-label').map((t) => t.children.join(''))).toEqual([
+      '-10',
+      '10',
+    ])
+    expect(findByClass(scale, 'tc-cell')).toHaveLength(5)
+    // A middle of your own, and ends of your own.
+    expect(fills({ colors: 'diverging', mid: -10, max: 10 })[0]).toBe('var(--tc-grid-color)')
+    expect(fills({ colors: 'diverging', min: -20 })[0]).toBe(
+      'color-mix(in oklab,var(--tc-grid-color) 50%,var(--tc-color-1))',
+    )
+    // Your own colors run from min to max; one color alone is not a scale.
+    expect(fills({ colors: ['white', 'black'], levels: 2 })).toEqual([
+      'white',
+      'color-mix(in oklab,black 50%,white)',
+      'color-mix(in oklab,black 50%,white)',
+      'black',
+    ])
+    expect(fills({ colors: ['red'] })[0]).toBeUndefined()
+  })
+
   test('renders empty, junk and flat data without NaN', () => {
     for (const data of [
       [],

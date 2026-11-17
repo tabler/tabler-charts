@@ -11,7 +11,7 @@ import {
   round,
 } from '../layout.ts'
 import { rectPath } from '../shapes/rect.ts'
-import { type ClassValue, h, type VNode } from '../vnode.ts'
+import { type ClassValue, h, type StyleValue, type VNode } from '../vnode.ts'
 import { cleanData, finite, isRecord, named, records } from './clean.ts'
 import { keyOf, legendItems } from './named.ts'
 
@@ -63,6 +63,17 @@ export interface CalendarOptions {
   max?: number
   /** Number of shades between empty and the full color (the steps of the scale). Defaults to `4`. */
   levels?: number
+  /**
+   * A scale through two or more colors (any CSS color, including
+   * `var(--tc-…)`) from `min` to `max` in `levels` steps, instead of one hue.
+   * `'diverging'` is two hues around a neutral middle, for values with a sign
+   * (changes, balances): the middle sits on `mid`, `0` by default, and the
+   * two ends are equally far from it unless `min` or `max` is set.
+   * Values that could inject CSS are ignored, as for series colors.
+   */
+  colors?: 'diverging' | readonly string[]
+  /** Value placed on the middle color of `colors`. Defaults to `0` for `'diverging'`, else halfway. */
+  mid?: number
   /** Space between cells in pixels, drawn as surface. Defaults to `2`. */
   gap?: number
   /** Corner radius of the cells. Defaults to `2`. */
@@ -77,7 +88,7 @@ export interface CalendarOptions {
   y?: { show?: boolean; format?: (date: Date) => string }
   /**
    * The low-to-high scale below the grid: `false` hides it, an object names
-   * its ends (defaults `'Less'` and `'More'`).
+   * its ends (defaults `'Less'` and `'More'`; with `colors`, the values at the ends).
    */
   scale?: boolean | { low?: string; high?: string }
   /** Extra space around the grid, in pixels. */
@@ -85,6 +96,8 @@ export interface CalendarOptions {
 }
 
 const DAY = 86_400_000
+/** `colors: 'diverging'`: two hues around a neutral middle. */
+const DIVERGING = ['var(--tc-color-1)', 'var(--tc-grid-color)', 'var(--tc-color-8)']
 const MONDAY = 1
 /** Most days drawn (ten years): a range from junk dates stays finite. */
 const MAX_DAYS = 3660
@@ -259,11 +272,56 @@ function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
     if (v < dataMin) dataMin = v
     if (v > dataMax) dataMax = v
   }
-  const lo = finite(options.min) ?? dataMin
-  const hi = Math.max(finite(options.max) ?? dataMax, lo)
+  let lo = finite(options.min) ?? dataMin
+  let hi = Math.max(finite(options.max) ?? dataMax, lo)
+  // A color scale instead of one hue: `levels` steps through its colors.
+  const diverging = options.colors === 'diverging'
+  const stops = diverging
+    ? DIVERGING
+    : Array.isArray(options.colors) && options.colors.length >= 2
+      ? (options.colors as readonly string[])
+      : undefined
+  const mid = finite(options.mid) ?? (diverging ? 0 : null)
+  if (diverging && mid !== null) {
+    // The ends are equally far from the middle, so both hues mean the same distance.
+    const reach = Math.max(hi - mid, mid - lo)
+    if (finite(options.min) === null) lo = mid - reach
+    if (finite(options.max) === null) hi = mid + reach
+  }
+  /** Position of a value on the scale, 0…1 (through `mid` when it lies inside). */
+  const position = (v: number) => {
+    const t =
+      stops && mid !== null && lo < mid && mid < hi
+        ? v <= mid
+          ? ((v - lo) / (mid - lo)) * 0.5
+          : 0.5 + ((v - mid) / (hi - mid)) * 0.5
+        : hi > lo
+          ? (v - lo) / (hi - lo)
+          : v > lo
+            ? 1
+            : 0
+    return Math.min(1, Math.max(0, t))
+  }
   const level = (v: number) =>
-    v <= lo ? 0 : hi > lo ? Math.min(levels, Math.ceil(((v - lo) / (hi - lo)) * levels)) : levels
-  const shade = (step: number) => `--tc-heat:${round((step / levels) * 100)}%`
+    stops
+      ? Math.round(position(v) * levels)
+      : v <= lo
+        ? 0
+        : Math.min(levels, Math.ceil(position(v) * levels) || levels)
+  const shade = (step: number): StyleValue => {
+    if (!stops) return `--tc-heat:${round((step / levels) * 100)}%`
+    const at = (step / levels) * (stops.length - 1)
+    const k = Math.min(stops.length - 2, Math.floor(at))
+    const u = round((at - k) * 100)
+    return {
+      '--tc-cell-fill':
+        u <= 0
+          ? stops[k]
+          : u >= 100
+            ? stops[k + 1]
+            : `color-mix(in oklab,${stops[k + 1]} ${u}%,${stops[k]})`,
+    }
+  }
 
   // Margins: weekday names on the left, months on top, the scale below.
   const pad = insets(options.padding, 0)
@@ -271,8 +329,8 @@ function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
   const showY = options.y?.show !== false && count > 0
   const scale = options.scale !== false && count > 0
   const scaleText = typeof options.scale === 'object' ? options.scale : {}
-  const low = scaleText.low ?? 'Less'
-  const high = scaleText.high ?? 'More'
+  const low = scaleText.low ?? (stops ? value(lo) : 'Less')
+  const high = scaleText.high ?? (stops ? value(hi) : 'More')
   // Day 3 (4 January 1970) was a Sunday: the row's weekday, on a date of that weekday.
   const rowLabels = Array.from({ length: 7 }, (_, r) => dayName(dateOf(3 + ((weekStart + r) % 7))))
   const left = showY
@@ -542,7 +600,8 @@ function calendarTable(options: CalendarOptions, ctx: RenderContext, limit: numb
  * Calendar: a contribution-style heatmap of days, one column per week and
  * one row per weekday, shaded in `levels` steps of one hue by the day's
  * value (`--tc-heat-color`), with month and weekday names and a low-to-high
- * scale. Several series add up per day and the legend filters them.
+ * scale; `colors` shades through a scale of colors instead, `'diverging'`
+ * for values with a sign. Several series add up per day and the legend filters them.
  *
  * ```ts
  * new Chart('#el', {

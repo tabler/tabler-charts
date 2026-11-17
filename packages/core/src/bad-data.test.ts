@@ -319,7 +319,7 @@ test('numeric options that are not finite count as left out', () => {
     [
       calendar,
       [{ date: '2026-01-05', value: 1 }],
-      ['min', 'max', 'gap', 'radius', 'levels', 'weeks', 'weekStart', 'from', 'to'],
+      ['min', 'max', 'mid', 'gap', 'radius', 'levels', 'weeks', 'weekStart', 'from', 'to'],
     ],
     [pie, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle', 'maxSlices']],
     [donut, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],

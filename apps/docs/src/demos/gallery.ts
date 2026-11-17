@@ -504,6 +504,24 @@ const ITEMS: Item[] = [
     style: { '--tc-heat-color': '#2fb344' },
     span: 2,
   })),
+  seeded('Daily net change', () => ({
+    title: 'Daily net change',
+    note: "Calendar with colors: 'diverging': sign-ups minus cancellations per day, blue below zero and red above it, the two ends equally far from the neutral middle.",
+    config: {
+      type: calendar,
+      ...common,
+      aspectRatio: undefined,
+      utc: true,
+      colors: 'diverging',
+      format: { signDisplay: 'exceptZero' },
+      data: Array.from({ length: 52 * 7 }, (_, i) => ({
+        date: Date.UTC(2026, 0, 5 + i),
+        // A slow season on top of daily noise: losses in spring, gains in autumn.
+        value: Math.round((rnd() - 0.5) * 14 - Math.cos((i / 364) * Math.PI * 2 - 1) * 8),
+      })),
+    },
+    span: 2,
+  })),
   seeded('Uptime SLA', () => ({
     title: 'Uptime SLA',
     note: 'Ranges: each band of values in its own color, named in the legend and the tooltip.',

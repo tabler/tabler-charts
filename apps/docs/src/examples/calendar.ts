@@ -29,5 +29,6 @@ new Chart('#chart', {
   weeks: 53,
   // Shades between empty and the full color (--tc-heat-color).
   levels: 4,
+  // colors: 'diverging', // two hues around zero, for values with a sign
   locale: 'en-US',
 })

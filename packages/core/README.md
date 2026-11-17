@@ -90,7 +90,7 @@ A feature you use but did not import throws an error that names the import.
 | `percentageBar` | `[{ name, value }]` | `order: 'data' \| 'size'`, `maxSlices` (the rest is grouped into `othersLabel`), `gap`, `radius`, `format`; a strip 16 px tall unless `height` is set |
 | `scatter` | `{ series: [{ name, points: [{ x, y, size? }] }] }` | `radius`, `size` (bubble radii); points with `size` are bubbles |
 | `heatmap` | `{ labels, series }` (rows) | `min`, `max`, `ranges`, `colors` + `mid` (scales), `colorBy: 'series'` |
-| `calendar` | `[{ date, value }]`, or `{ series }` of them (added up per day) | `weeks`, `from`, `to` (more than a year is split into bands of twelve months), `weekStart`, `levels`, `min`, `max`, `scale`, `dateFormat`; the height follows the range unless `aspectRatio` or `height` is set |
+| `calendar` | `[{ date, value }]`, or `{ series }` of them (added up per day) | `weeks`, `from`, `to` (more than a year is split into bands of twelve months), `weekStart`, `levels`, `min`, `max`, `colors` + `mid` (a scale of colors, `'diverging'` around zero), `scale`, `dateFormat`; the height follows the range unless `aspectRatio` or `height` is set |
 | `candlestick` | `[{ x, open, high, low, close }]` | time axes, `maxCandleWidth` |
 | `sparkline` | `number[]` | `variant` (`'line'`, `'area'`, `'bar'`, `'tristate'`), `point`, `markers: 'minmax'` |
 

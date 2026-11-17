@@ -151,6 +151,7 @@ function randomConfig(): ChartConfig<object> {
       utc: maybe(0.5, true),
       weekStart: maybe(0.3, 0),
       levels: maybe(0.2, pick([1, 2, 9])),
+      colors: maybe(0.2, pick(['diverging', ['#fff', '#000']])),
       max: maybe(0.2, pick([0, 10])),
     } as ChartConfig<object>
   }

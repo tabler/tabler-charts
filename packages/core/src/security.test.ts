@@ -76,6 +76,14 @@ const cases: [string, Record<string, unknown>][] = [
     },
   ],
   [
+    'calendar scale',
+    {
+      type: calendar,
+      data: [{ date: '2026-01-05', value: 1 }],
+      colors: [EVIL, 'blue'],
+    },
+  ],
+  [
     'heatmap ranges',
     {
       type: heatmap,
