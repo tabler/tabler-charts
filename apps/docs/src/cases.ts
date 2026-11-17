@@ -13,6 +13,7 @@ import {
   Chart,
   type ChartConfig,
   type ChartType,
+  calendar,
   candlestick,
   donut,
   gauge,
@@ -263,6 +264,24 @@ const groups: [string, () => Case[]][] = [
             })),
           },
         },
+      },
+      {
+        title: 'Calendar, a full year',
+        expect: '53 columns of small cells; month names thinned, weekdays every other.',
+        config: {
+          type: calendar,
+          ...base,
+          utc: true,
+          data: range(365).map((i) => ({
+            date: Date.UTC(2026, 0, 1 + i),
+            value: rnd() < 0.3 ? null : Math.round(rnd() ** 2 * 12),
+          })),
+        },
+      },
+      {
+        title: 'Calendar, one day',
+        expect: 'One cell in its weekday row, a month name, the scale.',
+        config: { type: calendar, ...base, data: [{ date: '2026-10-26', value: 3 }] },
       },
       {
         title: 'Survey, 100% stacked',

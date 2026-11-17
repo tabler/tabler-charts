@@ -63,6 +63,11 @@ export interface Interaction {
   hitIndex(index: number, seriesIndex?: number): Hit | null
   /** Number of categories. */
   count: number
+  /**
+   * Categories fill a grid column by column, this many to a column (the days
+   * of a calendar in weeks): left and right move by a column, up and down by one.
+   */
+  rows?: number
   /** Categories run from the right: the left arrow key goes to the next one. */
   reversed?: boolean
 }
