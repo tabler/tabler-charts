@@ -3,7 +3,7 @@ import type { annotationLayers, annotationValues } from './charts/annotations.ts
 import type { dateLabels } from './charts/dates.ts'
 import type { logDomain, logTicks } from './charts/log-axis.ts'
 import type { patternFills } from './charts/patterns.ts'
-import type { markerPath } from './charts/point-shapes.ts'
+import type { markerClip, markerPath } from './charts/point-shapes.ts'
 import type { timeAxis } from './charts/time-axis.ts'
 import type { downloadChart } from './export-chart.ts'
 import type { Interaction } from './interaction.ts'
@@ -52,6 +52,8 @@ export interface Features {
   post?: PostStep
   /** Point shapes by color slot, behind `shapes`. */
   'point-shapes'?: typeof markerPath
+  /** The same shapes for legend and tooltip swatches, as CSS shapes. */
+  swatch?: typeof markerClip
   /** Saving a chart as a file, behind the `download` menu. */
   export?: typeof downloadChart
 }
@@ -62,6 +64,16 @@ export const features: Features = {}
 export function register(added: Features): void {
   Object.assign(features, added)
 }
+
+/**
+ * Inline style that gives the swatch of a legend or tooltip entry the point
+ * shape of its color slot (the stylesheet applies it when points are drawn).
+ */
+export type SwatchShape = (slot: number) => Record<string, string | number> | undefined
+
+/** The swatch shapes of a chart, if it has point shapes (`shapes`, or `patterns: true`). */
+export const swatchShape = (config: ChartConfig<object>): SwatchShape | undefined =>
+  (config.shapes ?? config.patterns === true) ? features.swatch : undefined
 
 /** A step that finishes rendered chart content, e.g. by adding value labels. */
 export type PostStep = (

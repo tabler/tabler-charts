@@ -3,7 +3,7 @@
  * (color vision deficiency, grayscale print): one shape per color slot,
  * for line, radar and scatter points and the active points of the hover.
  * On with `shapes: true`, and with `patterns: true` unless `shapes` says
- * otherwise. Legend and tooltip swatches take the same shapes in CSS.
+ * otherwise. Legend and tooltip swatches take the same shapes (`markerClip`).
  */
 import type { PostStep } from '../features.ts'
 import { round } from '../layout.ts'
@@ -52,6 +52,22 @@ export function markerPath(slot: number, x: number, y: number, r: number): strin
     d += `${i ? 'L' : 'M'}${round(x + (shape[i] as number) * r)},${round(y + (shape[i + 1] as number) * r)}`
   }
   return `${d}Z`
+}
+
+/**
+ * Inline style for the legend or tooltip swatch of slot `slot`: its marker as
+ * a CSS shape (`--tc-shape`, a `clip-path`) in a box without rounded corners;
+ * `undefined` for the slots that stay a circle.
+ */
+export function markerClip(slot: number): Record<string, string | number> | undefined {
+  if (!SHAPES[slot]?.length) return undefined
+  // In percent of the box: a radius of 35.7% keeps the largest shape (the star) inside.
+  const points = markerPath(slot, 50, 50, 35.7).slice(1, -1).replace(/,/g, '% ').replace(/L/g, '%,')
+  return {
+    // The square is not cut from the swatch's box but set a little into it.
+    '--tc-shape': slot === 1 ? 'inset(10% round 1px)' : `polygon(${points}%)`,
+    '--tc-shape-radius': 0,
+  }
 }
 
 /** The content with the point circles of each series group (`.tc-series-N`) in its slot's shape. */
