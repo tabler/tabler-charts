@@ -86,6 +86,7 @@ A feature you use but did not import throws an error that names the import.
 | `radar` | `{ labels, series }` | `grid: 'polygon' \| 'circle'`, `fill`, `points`, `r` (radial axis), `labelWidth` (long spoke labels wrap at their spaces, by default past a quarter of the width) |
 | `sankey` | `{ nodes?, links: [{ from, to, value }] }` | `nodeWidth`, `nodePadding`, `align: 'justify' \| 'left'`, `format`; nodes with a `color` make the legend |
 | `parliament` | `[{ name, seats }]` | `total` (vacant seats), `rows`, `angle` (`180` for a hemicycle), `innerRadius`, `gap`, `center` |
+| `treemap` | `[{ name, value }]`, or groups `[{ name, children }]` | `gap`, `radius`, `labels` (names and values in the tiles), `format`; `--tc-treemap-opacity` fades the tiles |
 | `scatter` | `{ series: [{ name, points: [{ x, y, size? }] }] }` | `radius`, `size` (bubble radii); points with `size` are bubbles |
 | `heatmap` | `{ labels, series }` (rows) | `min`, `max`, `ranges`, `colors` + `mid` (scales), `colorBy: 'series'` |
 | `candlestick` | `[{ x, open, high, low, close }]` | time axes, `maxCandleWidth` |

@@ -319,6 +319,19 @@
   opacity: 0.25;
 }
 
+/* Treemap tiles in their group's color (--tc-treemap-opacity fades them), gliding
+   to their place as the data changes. */
+.tc-tile {
+  fill: var(--tc-series-color);
+  fill-opacity: var(--tc-treemap-opacity, 1);
+  transition: var(--tc-duration) var(--tc-easing);
+  transition-property: x, y, width, height;
+}
+
+.tc-treemap-value {
+  font-weight: 400;
+}
+
 /* Sankey: nodes in their color, flows as translucent ribbons of their source's. */
 .tc-sankey-node {
   fill: var(--tc-series-color);
@@ -434,7 +447,8 @@
 
 /* Values on the marks (valueLabels): text color with a surface halo, so they
    read over any mark; they glide with the data and fade in when new. */
-.tc-value-label {
+.tc-value-label,
+.tc-treemap-label {
   fill: var(--tc-text-color);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -659,6 +673,7 @@
 .tc-parliament-seats .tc-seat,
 .tc-series-list .tc-point,
 .tc-heatmap-cells,
+.tc-treemap-tiles,
 .tc-candles,
 .tc-tick,
 .tc-grid-line {
@@ -810,8 +825,9 @@
   opacity: 0.35;
 }
 
-/* The hovered cell gets a ring in the text color, visible on any shade. */
-.tc-chart-heatmap .tc-hover-mark {
+/* The hovered cell or tile gets a ring in the text color, visible on any shade. */
+.tc-chart-heatmap .tc-hover-mark,
+.tc-chart-treemap .tc-hover-mark {
   fill: none;
   stroke: var(--tc-text-color);
   stroke-width: 2px;
@@ -1103,7 +1119,8 @@
 }
 
 @media (forced-colors: active) {
-  .tc-value-label {
+  .tc-value-label,
+  .tc-treemap-label {
     fill: CanvasText;
     stroke: Canvas;
   }
