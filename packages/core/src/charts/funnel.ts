@@ -110,6 +110,11 @@ function renderFunnel(options: FunnelOptions, ctx: RenderContext): ChildInput {
 
   const value = formatNumber(options.format, locale)
   const percent = getNumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 })
+  // For columns too narrow for the whole value: "31K" says more than nothing.
+  const short =
+    typeof options.format === 'function'
+      ? value
+      : formatNumber({ ...options.format, notation: 'compact' }, locale)
 
   // Three lines of text above the shapes: name, value, share of the first stage.
   const line = fontSize * 1.3
@@ -219,7 +224,8 @@ function renderFunnel(options: FunnelOptions, ctx: RenderContext): ChildInput {
       const key = keyOf(stage.data)
       const fits = (text: string) => estimateTextWidth(text, fontSize) <= room
       const name = fit(stage.data.name, room, fontSize)
-      const amount = value(stage.value)
+      const whole = value(stage.value)
+      const amount = fits(whole) ? whole : short(stage.value)
       // Nothing to convert from at the top of the funnel.
       const rate = i > 0 ? percent.format(stage.ofFirst) : ''
       return [

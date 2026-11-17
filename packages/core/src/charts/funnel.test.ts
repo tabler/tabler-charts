@@ -133,6 +133,17 @@ describe('funnel', () => {
     expect(name).toMatch(/^A very.*…$/)
   })
 
+  test('a value too wide for its column is written in compact notation', () => {
+    const data = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((name, i) => ({
+      name,
+      value: 1234567 - i * 100000,
+    }))
+    expect(texts(render({ data }), 'tc-funnel-value')[1]).toBe('1.1M')
+    // A function is the caller's own wording: it is left out, not rewritten.
+    const own = render({ data, format: (v: number) => `${v} visits` })
+    expect(texts(own, 'tc-funnel-value')).toEqual([])
+  })
+
   test('formats the values', () => {
     const node = render({ format: { notation: 'compact' }, data: [{ name: 'A', value: 12400 }] })
     expect(texts(node, 'tc-funnel-value')).toEqual(['12K'])
