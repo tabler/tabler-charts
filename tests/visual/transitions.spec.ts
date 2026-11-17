@@ -100,7 +100,7 @@ const STEPS: Step[] = [
 test.skip(({ browserName }) => browserName === 'webkit', 'WebKit morphs paths in JS')
 
 for (const [index, [from, to, a, b]] of STEPS.entries()) {
-  test(`${index + 1}. ${from} → ${to}: ${describe(a, b)}`, async ({ page }) => {
+  test(`${index + 1}. ${from} → ${to}: ${describeChange(a, b)}`, async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => errors.push(error.message))
     await page.goto('/sandbox.html')
@@ -209,7 +209,7 @@ for (const [index, [from, to, a, b]] of STEPS.entries()) {
   })
 }
 
-function describe(a: Record<string, unknown>, b: Record<string, unknown>): string {
+function describeChange(a: Record<string, unknown>, b: Record<string, unknown>): string {
   const state = (o: Record<string, unknown>) => {
     const key = Object.entries(states).find(([, v]) => v === o.data)?.[0]
     const extra = Object.entries(o)

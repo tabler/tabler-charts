@@ -103,6 +103,7 @@ function seatCounts(
     parties.reduce((sum, party) => sum + party.seats, 0),
   )
   const wanted = Math.min(MAX_SEATS, Math.round(options.total ?? 0))
+  // biome-ignore lint/complexity/useMathMinMax: the ternary also turns a NaN `total` into 0, Math.max would not
   return { taken, total: Math.max(taken, wanted > 0 ? wanted : 0) }
 }
 
