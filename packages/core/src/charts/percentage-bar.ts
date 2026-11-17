@@ -61,7 +61,7 @@ type Segment = Grouped<PercentageBarSegment>
 
 /** The segments of the data: nine at most by default, the one for the rest included. */
 const group = (options: PercentageBarOptions): Segment[] =>
-  groupSlices(options.data, options.maxSlices, options.othersLabel, 9)
+  groupSlices(options.data, options.maxSlices, options.othersLabel)
 
 /** The visible segments in their order along the bar, and their sum. */
 function segmentsOf(

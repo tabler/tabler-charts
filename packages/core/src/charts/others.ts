@@ -14,22 +14,22 @@ export interface Grouped<T> {
 /**
  * The slices of the data in its order: every entry, or with more of them
  * than `maxSlices`, the largest ones and one slice for the rest (in the
- * color of the slots past the palette), named by `label`. Zero never groups;
- * a `maxSlices` that is not a count is `fallback`. Hidden entries count here,
- * so hiding one does not pull another out of the rest.
+ * color of the slots past the palette), named by `label`. `maxSlices` is nine
+ * by default (the eight palette colors and the rest) and zero never groups.
+ * Hidden entries count here, so hiding one does not pull another out of the
+ * rest.
  */
 export function groupSlices<T extends Named & { value: number }>(
   data: readonly T[],
   maxSlices: number | undefined,
   label = 'Others',
-  fallback = 0,
 ): Grouped<T>[] {
   const all = data.map((entry, index) => ({
     data: entry,
     index,
     value: Math.max(0, entry.value || 0),
   }))
-  const max = Number.isFinite(maxSlices) && (maxSlices as number) >= 0 ? maxSlices : fallback
+  const max = Number.isFinite(maxSlices) && (maxSlices as number) >= 0 ? maxSlices : 9
   const limit = max ? Math.max(1, Math.round(max)) : Number.POSITIVE_INFINITY
   if (all.length <= limit) return all
   const kept = new Set(

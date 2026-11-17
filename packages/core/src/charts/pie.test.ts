@@ -209,10 +209,12 @@ describe('maxSlices', () => {
   const many = [5, 30, 10, 20, 8, 15, 12].map((value, i) => ({ name: `n${i}`, value }))
   const options = { data: many, maxSlices: 4 }
 
-  test('every entry is a slice unless maxSlices is set', () => {
+  test('nine slices at most by default, the rest included; zero never groups', () => {
     expect(findByClass(render({ data: many }), 'tc-series').length).toBe(7)
-    expect(findByClass(render({ data: many, maxSlices: 0 }), 'tc-series').length).toBe(7)
     expect(findByClass(render({ data: many, maxSlices: 7 }), 'tc-series').length).toBe(7)
+    const twelve = Array.from({ length: 12 }, (_, i) => ({ name: `n${i}`, value: i + 1 }))
+    expect(findByClass(render({ data: twelve }), 'tc-series').length).toBe(9)
+    expect(findByClass(render({ data: twelve, maxSlices: 0 }), 'tc-series').length).toBe(12)
   })
 
   test('groups the smallest entries into one last slice in the color of the rest', () => {

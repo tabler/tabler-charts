@@ -34,8 +34,8 @@ export interface PieOptions {
   /**
    * The most slices drawn, the one for the rest included: with more entries
    * than that, the largest `maxSlices - 1` keep a slice of their own and the
-   * others share one, named by `othersLabel`, after them. Not set (or `0`),
-   * every entry is a slice.
+   * others share one, named by `othersLabel`, after them. Defaults to `9`
+   * (the eight palette colors and the rest); `0` never groups.
    */
   maxSlices?: number
   /** Name of the slice that groups the rest. Defaults to `'Others'`. */
