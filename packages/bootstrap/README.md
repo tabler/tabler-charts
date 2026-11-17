@@ -1,13 +1,20 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="../../docs/images/logo-white.svg">
-    <img src="../../docs/images/logo.svg" alt="Tabler Charts" width="280">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/logo-white.svg">
+    <img src="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/logo.svg" alt="Tabler Charts" width="280">
   </picture>
 </p>
 
 # @tabler/charts-bootstrap
 
 [`@tabler/charts`](../core) for Bootstrap 5.3 and Tabler: a theme mapping (CSS and SCSS) and a data API, so charts can be declared in HTML.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image-dark.png">
+    <img src="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image.png" alt="Tabler Charts: charts styled entirely with CSS" width="800">
+  </picture>
+</p>
 
 > 🚧 **Pre-release.** Not on npm yet; the API may still change.
 

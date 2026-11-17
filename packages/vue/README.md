@@ -1,13 +1,20 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="../../docs/images/logo-white.svg">
-    <img src="../../docs/images/logo.svg" alt="Tabler Charts" width="280">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/logo-white.svg">
+    <img src="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/logo.svg" alt="Tabler Charts" width="280">
   </picture>
 </p>
 
 # @tabler/charts-vue
 
 Vue 3 components and a composable for [`@tabler/charts`](../core). Charts render to SVG on the server (Nuxt included), and the browser takes the markup over without re-creating it.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image-dark.png">
+    <img src="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image.png" alt="Tabler Charts: charts styled entirely with CSS" width="800">
+  </picture>
+</p>
 
 > 🚧 **Pre-release.** Not on npm yet; the API may still change.
 
