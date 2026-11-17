@@ -127,6 +127,21 @@ new Chart('#el', { type: bar, data, valueLabels: true })
 
 A chart type of your own gets labels from its hits like the built-in ones. Its `valueLabels` says what its marks are, when not bars or points (`{ marks: 'slice' }` for shares inside slices, `{ marks: 'cell' }` for values in the middle of cells), and where its number format is (`{ format: (options) => options.format }`).
 
+### Right to left
+
+`rtl` mirrors line, area, bar and candlestick charts for right-to-left pages: the value axis on the right, categories from the right, the arrow keys following the screen.
+
+```ts
+// <html dir="rtl">
+new Chart('#sales', {
+  type: bar,
+  rtl: 'auto', // follows the container's direction; `true` mirrors on any page (and in SSR)
+  locale: 'ar-EG',
+  data,
+  // x: { reverse: false }, // keep the categories from the left
+})
+```
+
 ### Synced hover
 
 Charts with the same `sync` group share the hover: the category under the pointer is highlighted in every chart of the group, with its crosshair and tooltip, and they clear together. Categories are matched by label, so the charts need not have the same data; a chart without that label clears. Keyboard highlights stay in their own chart. On the core, add the `sync()` plugin.
