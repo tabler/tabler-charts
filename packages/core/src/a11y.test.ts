@@ -192,6 +192,19 @@ describe('Chart accessibility', () => {
     expect(live()).toContain('Mar')
   })
 
+  test('the legend and the tooltip read right to left in a right-to-left chart', () => {
+    chart = new Chart(el, { ...base, rtl: true } as ChartConfig<object>)
+    key('ArrowLeft')
+    flush()
+    expect(el.querySelector('.tc-legend')?.getAttribute('dir')).toBe('rtl')
+    expect(el.querySelector('.tc-tooltip')?.getAttribute('dir')).toBe('rtl')
+    chart.update({ rtl: false } as Partial<ChartConfig<object>>).render()
+    key('ArrowRight')
+    flush()
+    expect(el.querySelector('.tc-legend')?.getAttribute('dir')).toBe('')
+    expect(el.querySelector('.tc-tooltip')?.getAttribute('dir')).toBe('')
+  })
+
   test('walks series with up and down', () => {
     chart = new Chart(el, { ...base, type: bar } as ChartConfig<object>)
     key('ArrowRight')

@@ -1003,8 +1003,9 @@
 
 /* -- Download menu ---------------------------------------------------------- */
 
-/* A small button in the top right corner; its menu drops down below it.
-   Above the tooltip (which hides while the pointer is here). */
+/* A small button in the top right corner (the left one in a right-to-left
+   chart); its menu drops down below it. Above the tooltip (which hides while
+   the pointer is here). */
 .tc-download {
   position: absolute;
   top: 0;
@@ -1061,6 +1062,12 @@
   border: 1px solid var(--tc-grid-color);
   border-radius: var(--tc-tooltip-radius);
   box-shadow: var(--tc-tooltip-shadow);
+}
+
+.tc-download[dir="rtl"],
+[dir="rtl"] > * > .tc-download-menu {
+  right: auto;
+  left: 0;
 }
 
 .tc-download-item {

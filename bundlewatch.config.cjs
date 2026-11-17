@@ -29,7 +29,7 @@ module.exports = {
     { path: '.size/react-linechart.js', maxSize: '23.5KB' },
     { path: '.size/vue-linechart.js', maxSize: '23.5KB' },
     { path: '.size/bootstrap-data-api.js', maxSize: '40.25KB' },
-    { path: '.size/everything.js', maxSize: '42.5KB' },
+    { path: '.size/everything.js', maxSize: '42.75KB' },
     // Shipped as they are.
     { path: 'packages/core/dist/style.css', maxSize: '4.25KB' },
     { path: 'packages/elements/dist/tabler-charts.min.js', maxSize: '48.25KB' },

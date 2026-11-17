@@ -182,7 +182,8 @@ describe('rtl, sankey', () => {
     // Between the two: the ribbon from Wages (on the right) into Income.
     const between = (wages.x + income.x + income.width) / 2
     const link = rtl.interaction.hitTest(between, wages.y + wages.height / 2)
-    expect(link?.items[0]?.name).toBe('Wages → Income')
+    // The arrow points the way the flow runs on screen.
+    expect(link?.items[0]?.name).toBe('Wages ← Income')
     expect(rtl.interaction.hitTest(between, 2)).toBeNull()
   })
 })

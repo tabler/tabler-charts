@@ -357,7 +357,7 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
     y: n.y,
   })
   const linkItem = (link: Link): HitItem => ({
-    name: `${link.source.data.name} → ${link.target.data.name}`,
+    name: `${link.source.data.name} ${ctx.rtl ? '←' : '→'} ${link.target.data.name}`,
     seriesIndex: link.index,
     color: colorOf(link.source),
     value: link.data.value,

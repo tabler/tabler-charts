@@ -67,18 +67,21 @@ export interface TooltipPlacement {
 /**
  * Place a `width × height` tooltip next to an anchor within `bounds` (from
  * `bounds.x`, `bounds.y`, 0 by default): right of the anchor, or left when it
- * would overflow, vertically centered on the pointer and clamped.
+ * would overflow (the other way round with `rtl`), vertically centered on the
+ * pointer and clamped.
  */
 export function placeTooltip(
   anchor: { x: number; y: number },
   size: { width: number; height: number },
   bounds: { x?: number; y?: number; width: number; height: number },
   offset = 12,
+  rtl = false,
 ): TooltipPlacement {
   const { x: left = 0, y: top = 0 } = bounds
   const fitsRight = anchor.x + offset + size.width <= left + bounds.width
   const fitsLeft = anchor.x - offset - size.width >= left
-  const side = fitsRight || !fitsLeft ? 'right' : 'left'
+  // The side read first, unless only the other one has room.
+  const side = (rtl ? fitsLeft || !fitsRight : fitsLeft && !fitsRight) ? 'left' : 'right'
   const rawX = side === 'right' ? anchor.x + offset : anchor.x - offset - size.width
   const x = Math.max(left, Math.min(rawX, left + bounds.width - size.width))
   const y = Math.max(top, Math.min(anchor.y - size.height / 2, top + bounds.height - size.height))

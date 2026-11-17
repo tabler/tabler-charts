@@ -85,6 +85,8 @@ export function tooltip(): ChartPlugin {
           }
           const options = typeof option === 'object' ? option : undefined
           tip.classList.toggle('tc-tooltip-light', options?.theme === 'light')
+          const { rtl } = chart
+          tip.dir = rtl ? 'rtl' : ''
           render(tip, tooltipContent(hit, options))
 
           // Placed with the tooltips of the other charts of this frame (see placeAll).
@@ -120,6 +122,8 @@ export function tooltip(): ChartPlugin {
                 width: (clip.right - clip.left) / k,
                 height: (clip.bottom - clip.top) / k,
               },
+              12,
+              rtl,
             )
             return () => {
               shown.style.transform = `translate(${place.x}px, ${place.y}px)`

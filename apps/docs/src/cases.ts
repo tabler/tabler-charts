@@ -5,6 +5,7 @@
  * the same on every load.
  */
 import '@tabler/charts/style.css'
+import '@tabler/charts/export'
 import './site.css'
 import {
   area,
@@ -826,6 +827,24 @@ const groups: [string, () => Case[]][] = [
           data: {
             labels: ['القاهرة', 'الإسكندرية', 'الجيزة', 'أسوان'],
             series: [{ name: 'الربح', values: [420, 310, -120, 90] }],
+          },
+        },
+      },
+      {
+        title: 'Right to left on a left-to-right page',
+        expect:
+          'rtl: true on this English page: the legend starts from the right, the download button sits in the left corner, the tooltip opens left of the pointer.',
+        config: {
+          type: line,
+          locale: 'ar-EG',
+          rtl: true,
+          download: true,
+          data: {
+            labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو'],
+            series: [
+              { name: 'المبيعات', values: [1200, 1850, 990, 2400, 2100] },
+              { name: 'التكاليف', values: [800, 1100, 700, 1500, 1350] },
+            ],
           },
         },
       },

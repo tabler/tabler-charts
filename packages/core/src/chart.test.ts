@@ -170,10 +170,12 @@ describe('Chart', () => {
     const chart = new Chart(el, { type: dots, data: [1], width: 100, height: 50, rtl: 'auto' })
     expect(rtl()).toBe(false)
     expect(renders.at(-1)?.rtl).toBe(false)
+    expect(chart.rtl).toBe(false)
     el.style.direction = 'rtl'
     chart.update({ rtl: 'auto' }).render()
     expect(rtl()).toBe(true)
     expect(renders.at(-1)?.rtl).toBe(true)
+    expect(chart.rtl).toBe(true)
     chart.update({ rtl: false }).render()
     expect(rtl()).toBe(false)
     chart.update({ rtl: true }).render()

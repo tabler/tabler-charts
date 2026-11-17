@@ -94,6 +94,7 @@ export interface BaseOptions {
    * Mirror the layout for right-to-left pages: the value axis on the right
    * and categories running from the right (`x.reverse` overrides the latter).
    * `'auto'` follows the `direction` of the container (left to right in SSR).
+   * The legend, the tooltip and the download menu read right to left with it.
    * Cartesian charts, heatmaps, sparklines and sankey diagrams. Defaults to `false`.
    */
   rtl?: boolean | 'auto'
@@ -555,6 +556,23 @@ export class Chart<O extends object = object> {
     return resolveSize(this.#cfg, measured)
   }
 
+  /**
+   * Whether the chart is laid out right to left: the `rtl` option, with
+   * `'auto'` read from the container (together with the font size).
+   */
+  get rtl(): boolean {
+    const cfg = this.#cfg
+    if (this.#font === undefined) {
+      this.#rtl =
+        cfg.rtl === 'auto'
+          ? typeof getComputedStyle === 'function' &&
+            getComputedStyle(this.element).direction === 'rtl'
+          : cfg.rtl === true
+      this.#font = cfg.fontSize ?? this.#measureFontSize()
+    }
+    return this.#rtl
+  }
+
   /** Font size used by the last render (explicit, measured, or the default). */
   get fontSize(): number {
     return this.#cache?.fontSize ?? this.#cfg.fontSize ?? DEFAULT_FONT_SIZE
@@ -714,16 +732,8 @@ export class Chart<O extends object = object> {
   ): { content: Content<O>; stale: boolean; changed: boolean } {
     const cfg = this.#cfg
     const hiddenKey = [...hidden].sort().join('\u0000')
-    if (this.#font === undefined) {
-      this.#rtl =
-        cfg.rtl === 'auto'
-          ? typeof getComputedStyle === 'function' &&
-            getComputedStyle(this.element).direction === 'rtl'
-          : cfg.rtl === true
-      this.#font = cfg.fontSize ?? this.#measureFontSize()
-    }
+    const rtl = this.rtl
     const fontSize = cfg.fontSize ?? this.#font
-    const rtl = this.#rtl
 
     let cache = this.#cache
     const changed = !cache || cache.cfg !== cfg || cache.hidden !== hiddenKey
