@@ -17,6 +17,7 @@ export default defineConfig({
     'src/percentage-bar.ts',
     'src/treemap.ts',
     'src/heatmap.ts',
+    'src/calendar.ts',
     'src/candlestick.ts',
     'src/annotations.ts',
     'src/patterns.ts',

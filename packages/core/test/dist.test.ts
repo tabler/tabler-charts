@@ -72,6 +72,7 @@ describe('built package', () => {
     const { gauge } = await import('../dist/gauge.js')
     const { radar } = await import('../dist/radar.js')
     const { heatmap } = await import('../dist/heatmap.js')
+    const { calendar } = await import('../dist/calendar.js')
     const { candlestick } = await import('../dist/candlestick.js')
     const { sparkline } = await import('../dist/sparkline.js')
     for (const type of [line, area, bar])
@@ -89,6 +90,9 @@ describe('built package', () => {
     expect(chartToString({ type: gauge, data: 42 }, size)).toContain('tc-gauge-arc')
     expect(chartToString({ type: radar, data }, size)).toContain('tc-radar-spoke')
     expect(chartToString({ type: heatmap, data }, size)).toContain('tc-cell')
+    expect(
+      chartToString({ type: calendar, data: [{ date: '2026-01-05', value: 2 }] }, size),
+    ).toContain('tc-calendar-cells')
     expect(
       chartToString(
         { type: candlestick, data: [{ x: 'a', open: 1, high: 3, low: 0, close: 2 }] },

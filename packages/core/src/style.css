@@ -691,6 +691,7 @@
 .tc-parliament-seats .tc-seat,
 .tc-series-list .tc-point,
 .tc-heatmap-cells,
+.tc-calendar-cells,
 .tc-treemap-tiles,
 .tc-percentage-bar,
 .tc-candles,
@@ -852,6 +853,7 @@
 
 /* The hovered cell, tile or segment gets a ring in the text color, visible on any shade. */
 .tc-chart-heatmap .tc-hover-mark,
+.tc-chart-calendar .tc-hover-mark,
 .tc-chart-treemap .tc-hover-mark,
 .tc-chart-percentage-bar .tc-hover-mark {
   fill: none;

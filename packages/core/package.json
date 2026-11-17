@@ -205,6 +205,16 @@
         "default": "./dist/candlestick.cjs"
       }
     },
+    "./calendar": {
+      "import": {
+        "types": "./dist/calendar.d.ts",
+        "default": "./dist/calendar.js"
+      },
+      "require": {
+        "types": "./dist/calendar.d.cts",
+        "default": "./dist/calendar.cjs"
+      }
+    },
     "./heatmap": {
       "import": {
         "types": "./dist/heatmap.d.ts",

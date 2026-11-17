@@ -9,6 +9,7 @@ import { type ChartConfig, chartToString } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import './annotations.ts'
 import { bar } from './charts/bar.ts'
+import { calendar } from './charts/calendar.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
@@ -66,6 +67,21 @@ const cases: [string, Record<string, unknown>][] = [
   [
     'scatter series',
     { type: scatter, data: { series: [{ name: 'A', color: EVIL, points: [{ x: 1, y: 2 }] }] } },
+  ],
+  [
+    'calendar series',
+    {
+      type: calendar,
+      data: { series: [{ name: 'A', color: EVIL, values: [{ date: '2026-01-05', value: 1 }] }] },
+    },
+  ],
+  [
+    'calendar scale',
+    {
+      type: calendar,
+      data: [{ date: '2026-01-05', value: 1 }],
+      colors: [EVIL, 'blue'],
+    },
   ],
   [
     'heatmap ranges',

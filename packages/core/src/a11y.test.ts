@@ -4,6 +4,7 @@ import { describeHit, tableContent } from './a11y.ts'
 import type { ChartConfig } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import { bar } from './charts/bar.ts'
+import { calendar } from './charts/calendar.ts'
 import { line } from './charts/line.ts'
 import { sparkline } from './charts/sparkline.ts'
 import { renderToString } from './render/string.ts'
@@ -203,6 +204,29 @@ describe('Chart accessibility', () => {
     flush()
     expect(el.querySelector('.tc-legend')?.getAttribute('dir')).toBe('')
     expect(el.querySelector('.tc-tooltip')?.getAttribute('dir')).toBe('')
+  })
+
+  test('walks a calendar by weeks with left and right, by days with up and down', () => {
+    chart = new Chart(el, {
+      ...base,
+      type: calendar,
+      utc: true,
+      data: [{ date: '2026-10-05', value: 1 }],
+      to: '2026-10-25',
+    } as ChartConfig<object>)
+    key('ArrowRight')
+    expect(live()).toContain('Oct 5, 2026')
+    key('ArrowRight')
+    expect(live()).toContain('Oct 12, 2026')
+    key('ArrowDown')
+    expect(live()).toContain('Oct 13, 2026')
+    key('ArrowUp')
+    key('ArrowLeft')
+    expect(live()).toContain('Oct 5, 2026')
+    key('ArrowUp')
+    expect(live()).toContain('Oct 5, 2026')
+    key('End')
+    expect(live()).toContain('Oct 25, 2026')
   })
 
   test('walks series with up and down', () => {
