@@ -9,6 +9,13 @@
 
 The `<tabler-chart>` Web Component for [`@tabler/charts`](../core). Use it in plain HTML or with any framework (Svelte, Angular, Astro …), in light DOM by default or in a shadow root.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image-dark.png">
+    <img src="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image.png" alt="Tabler Charts: charts styled entirely with CSS" width="800">
+  </picture>
+</p>
+
 > 🚧 **Pre-release.** Not on npm yet; the API may still change.
 
 ```bash

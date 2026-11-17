@@ -9,6 +9,13 @@
 
 Zero-dependency SVG charts styled with CSS: the engine, every chart type, the plugins and the stylesheet.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image-dark.png">
+    <img src="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image.png" alt="Tabler Charts: charts styled entirely with CSS" width="800">
+  </picture>
+</p>
+
 > 🚧 **Pre-release.** Not on npm yet; the API may still change.
 
 ```bash

@@ -9,6 +9,13 @@
 
 React components and a hook for [`@tabler/charts`](../core). Charts render to SVG on the server, and the browser takes the markup over without re-creating it.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image-dark.png">
+    <img src="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/og-image.png" alt="Tabler Charts: charts styled entirely with CSS" width="800">
+  </picture>
+</p>
+
 > 🚧 **Pre-release.** Not on npm yet; the API may still change.
 
 ```bash
