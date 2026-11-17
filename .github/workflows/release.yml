@@ -85,7 +85,8 @@ jobs:
 
       - uses: changesets/action/version@v2
         with:
-          script: pnpm changeset version && pnpm install --lockfile-only
+          # Run without a shell, so the two commands live in one script.
+          script: pnpm changeset:version
           commit-message: "chore: version packages"
           pr-title: "chore: version packages"
 
