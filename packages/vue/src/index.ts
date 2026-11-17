@@ -29,8 +29,10 @@ import {
   type LineOptions,
   line,
   type ParliamentOptions,
+  type PercentageBarOptions,
   type PieOptions,
   parliament,
+  percentageBar,
   pie,
   type RadarOptions,
   radar,
@@ -93,3 +95,5 @@ export const ParliamentChart: ChartComponent<ParliamentOptions> = /* @__PURE__ *
   parliament,
   'ParliamentChart',
 )
+export const PercentageBarChart: ChartComponent<PercentageBarOptions> =
+  /* @__PURE__ */ chartComponent(percentageBar, 'PercentageBarChart')

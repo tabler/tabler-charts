@@ -321,6 +321,17 @@
   opacity: 0.25;
 }
 
+/* Percentage bar: segments in their colors, gliding as the shares change. */
+.tc-segment {
+  fill: var(--tc-series-color);
+  transition: var(--tc-duration) var(--tc-easing);
+  transition-property: x, width;
+}
+
+.tc-percentage-bar-track {
+  fill: var(--tc-grid-color);
+}
+
 /* Sankey: nodes in their color, flows as translucent ribbons of their source's. */
 .tc-sankey-node {
   fill: var(--tc-series-color);
@@ -661,6 +672,7 @@
 .tc-parliament-seats .tc-seat,
 .tc-series-list .tc-point,
 .tc-heatmap-cells,
+.tc-percentage-bar,
 .tc-candles,
 .tc-tick,
 .tc-grid-line {
@@ -812,8 +824,9 @@
   opacity: 0.35;
 }
 
-/* The hovered cell gets a ring in the text color, visible on any shade. */
-.tc-chart-heatmap .tc-hover-mark {
+/* The hovered cell or segment gets a ring in the text color, visible on any shade. */
+.tc-chart-heatmap .tc-hover-mark,
+.tc-chart-percentage-bar .tc-hover-mark {
   fill: none;
   stroke: var(--tc-text-color);
   stroke-width: 2px;

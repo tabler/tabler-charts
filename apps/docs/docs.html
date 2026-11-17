@@ -151,7 +151,7 @@ const chart = new Chart('#sales', {
             understands are type-checked with it.
           </p>
           <pre><code>import { area, bar, calendar, candlestick, donut, gauge, heatmap,
-         line, parliament, pie, radar, sankey, scatter, sparkline } from '@tabler/charts'</code></pre>
+         line, parliament, percentageBar, pie, radar, sankey, scatter, sparkline } from '@tabler/charts'</code></pre>
           <div class="docs-table">
             <table>
               <thead><tr><th>Type</th><th>Data</th><th>Notable options</th></tr></thead>
@@ -162,6 +162,7 @@ const chart = new Chart('#sales', {
                 <tr><td><code>pie</code>, <code>donut</code></td><td><code>[{ name, value }]</code></td><td><code>innerRadius</code>, <code>gap</code>, <code>cornerRadius</code>, <code>center</code> (text in the middle)</td></tr>
                 <tr><td><code>gauge</code></td><td>a number, or rings</td><td><code>max</code>, <code>startAngle</code>, <code>angle</code> (<code>270</code> for a dial), <code>thickness</code>, <code>center</code></td></tr>
                 <tr><td><code>parliament</code></td><td><code>[{ name, seats }]</code></td><td><code>total</code> (vacant seats), <code>rows</code>, <code>angle</code> (<code>180</code> for a hemicycle), <code>innerRadius</code>, <code>center</code></td></tr>
+                <tr><td><code>percentageBar</code></td><td><code>[{ name, value }]</code></td><td><code>order: 'data' | 'size'</code>, <code>gap</code>, <code>radius</code>, <code>format</code>; a strip 16 px tall unless <code>height</code> is set</td></tr>
                 <tr><td><code>radar</code></td><td><code>{ labels, series }</code></td><td><code>grid: 'polygon' | 'circle'</code>, <code>fill</code>, <code>points</code></td></tr>
                 <tr><td><code>scatter</code></td><td><code>{ series: [{ name, points }] }</code></td><td><code>radius</code>, <code>size</code>; points with <code>size</code> are bubbles</td></tr>
                 <tr><td><code>heatmap</code></td><td><code>{ labels, series }</code> (rows)</td><td><code>min</code>, <code>max</code>, <code>ranges</code>, <code>colors</code></td></tr>
