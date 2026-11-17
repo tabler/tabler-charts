@@ -9,6 +9,13 @@
 
 Zero-dependency charts that render plain SVG and are styled entirely with CSS.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/og-image-dark.png">
+    <img src="docs/images/og-image.png" alt="Tabler Charts: charts styled entirely with CSS" width="800">
+  </picture>
+</p>
+
 > 🚧 **Pre-release.** The packages are not on npm yet and the API may still change.
 
 ```js
