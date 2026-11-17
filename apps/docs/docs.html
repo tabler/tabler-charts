@@ -151,7 +151,7 @@ const chart = new Chart('#sales', {
             understands are type-checked with it.
           </p>
           <pre><code>import { area, bar, calendar, candlestick, donut, gauge, heatmap,
-         line, parliament, pie, radar, sankey, scatter, sparkline, treemap } from '@tabler/charts'</code></pre>
+         line, parliament, percentageBar, pie, radar, sankey, scatter, sparkline, treemap } from '@tabler/charts'</code></pre>
           <div class="docs-table">
             <table>
               <thead><tr><th>Type</th><th>Data</th><th>Notable options</th></tr></thead>
@@ -159,10 +159,11 @@ const chart = new Chart('#sales', {
                 <tr><td><code>line</code></td><td><code>{ labels, series }</code></td><td><code>curve</code> (<code>'monotone'</code>, <code>'linear'</code>, <code>'step'</code>), <code>points</code> (<code>'none'</code>, <code>'last'</code>, <code>'all'</code>), <code>stacked</code>, <code>connectNulls</code></td></tr>
                 <tr><td><code>area</code></td><td><code>{ labels, series }</code></td><td>as <code>line</code>, filled; <code>fill: 'gradient' | 'solid'</code></td></tr>
                 <tr><td><code>bar</code></td><td><code>{ labels, series }</code></td><td><code>stacked</code> (<code>true</code> or <code>'percent'</code>), <code>orientation: 'horizontal'</code>, <code>radius</code>, <code>gap</code>; <code>series[].type: 'line'</code> mixes in a line</td></tr>
-                <tr><td><code>pie</code>, <code>donut</code></td><td><code>[{ name, value }]</code></td><td><code>innerRadius</code>, <code>gap</code>, <code>cornerRadius</code>, <code>center</code> (text in the middle)</td></tr>
+                <tr><td><code>pie</code>, <code>donut</code></td><td><code>[{ name, value }]</code></td><td><code>innerRadius</code>, <code>gap</code>, <code>cornerRadius</code>, <code>center</code> (text in the middle), <code>maxSlices</code> (the rest is grouped into <code>othersLabel</code>)</td></tr>
                 <tr><td><code>gauge</code></td><td>a number, or rings</td><td><code>max</code>, <code>startAngle</code>, <code>angle</code> (<code>270</code> for a dial), <code>thickness</code>, <code>center</code></td></tr>
                 <tr><td><code>parliament</code></td><td><code>[{ name, seats }]</code></td><td><code>total</code> (vacant seats), <code>rows</code>, <code>angle</code> (<code>180</code> for a hemicycle), <code>innerRadius</code>, <code>center</code></td></tr>
                 <tr><td><code>treemap</code></td><td><code>[{ name, value }]</code>, or groups <code>[{ name, children }]</code></td><td><code>gap</code>, <code>radius</code>, <code>labels</code>, <code>format</code>; <code>--tc-treemap-opacity</code> fades the tiles</td></tr>
+                <tr><td><code>percentageBar</code></td><td><code>[{ name, value }]</code></td><td><code>order: 'data' | 'size'</code>, <code>maxSlices</code> (the rest is grouped into <code>othersLabel</code>), <code>gap</code>, <code>radius</code>, <code>format</code>; a strip 16 px tall unless <code>height</code> is set</td></tr>
                 <tr><td><code>radar</code></td><td><code>{ labels, series }</code></td><td><code>grid: 'polygon' | 'circle'</code>, <code>fill</code>, <code>points</code></td></tr>
                 <tr><td><code>scatter</code></td><td><code>{ series: [{ name, points }] }</code></td><td><code>radius</code>, <code>size</code>; points with <code>size</code> are bubbles</td></tr>
                 <tr><td><code>heatmap</code></td><td><code>{ labels, series }</code> (rows)</td><td><code>min</code>, <code>max</code>, <code>ranges</code>, <code>colors</code></td></tr>

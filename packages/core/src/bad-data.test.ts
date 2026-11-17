@@ -9,6 +9,7 @@ import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
 import { parliament } from './charts/parliament.ts'
+import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
 import { scatter } from './charts/scatter.ts'
@@ -127,6 +128,11 @@ const TYPES: [string, ChartType<object>, () => unknown][] = [
             }
       return list(() => node(0))
     },
+  ],
+  [
+    'percentage bar',
+    percentageBar as ChartType<object>,
+    () => list(() => (chance(0.1) ? junk() : { name: text(), value: num(), color: color() })),
   ],
   [
     'scatter',
@@ -288,7 +294,7 @@ test('numeric options that are not finite count as left out', () => {
     [bar, series, ['radius', 'maxBarWidth', 'gap', 'groupPadding']],
     [radar, series, ['pointRadius', 'startAngle']],
     [heatmap, series, ['min', 'max', 'gap', 'radius']],
-    [pie, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],
+    [pie, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle', 'maxSlices']],
     [donut, slices, ['innerRadius', 'gap', 'cornerRadius', 'startAngle']],
     [gauge, slices, ['max', 'startAngle', 'angle', 'thickness', 'gap', 'cornerRadius']],
     [
@@ -297,6 +303,7 @@ test('numeric options that are not finite count as left out', () => {
       ['total', 'rows', 'startAngle', 'angle', 'innerRadius', 'gap'],
     ],
     [treemap, slices, ['gap', 'radius']],
+    [percentageBar, slices, ['gap', 'radius', 'maxSlices']],
     [scatter, { series: [{ name: 'A', points: [{ x: 1, y: 2, size: 3 }] }] }, ['radius']],
     [sparkline, [1, 2, 3], ['pointRadius']],
     [

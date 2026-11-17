@@ -29,8 +29,10 @@ import {
   type LineOptions,
   line,
   type ParliamentOptions,
+  type PercentageBarOptions,
   type PieOptions,
   parliament,
+  percentageBar,
   pie,
   type RadarOptions,
   radar,
@@ -99,3 +101,5 @@ export const TreemapChart: ChartComponent<TreemapOptions> = /* @__PURE__ */ char
   treemap,
   'TreemapChart',
 )
+export const PercentageBarChart: ChartComponent<PercentageBarOptions> =
+  /* @__PURE__ */ chartComponent(percentageBar, 'PercentageBarChart')
