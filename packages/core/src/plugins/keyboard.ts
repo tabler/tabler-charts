@@ -45,6 +45,9 @@ export function keyboard(): ChartPlugin {
       const handle = (key: string): boolean => {
         const interaction = chart.interaction
         if (!interaction || interaction.count === 0) return false
+        // Arrows follow the screen: categories from the right swap them.
+        if (interaction.reversed && /^Arrow(L|R)/.test(key))
+          key = key === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft'
         const current = chart.highlightSource === 'index' ? chart.active : null
         const last = interaction.count - 1
         const index = current?.index

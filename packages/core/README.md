@@ -128,6 +128,21 @@ new Chart('#el', { type: bar, data, valueLabels: true })
 
 A chart type of your own gets labels from its hits like the built-in ones. Its `valueLabels` says what its marks are, when not bars or points (`{ marks: 'slice' }` for shares inside slices, `{ marks: 'cell' }` for values in the middle of cells), and where its number format is (`{ format: (options) => options.format }`).
 
+### Right to left
+
+`rtl` mirrors line, area, bar, candlestick, scatter, heatmap, sparkline and sankey charts for right-to-left pages: the value axis on the right, categories from the right, flows running to the left, the arrow keys following the screen. The legend, the tooltip and the download menu follow the chart: they read right to left (the menu in the left corner) even on a left-to-right page.
+
+```ts
+// <html dir="rtl">
+new Chart('#sales', {
+  type: bar,
+  rtl: 'auto', // follows the container's direction; `true` mirrors on any page (and in SSR)
+  locale: 'ar-EG',
+  data,
+  // x: { reverse: false }, // keep the categories from the left
+})
+```
+
 ### Synced hover
 
 Charts with the same `sync` group share the hover: the category under the pointer is highlighted in every chart of the group, with its crosshair and tooltip, and they clear together. Categories are matched by label, so the charts need not have the same data; a chart without that label clears. Keyboard highlights stay in their own chart. On the core, add the `sync()` plugin.
@@ -151,6 +166,7 @@ An option that is `NaN` or infinite (a `radius`, a `startAngle`, a `width`, a si
 | `aspectRatio` | `2` | |
 | `title`, `description` | | Accessible name and description; without a title the name lists the series ("line chart: Revenue, Costs") |
 | `locale` | runtime default | For `Intl` number and date formatting; set it for SSR |
+| `rtl` | `false` | Mirror cartesian charts, heatmaps, sparklines and sankey diagrams for right-to-left pages: value axis on the right, categories from the right (`x: { reverse: false }` keeps those). Horizontal bars grow to the left. `'auto'` follows the container's `direction` |
 | `fontSize` | `--tc-font-size` | Used to lay out labels; set it for SSR |
 | `id` | generated | Prefix of ids inside the SVG; set it for SSR |
 | `legend` | for 2+ entries | `false`, `true` or `{ position: 'bottom' }` |

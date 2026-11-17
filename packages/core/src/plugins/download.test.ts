@@ -42,6 +42,14 @@ describe('download()', () => {
     expect(el.classList.contains('tc-container')).toBe(false)
   })
 
+  test('marks a right-to-left chart, so the menu takes the left corner', () => {
+    chart = new Chart(el, { ...base, plugins: [download()], download: true, rtl: true })
+    const box = () => el.querySelector('.tc-download')
+    expect(box()?.getAttribute('dir')).toBe('rtl')
+    chart.update({ rtl: false }).render()
+    expect(box()?.getAttribute('dir')).toBe('')
+  })
+
   test('a menu with PNG and SVG, in the positioned container', () => {
     chart = new Chart(el, { ...base, plugins: [download()], download: true })
     expect(el.classList.contains('tc-container')).toBe(true)

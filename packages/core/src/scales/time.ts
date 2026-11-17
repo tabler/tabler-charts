@@ -308,15 +308,18 @@ export function timePointScale(
     indexAt(pixel: number): number {
       // Stamps are sorted, so the nearest position is found by binary search.
       if (positions.length === 0) return -1
+      // (They run down the pixels on a reversed range.)
+      const down = range[1] < range[0]
       let a = 0
       let b = positions.length - 1
       while (a < b) {
         const mid = (a + b) >> 1
-        if ((positions[mid] as number) < pixel) a = mid + 1
+        if ((positions[mid] as number) < pixel !== down) a = mid + 1
         else b = mid
       }
       const prev = a - 1
-      return prev >= 0 && pixel - (positions[prev] as number) < (positions[a] as number) - pixel
+      return prev >= 0 &&
+        Math.abs(pixel - (positions[prev] as number)) < Math.abs((positions[a] as number) - pixel)
         ? prev
         : a
     },

@@ -114,8 +114,10 @@ export const bar: ChartType<BarOptions> = {
     )
     const groupWidth = barWidth * columns + (stacks ? 0 : gap * (columns - 1))
     const offset = (x.bandwidth - groupWidth) / 2
+    // Grouped bars follow the categories: from the right when those are reversed.
+    const slotAt = (slot: number) => (x.range[1] < x.range[0] ? columns - 1 - slot : slot)
     const barLeft = (seriesIndex: number, i: number) =>
-      x.at(i) + offset + (stacks ? 0 : (slots.get(seriesIndex) ?? 0) * (barWidth + gap))
+      x.at(i) + offset + (stacks ? 0 : slotAt(slots.get(seriesIndex) ?? 0) * (barWidth + gap))
 
     /** Data extent of a bar: from zero to the value, or its stacked segment. */
     const segment = (seriesIndex: number, i: number): Segment | null => {
@@ -184,7 +186,7 @@ export const bar: ChartType<BarOptions> = {
           }
           // The bar under the pointer, gaps included, so thin bars are easy to hit.
           const slot = Math.floor((across - (x.at(i) + offset) + gap / 2) / (barWidth + gap))
-          const seriesIndex = order[slot]
+          const seriesIndex = order[slotAt(slot)]
           return seriesIndex !== undefined && segment(seriesIndex, i) ? seriesIndex : undefined
         },
       ),
@@ -200,9 +202,9 @@ export const bar: ChartType<BarOptions> = {
             const seg = segment(index, i)
             if (!seg) return null
             const negative = seg.y1 < seg.y0
-            // Leave a surface-colored gap where this segment sits on another one;
-            // positive values grow toward smaller y, but toward larger x.
-            const away = (negative ? 1 : -1) * (horizontal ? -1 : 1)
+            // Leave a surface-colored gap where this segment sits on another one,
+            // on the side it grows to (in pixels: up, right, or left when mirrored).
+            const away = Math.sign(y(seg.y1) - y(seg.y0))
             const inner = seg.y0 === 0 ? 0 : away * gap
             const rounded = !stacks || (negative ? outer[i]?.down : outer[i]?.up) === index
             const draw = horizontal ? hbarPath : barPath

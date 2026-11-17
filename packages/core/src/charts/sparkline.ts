@@ -69,10 +69,12 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
   const bars = variant === 'bar' || tristate
   const gap = 1
   const slot = count > 0 ? area.width / count : 0
+  // Right to left, the values run from the right: value `i` takes the place of its mirror.
+  const place = (i: number) => (ctx.rtl ? count - 1 - i : i)
   const xAt = (i: number) =>
     bars
-      ? area.x + slot * i + slot / 2
-      : area.x + (count > 1 ? (area.width * i) / (count - 1) : area.width / 2)
+      ? area.x + slot * place(i) + slot / 2
+      : area.x + (count > 1 ? (area.width * place(i)) / (count - 1) : area.width / 2)
   const y = linear(domain, [area.y + area.height, area.y])
   const baseline = y(Math.min(Math.max(0, domain[0]), domain[1]))
   const points: Point[] = values.map((v, i) => (v === null ? null : [xAt(i), y(v)]))
@@ -109,13 +111,14 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
   }
   const interaction: Interaction = {
     count,
+    reversed: ctx.rtl === true,
     hitIndex: (i) => hitFor(i),
     hitTest(px, py) {
       if (count === 0 || py < area.y - overhang || py > area.y + area.height + overhang) return null
       const i = bars
         ? Math.floor((px - area.x) / slot)
         : Math.round(((px - area.x) / Math.max(1, area.width)) * (count - 1))
-      return hitFor(Math.max(0, Math.min(count - 1, i)))
+      return hitFor(place(Math.max(0, Math.min(count - 1, i))))
     },
   }
   ctx.onHitTest(interaction)

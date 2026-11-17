@@ -27,6 +27,12 @@ export function insets(value: InsetsInput | undefined, fallback = 0): Insets {
   return { top: side('top'), right: side('right'), bottom: side('bottom'), left: side('left') }
 }
 
+/** Swap the left and right of `sides` in a right-to-left chart. */
+export const mirrorSides = <T extends { left: number; right: number }>(
+  sides: T,
+  rtl: boolean | undefined,
+): T => (rtl ? { ...sides, left: sides.right, right: sides.left } : sides)
+
 /** Rectangle left inside `width × height` after `margins`; never negative. */
 export function innerRect(width: number, height: number, margins: Insets): Rect {
   return {
