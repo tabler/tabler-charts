@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="../../docs/images/logo-white.svg">
-    <img src="../../docs/images/logo.svg" alt="Tabler Charts" width="280">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/logo-white.svg">
+    <img src="https://raw.githubusercontent.com/tabler/tabler-charts/main/docs/images/logo.svg" alt="Tabler Charts" width="280">
   </picture>
 </p>
 
