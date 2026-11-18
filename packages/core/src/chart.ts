@@ -457,6 +457,13 @@ interface Content<O extends object> {
   still: boolean
 }
 
+/** The chart's own svg in its container. */
+const ROOT = ':scope > svg.tc-chart'
+
+/** The computed style of an element, where there is one (not on the server). */
+const computed = (el: Element): CSSStyleDeclaration | undefined =>
+  typeof getComputedStyle === 'function' ? getComputedStyle(el) : undefined
+
 /** The chart on each element. */
 const mounted = /* @__PURE__ */ new WeakMap<Element, Chart<object>>()
 
@@ -530,7 +537,7 @@ export class Chart<O extends object = object> {
     this.element = element
     this.#cfg = cleanData(config)
     this.id = config.id ?? nextId()
-    this.#adopt = element.querySelector(':scope > svg.tc-chart')
+    this.#adopt = element.querySelector(ROOT)
     this.#measure()
     this.#unobserve = observeResize(element, this.#onResize)
     try {
@@ -571,10 +578,7 @@ export class Chart<O extends object = object> {
     const cfg = this.#cfg
     if (this.#font === undefined) {
       this.#rtl =
-        cfg.rtl === 'auto'
-          ? typeof getComputedStyle === 'function' &&
-            getComputedStyle(this.element).direction === 'rtl'
-          : cfg.rtl === true
+        cfg.rtl === 'auto' ? computed(this.element)?.direction === 'rtl' : cfg.rtl === true
       this.#font = cfg.fontSize ?? this.#measureFontSize()
     }
     return this.#rtl
@@ -875,7 +879,7 @@ export class Chart<O extends object = object> {
 
   /** Suspend transitions while the container keeps resizing (see `[data-resizing]` in CSS). */
   #markResizing(): void {
-    const svg = this.element.querySelector(':scope > svg.tc-chart')
+    const svg = this.element.querySelector(ROOT)
     if (!svg) return
     svg.setAttribute('data-resizing', '')
     clearTimeout(this.#resizeTimer)
@@ -888,9 +892,8 @@ export class Chart<O extends object = object> {
 
   /** The `--tc-font-size` in effect on the container, in pixels (browser only). */
   #measureFontSize(): number | undefined {
-    if (typeof getComputedStyle !== 'function') return undefined
     const value = Number.parseFloat(
-      getComputedStyle(this.element).getPropertyValue('--tc-font-size'),
+      computed(this.element)?.getPropertyValue('--tc-font-size') ?? '',
     )
     return Number.isFinite(value) && value > 0 ? value : undefined
   }
@@ -898,7 +901,7 @@ export class Chart<O extends object = object> {
   /** Measure the content box, matching what `ResizeObserver` reports. */
   #measure(): void {
     const el = this.element as HTMLElement
-    const style = typeof getComputedStyle === 'function' ? getComputedStyle(el) : undefined
+    const style = computed(el)
     const px = (value: string | undefined) => Number.parseFloat(value ?? '') || 0
     this.#measured = {
       width: el.clientWidth - px(style?.paddingLeft) - px(style?.paddingRight),
