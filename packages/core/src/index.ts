@@ -11,7 +11,7 @@ import { annotationLayers, annotationValues } from './charts/annotations.ts'
 import { dateLabels } from './charts/dates.ts'
 import { logDomain, logTicks } from './charts/log-axis.ts'
 import { patternFills } from './charts/patterns.ts'
-import { markerPath, shapesStep } from './charts/point-shapes.ts'
+import { markerClip, markerPath, shapesStep } from './charts/point-shapes.ts'
 import { timeAxis } from './charts/time-axis.ts'
 import { labelsStep } from './charts/value-labels.ts'
 import { addPost, register } from './features.ts'
@@ -32,6 +32,7 @@ register({
   annotations: { layers: annotationLayers, values: annotationValues },
   patterns: patternFills,
   'point-shapes': markerPath,
+  swatch: markerClip,
   hydrate,
   morph,
 })

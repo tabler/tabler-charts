@@ -1,3 +1,4 @@
+import { swatchShape } from '../features.ts'
 import type { ChartPlugin } from '../plugin.ts'
 import { render } from '../render/dom.ts'
 import { schedule } from '../scheduler.ts'
@@ -87,7 +88,7 @@ export function tooltip(): ChartPlugin {
           tip.classList.toggle('tc-tooltip-light', options?.theme === 'light')
           const { rtl } = chart
           tip.dir = rtl ? 'rtl' : ''
-          render(tip, tooltipContent(hit, options))
+          render(tip, tooltipContent(hit, options, swatchShape(chart.config)))
 
           // Placed with the tooltips of the other charts of this frame (see placeAll).
           const shown = tip

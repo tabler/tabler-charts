@@ -476,7 +476,8 @@
 /* -- Point shapes ------------------------------------------------------------ */
 
 /* With shapes (or patterns: true) points take the shape of their slot and morph
-   with the data; legend and tooltip swatches take the same shapes. */
+   with the data; legend and tooltip swatches take the same shapes
+   (--tc-shape, a clip-path set on each entry). */
 .tc-marker {
   transition: d var(--tc-duration) var(--tc-easing);
 }
@@ -486,99 +487,9 @@
   height: 10px;
   /* A solid shape: a pattern inside it would be too small to read. */
   background: var(--tc-series-color);
-}
-
-:has(> svg .tc-marker)
-  > :is(.tc-legend, .tc-tooltip)
-  .tc-series-2
-  :is(.tc-legend-swatch, .tc-tooltip-swatch) {
-  border-radius: 1px;
-  scale: 0.8;
-}
-
-:has(> svg .tc-marker)
-  > :is(.tc-legend, .tc-tooltip)
-  .tc-series-3
-  :is(.tc-legend-swatch, .tc-tooltip-swatch) {
-  border-radius: 0;
-  clip-path: polygon(50% 3.6%, 92.9% 82.1%, 7.1% 82.1%);
-}
-
-:has(> svg .tc-marker)
-  > :is(.tc-legend, .tc-tooltip)
-  .tc-series-4
-  :is(.tc-legend-swatch, .tc-tooltip-swatch) {
-  border-radius: 0;
-  clip-path: polygon(50% 3.6%, 96.4% 50%, 50% 96.4%, 3.6% 50%);
-}
-
-:has(> svg .tc-marker)
-  > :is(.tc-legend, .tc-tooltip)
-  .tc-series-5
-  :is(.tc-legend-swatch, .tc-tooltip-swatch) {
-  border-radius: 0;
-  clip-path: polygon(7.1% 17.9%, 92.9% 17.9%, 50% 96.4%);
-}
-
-:has(> svg .tc-marker)
-  > :is(.tc-legend, .tc-tooltip)
-  .tc-series-6
-  :is(.tc-legend-swatch, .tc-tooltip-swatch) {
-  border-radius: 0;
-  clip-path: polygon(
-    35.7% 7.1%,
-    64.3% 7.1%,
-    64.3% 35.7%,
-    92.9% 35.7%,
-    92.9% 64.3%,
-    64.3% 64.3%,
-    64.3% 92.9%,
-    35.7% 92.9%,
-    35.7% 64.3%,
-    7.1% 64.3%,
-    7.1% 35.7%,
-    35.7% 35.7%
-  );
-}
-
-:has(> svg .tc-marker)
-  > :is(.tc-legend, .tc-tooltip)
-  .tc-series-7
-  :is(.tc-legend-swatch, .tc-tooltip-swatch) {
-  border-radius: 0;
-  clip-path: polygon(
-    25% 7.1%,
-    50% 32.1%,
-    75% 7.1%,
-    92.9% 25%,
-    67.9% 50%,
-    92.9% 75%,
-    75% 92.9%,
-    50% 67.9%,
-    25% 92.9%,
-    7.1% 75%,
-    32.1% 50%,
-    7.1% 25%
-  );
-}
-
-:has(> svg .tc-marker)
-  > :is(.tc-legend, .tc-tooltip)
-  .tc-series-8
-  :is(.tc-legend-swatch, .tc-tooltip-swatch) {
-  border-radius: 0;
-  clip-path: polygon(
-    50% 0%,
-    61.4% 34.3%,
-    97.5% 34.6%,
-    68.6% 56.1%,
-    79.3% 90.4%,
-    50% 69.6%,
-    20.7% 90.4%,
-    31.4% 56.1%,
-    2.5% 34.6%,
-    38.6% 34.3%
-  );
+  /* The shape of the entry's slot, set on it with the chart's point shapes. */
+  border-radius: var(--tc-shape-radius, 50%);
+  clip-path: var(--tc-shape, none);
 }
 
 /* -- Patterns --------------------------------------------------------------- */

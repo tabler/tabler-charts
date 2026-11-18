@@ -1,3 +1,4 @@
+import type { SwatchShape } from './features.ts'
 import { h, type VNode } from './vnode.ts'
 
 /** One legend entry: a series (or a slice, for part-to-whole charts). */
@@ -21,8 +22,13 @@ export interface LegendOptions {
 /**
  * Legend content: one toggle button per entry. Buttons are native, so they
  * are focusable and work with Enter/Space; `aria-pressed` reflects visibility.
+ * `shape` gives the swatches the point shapes of their slots.
  */
-export function legendContent(items: readonly LegendItem[], hidden: ReadonlySet<string>): VNode {
+export function legendContent(
+  items: readonly LegendItem[],
+  hidden: ReadonlySet<string>,
+  shape?: SwatchShape,
+): VNode {
   return h(
     'div',
     { class: 'tc-legend-items' },
@@ -39,7 +45,8 @@ export function legendContent(items: readonly LegendItem[], hidden: ReadonlySet<
             `tc-series-${item.index + 1}`,
             off && 'tc-legend-item-hidden',
           ],
-          style: { '--tc-series-color': item.color },
+          // A map, so values from data cannot inject CSS (see normalizeStyle).
+          style: { '--tc-series-color': item.color, ...shape?.(item.index) },
           'aria-pressed': off ? 'false' : 'true',
           'data-key': item.key,
         },

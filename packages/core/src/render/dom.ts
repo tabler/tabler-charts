@@ -59,11 +59,8 @@ export function render(
   return el
 }
 
-function namespaceFor(parent: Element, tag: string): string {
-  if (tag === 'svg') return SVG_NS
-  if (parent.namespaceURI === SVG_NS && parent.localName !== 'foreignObject') return SVG_NS
-  return HTML_NS
-}
+const namespaceFor = (parent: Element, tag: string): string =>
+  tag === 'svg' ? SVG_NS : childNamespace(parent)
 
 export function childNamespace(el: Element): string {
   return el.namespaceURI === SVG_NS && el.localName !== 'foreignObject' ? SVG_NS : HTML_NS
