@@ -175,7 +175,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
     (Math.min(area.width, area.height) / 2) * MIN_RADIUS,
   )
   const shown = wrapped.map((lines, i) => {
-    const sin = Math.sin(angles[i]!)
+    const sin = Math.sin(angles[i] as number)
     const room = side(sin) === 0 ? area.width : area.width / 2 - radius * Math.abs(sin) - LABEL_GAP
     return lines.map((line) => truncate(line, room, fontSize))
   })
@@ -188,8 +188,8 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
 
   /** Point at `r` pixels from the center along spoke `i`. */
   const at = (i: number, r: number): [number, number] => [
-    cx + r * Math.sin(angles[i]!),
-    cy - r * Math.cos(angles[i]!),
+    cx + r * Math.sin(angles[i] as number),
+    cy - r * Math.cos(angles[i] as number),
   ]
   /** A closed path through one radius per spoke (the same commands for any values). */
   const polygon = (radii: readonly number[]) =>
@@ -223,8 +223,8 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
     const [x2, y2] = at(index, radius)
     return {
       index,
-      label: labelKey(labels[index]!),
-      title: texts[index]!,
+      label: labelKey(labels[index] as Label),
+      title: texts[index] as string,
       x: x2,
       area: { x: cx - radius, y: cy - radius, width: radius * 2, height: radius * 2 },
       items,
@@ -305,7 +305,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
     'g',
     { key: 'labels', class: 'tc-radar-labels', 'aria-hidden': 'true' },
     labels.map((label, i) => {
-      const angle = angles[i]!
+      const angle = angles[i] as number
       const s = side(Math.sin(angle))
       const cos = Math.cos(angle)
       const [x, y] = at(i, radius + LABEL_GAP)

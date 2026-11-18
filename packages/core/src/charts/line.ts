@@ -134,7 +134,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   const drawn = (index: number): Point[] => {
     const pts = all[index] as Point[]
     const keep = kept[index]
-    return keep ? keep.map((i) => pts[i]!) : pts
+    return keep ? keep.map((i) => pts[i] as Point) : pts
   }
   /** Area bottom: zero, or the top of the layer below for stacks (downsampled alike). */
   const bottom = (index: number): number | (number | null)[] => {

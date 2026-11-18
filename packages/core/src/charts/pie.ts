@@ -165,7 +165,7 @@ function renderPie(
       let angle = Math.atan2(dx, -dy)
       angle = start + ((((angle - start) % turn) + turn) % turn)
       const position = drawn.findIndex((s) => angle >= s.startAngle && angle < s.endAngle)
-      return position === -1 ? null : hitFor(drawn[position]!, position)
+      return position === -1 ? null : hitFor(drawn[position] as Slice, position)
     },
   }
   ctx.onHitTest(interaction)

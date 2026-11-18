@@ -195,7 +195,7 @@ export function annotationLayers(
           if (x < x0 || x + w > x1) continue
           for (let k = 0; k < 3; k++) spots.push([x, top + k * step])
         }
-        if (!spots.length) spots.push([Math.max(x0 + pad, sides[0]!), top])
+        if (!spots.length) spots.push([Math.max(x0 + pad, sides[0] as number), top])
       } else {
         // At the preferred end above or below, then at the other end.
         const near = end ? x1 - pad - w : x0 + pad
@@ -210,7 +210,7 @@ export function annotationLayers(
       const spot =
         spots.find((s) => clear(box(s), index)) ??
         spots.find((s) => clearOfLabels(box(s))) ??
-        spots[0]!
+        (spots[0] as [number, number])
       placed.push(box(spot))
       label = h(
         'text',

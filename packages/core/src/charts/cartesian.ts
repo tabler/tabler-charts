@@ -421,7 +421,7 @@ export function cartesianLayout(
   const probeY = value.probe
   const countX = Math.max(2, Math.round(width / TICK_SPACING_X))
   const keys = labels.map(labelKey)
-  const labelAt = (i: number) => format(labels[i]!, i)
+  const labelAt = (i: number) => format(labels[i] as Label, i)
   // Time axes (from the time module) place points by date, with calendar ticks.
   const xAxis: CategoryAxis = timed
     ? feature('time').axis(labels, keys, xOptions, countX, locale)
@@ -469,7 +469,7 @@ export function cartesianLayout(
       pad.bottom +
       Math.max(
         // Without an x axis, the lowest value label still needs half a line.
-        showX ? axisSize('bottom', [probeY[0]!], fontSize) : showY ? halfLine : 0,
+        showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : showY ? halfLine : 0,
         overhang,
         EDGE / 2,
       ),
@@ -562,7 +562,7 @@ export function categoryInteraction(
   const hitAt = (index: number): Hit => {
     const start = x.at(index)
     const center = start + x.bandwidth / 2
-    const label = labels[index]!
+    const label = labels[index] as Label
     // Where a missing value is anchored: the category center on its axis.
     const empty = horizontal ? { x: area.x, y: center } : { x: center, y: null }
     const items: HitItem[] = []

@@ -181,7 +181,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   const fy = formatDetail(yOptions.format, locale)
   const fs = formatNumber(undefined, locale)
   const hitFor = (p: Placed, index: number): Hit => {
-    const series = options.data.series[p.seriesIndex]!
+    const series = options.data.series[p.seriesIndex] as ScatterSeries
     const sz = sizeOf(p.point)
     const size = sz === undefined ? '' : ` · ${fs(sz)}`
     const item: HitItem = {
@@ -218,13 +218,13 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
       const reach = HIT_RADIUS + rMax
       while (lo < hi) {
         const mid = (lo + hi) >> 1
-        if (placed[mid]!.cx < px - reach) lo = mid + 1
+        if ((placed[mid] as Placed).cx < px - reach) lo = mid + 1
         else hi = mid
       }
       let best = -1
       let bestDistance = Number.POSITIVE_INFINITY
       for (let i = lo; i < placed.length; i++) {
-        const p = placed[i]!
+        const p = placed[i] as Placed
         if (p.cx > px + reach) break
         const distance = Math.hypot(p.cx - px, p.cy - py) - p.r
         if (distance < bestDistance && distance <= HIT_RADIUS) {
@@ -232,7 +232,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
           bestDistance = distance
         }
       }
-      return best === -1 ? null : hitFor(placed[best]!, best)
+      return best === -1 ? null : hitFor(placed[best] as Placed, best)
     },
   }
   ctx.onHitTest(interaction)

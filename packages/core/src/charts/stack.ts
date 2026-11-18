@@ -46,7 +46,7 @@ export function stackSeries(
     let lastUp: Segment | undefined
     let lastDown: Segment | undefined
     for (let j = 0; j < series.length; j++) {
-      const s = series[j]!
+      const s = series[j] as Series
       if (!visible[j]) continue
       const raw = s.values[i]
       const valid = raw != null

@@ -60,7 +60,7 @@ export function patternDefs(items: readonly LegendItem[], id: string): VNode[] {
           style: { '--tc-series-color': item.color },
         },
         h('rect', { class: 'tc-pattern-bg', width: 8, height: 8 }),
-        h('path', { class: 'tc-pattern-ink', d: TILES[item.index % SLOTS]! }),
+        h('path', { class: 'tc-pattern-ink', d: TILES[item.index % SLOTS] as string }),
       ),
     )
   }

@@ -35,7 +35,7 @@
       "style": {
         "useImportType": "error",
         "useExportType": "error",
-        "noNonNullAssertion": "off",
+        "noNonNullAssertion": "warn",
         "noDescendingSpecificity": "off"
       },
       "correctness": {

@@ -149,7 +149,7 @@ export const candlestick: ChartType<CandlestickOptions> = {
       return h(
         'g',
         {
-          key: labelKey(labels[i]!),
+          key: labelKey(labels[i] as Label),
           class: ['tc-candle', up(c) ? 'tc-candle-up' : 'tc-candle-down'],
         },
         h('path', {

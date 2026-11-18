@@ -172,15 +172,15 @@ function calendar(utc: boolean) {
 function chooseInterval(span: number, count: number): Interval {
   const target = Math.abs(span) / Math.max(1, count)
   let i = 0
-  while (i < INTERVALS.length && INTERVALS[i]!.ms < target) i++
+  while (i < INTERVALS.length && (INTERVALS[i] as Interval).ms < target) i++
   if (i === INTERVALS.length) {
     // Beyond one year: multiples of years.
     const years = Math.max(1, tickStep(0, target / YEAR, 1))
     return { unit: 'year', step: years, ms: years * YEAR }
   }
-  if (i === 0) return INTERVALS[0]!
-  const lo = INTERVALS[i - 1]!
-  const hi = INTERVALS[i]!
+  if (i === 0) return INTERVALS[0] as Interval
+  const lo = INTERVALS[i - 1] as Interval
+  const hi = INTERVALS[i] as Interval
   return target / lo.ms < hi.ms / target ? lo : hi
 }
 
@@ -314,11 +314,12 @@ export function timePointScale(
       let b = positions.length - 1
       while (a < b) {
         const mid = (a + b) >> 1
-        if (positions[mid]! < pixel !== down) a = mid + 1
+        if ((positions[mid] as number) < pixel !== down) a = mid + 1
         else b = mid
       }
       const prev = a - 1
-      return prev >= 0 && Math.abs(pixel - positions[prev]!) < Math.abs(positions[a]! - pixel)
+      return prev >= 0 &&
+        Math.abs(pixel - (positions[prev] as number)) < Math.abs((positions[a] as number) - pixel)
         ? prev
         : a
     },

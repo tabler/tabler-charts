@@ -109,7 +109,7 @@ function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext):
   const value = formatNumber(options.format, locale)
   const share = getNumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 })
   const hitFor = (position: number): Hit => {
-    const segment = drawn[position]!
+    const segment = drawn[position] as Segment
     const box = boxes[position] as (typeof boxes)[number]
     const x = box.x + box.width / 2
     const item: HitItem = {

@@ -155,12 +155,12 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
       const at = position(v) * (stops.length - 1)
       const k = Math.min(stops.length - 2, Math.floor(at))
       const u = round((at - k) * 100)
-      const from = stops[k]!
+      const from = stops[k] as string
       const color =
         u <= 0
           ? from
           : u >= 100
-            ? stops[k + 1]!
+            ? (stops[k + 1] as string)
             : `color-mix(in oklab,${stops[k + 1]} ${u}%,${from})`
       return { style: { '--tc-cell-fill': color }, color }
     }
@@ -183,7 +183,10 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
   // The last column label is centered on its column: what is wider than half a
   // column needs room on the right.
   const lastLabel = showX
-    ? estimateTextWidth(formatLabel(labels[labels.length - 1]!, labels.length - 1), fontSize)
+    ? estimateTextWidth(
+        formatLabel(labels[labels.length - 1] as Label, labels.length - 1),
+        fontSize,
+      )
     : 0
   const halfColumn = (width - pad.left - pad.right - left) / Math.max(1, labels.length) / 2
   const area = innerRect(
@@ -238,8 +241,8 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
     })
     return {
       index: i,
-      label: labelKey(labels[i]!),
-      title: formatLabel(labels[i]!, i),
+      label: labelKey(labels[i] as Label),
+      title: formatLabel(labels[i] as Label, i),
       x: cellX(i) + cellW / 2,
       area,
       items,
@@ -298,7 +301,7 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
 
   const xTicks = showX
     ? thinTicks(
-        bandTicks(x, (_, i) => formatLabel(labels[i]!, i)),
+        bandTicks(x, (_, i) => formatLabel(labels[i] as Label, i)),
         'bottom',
         fontSize,
       )

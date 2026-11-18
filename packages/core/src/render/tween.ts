@@ -33,7 +33,7 @@ export function tween(
     const t = Math.min(1, Math.max(0, (time - begin) / duration))
     // Ease out, close to the default --tc-easing (a custom easing is approximated).
     const k = 1 - (1 - t) ** 3
-    state.now = end.map((value, i) => origin[i]! + (value - origin[i]!) * k)
+    state.now = end.map((value, i) => (origin[i] as number) + (value - (origin[i] as number)) * k)
     el.setAttribute('d', t < 1 ? draw(state.now) : to)
     if (t < 1) state.frame = requestAnimationFrame(step)
     else running.delete(el)

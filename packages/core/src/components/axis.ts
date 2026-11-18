@@ -61,11 +61,12 @@ export function thinTicks(
     isHorizontal(position) ? estimateTextWidth(tick.label, fontSize) : fontSize * LINE_HEIGHT
   const sizes = ticks.map(size)
   const fitsBetween = (i: number, j: number) =>
-    Math.abs(ticks[j]!.position - ticks[i]!.position) >= (sizes[i]! + sizes[j]!) / 2 + gap
+    Math.abs((ticks[j] as Tick).position - (ticks[i] as Tick).position) >=
+    ((sizes[i] as number) + (sizes[j] as number)) / 2 + gap
 
   const last = ticks.length - 1
   // Start from the step the total label size demands, instead of trying every one.
-  const span = Math.abs(ticks[last]!.position - ticks[0]!.position)
+  const span = Math.abs((ticks[last] as Tick).position - (ticks[0] as Tick).position)
   const total = sizes.reduce((sum, size) => sum + size + gap, 0)
   const first = span > 0 ? Math.max(1, Math.floor(total / span)) : last
   for (let step = first; step <= last; step++) {
@@ -75,13 +76,13 @@ export function thinTicks(
 
     const kept: number[] = []
     for (let i = 0; i <= last; i += step) kept.push(i)
-    const tail = kept[kept.length - 1]!
+    const tail = kept[kept.length - 1] as number
     if (tail !== last) {
       if (fitsBetween(tail, last)) kept.push(last)
-      else if (kept.length > 1 && fitsBetween(kept[kept.length - 2]!, last))
+      else if (kept.length > 1 && fitsBetween(kept[kept.length - 2] as number, last))
         kept[kept.length - 1] = last
     }
-    return kept.map((i) => ticks[i]!)
+    return kept.map((i) => ticks[i] as Tick)
   }
   return ticks.slice(0, 1)
 }
