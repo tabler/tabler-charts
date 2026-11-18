@@ -38,6 +38,13 @@ export interface ScatterPoint {
   size?: number
   /** Name shown in the tooltip and table (e.g. a country). */
   label?: string
+  /**
+   * Picture drawn in place of the dot (a flag, an avatar, a logo): the URL of
+   * an image, cut to a circle with a ring in the series color. Without a
+   * `size` the point is `12` pixels in radius, unless `radius` says otherwise.
+   * Only `http(s)`, `blob:`, `data:image/` and relative URLs are drawn.
+   */
+  image?: string
 }
 
 export interface ScatterSeries {
@@ -62,7 +69,7 @@ export interface ScatterOptions {
   x?: ValueAxisOptions & { reverse?: boolean }
   /** Vertical value axis. */
   y?: ValueAxisOptions
-  /** Radius of points without a size, in pixels. Defaults to `4`. */
+  /** Radius of points without a size, in pixels. Defaults to `4` (`12` for points with an `image`). */
   radius?: number
   /** Radius range for bubbles (points with `size`). Defaults to `{ min: 4, max: 24 }`. */
   size?: { min?: number; max?: number }
@@ -73,6 +80,11 @@ export interface ScatterOptions {
 /** Pointer distance (in pixels, beyond the radius) that still hits a point. */
 const HIT_RADIUS = 24
 const EDGE = 8
+/** Radius of a point with an image and no size, and the width of the ring around its image. */
+const IMAGE_RADIUS = 12
+const IMAGE_RING = 2
+/** URLs an image may come from: relative ones, and these schemes. */
+const IMAGE_URL = /^(?:https?:|blob:|data:image\/|(?![a-z][\w+.-]*:))/i
 
 interface Placed {
   seriesIndex: number
@@ -103,7 +115,16 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
     size != null && size > 0 && maxSize > 0
       ? rMin + (rMax - rMin) * Math.sqrt(size / maxSize)
       : radius
-  const overhang = Math.max(radius, sizes.length ? rMax : 0) + 2
+  /** A point's radius: its bubble's, or the one of a dot or a picture. */
+  const radiusOf = (p: ScatterPoint) =>
+    sizeOf(p) === undefined && p.image ? (options.radius ?? IMAGE_RADIUS) : bubble(sizeOf(p))
+  const pictures = points.some((p) => p.image && sizeOf(p) === undefined)
+  const reach = Math.max(
+    radius,
+    sizes.length ? rMax : 0,
+    pictures ? (options.radius ?? IMAGE_RADIUS) : 0,
+  )
+  const overhang = reach + 2
 
   const countY = tickCount(yOptions, Math.max(2, Math.round(height / 60)))
   const countX = tickCount(xOptions, Math.max(2, Math.round(width / 80)))
@@ -171,7 +192,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
         point,
         cx: x(point.x),
         cy: y(point.y),
-        r: bubble(sizeOf(point)),
+        r: radiusOf(point),
       })
     })
   })
@@ -215,17 +236,17 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
       // Binary search the first point within reach on x, then scan the window.
       let lo = 0
       let hi = placed.length
-      const reach = HIT_RADIUS + rMax
+      const far = HIT_RADIUS + Math.max(rMax, reach)
       while (lo < hi) {
         const mid = (lo + hi) >> 1
-        if ((placed[mid] as Placed).cx < px - reach) lo = mid + 1
+        if ((placed[mid] as Placed).cx < px - far) lo = mid + 1
         else hi = mid
       }
       let best = -1
       let bestDistance = Number.POSITIVE_INFINITY
       for (let i = lo; i < placed.length; i++) {
         const p = placed[i] as Placed
-        if (p.cx > px + reach) break
+        if (p.cx > px + far) break
         const distance = Math.hypot(p.cx - px, p.cy - py) - p.r
         if (distance < bestDistance && distance <= HIT_RADIUS) {
           best = i
@@ -258,6 +279,9 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   // Dots may reach a little past the plot edges; bubbles are cut at them (like
   // Chart.js), as a big one there would cover the axis labels.
   const clip = plotClip(ctx, area, sizes.length ? 0 : overhang)
+  // Bubbles and pictures are elements of their own; the plain dots share a path.
+  const single = (p: ScatterPoint) => sizeOf(p) !== undefined || !!p.image
+  const roundId = `${ctx.id}-round`
   const groups = options.data.series.map(
     (series, seriesIndex) =>
       !ctx.hidden.has(keyOf(series)) &&
@@ -269,26 +293,54 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
         // commands while the point count does, so new data morphs. Bubbles
         // stay circles: each is see-through over the others.
         dotsPath(
-          series.points.filter((p) => usable(p) && sizeOf(p) === undefined),
+          series.points.filter((p) => usable(p) && !single(p)),
           seriesIndex,
         ),
-        series.points.map(
-          (point, i) =>
-            usable(point) &&
-            sizeOf(point) !== undefined &&
-            h('circle', {
-              key: i,
-              class: 'tc-point tc-bubble',
-              cx: round(x(point.x)),
-              cy: round(y(point.y)),
-              r: round(bubble(sizeOf(point))),
+        series.points.map((point, i) => {
+          if (!usable(point) || !single(point)) return null
+          const cx = round(x(point.x))
+          const cy = round(y(point.y))
+          const r = round(radiusOf(point))
+          // The circle stays under a picture: its ring, and what shows when the image fails.
+          const circle = h('circle', {
+            key: i,
+            class: ['tc-point tc-bubble', point.image && 'tc-point-ring'],
+            cx,
+            cy,
+            r,
+          })
+          if (!point.image) return circle
+          const inner = Math.max(r - IMAGE_RING, r / 2)
+          return [
+            circle,
+            h('image', {
+              key: `image-${i}`,
+              class: 'tc-point-image',
+              href: point.image,
+              x: round(cx - inner),
+              y: round(cy - inner),
+              width: round(inner * 2),
+              height: round(inner * 2),
+              preserveAspectRatio: 'xMidYMid slice',
+              'clip-path': `url(#${roundId})`,
             }),
-        ),
+          ]
+        }),
       ),
   )
 
   return [
-    h('defs', null, clip.def),
+    h(
+      'defs',
+      null,
+      clip.def,
+      points.some((p) => p.image) &&
+        h(
+          'clipPath',
+          { id: roundId, clipPathUnits: 'objectBoundingBox' },
+          h('circle', { cx: 0.5, cy: 0.5, r: 0.5 }),
+        ),
+    ),
     background,
     h('g', { key: 'series', class: 'tc-series-list', 'clip-path': clip.url }, groups),
     showY && axis({ position: rtl ? 'right' : 'left', ticks: yTicks, area }),
@@ -328,7 +380,8 @@ function scatterTable(
 
 /**
  * Scatter chart: points on two value axes; give points a `size` for a
- * bubble chart (area-proportional radii).
+ * bubble chart (area-proportional radii), or an `image` to draw a picture
+ * in place of the dot.
  *
  * ```ts
  * new Chart('#el', {
@@ -349,6 +402,10 @@ export const scatter: ChartType<ScatterOptions> = {
         y: finite(p.y),
         size: finite(p.size) ?? undefined,
         label: p.label == null ? undefined : text(p.label),
+        image:
+          typeof p.image === 'string' && IMAGE_URL.test(p.image.trim())
+            ? p.image.trim()
+            : undefined,
       })).filter((p) => p.x !== null && p.y !== null),
     })),
   })),

@@ -28,6 +28,21 @@ type AnyConfig = { type: ChartType<never> } & Record<string, unknown>
 
 import type { Demo } from '../demo.ts'
 
+/** A flag of stripes (side by side when `vertical`) as the URL of an SVG image. */
+function flag(colors: string, vertical = false): string {
+  const stripes = colors.split(' ')
+  const rects = stripes
+    .map((color, i) => {
+      const at = `${(i * 100) / stripes.length}%`
+      const size = `${100 / stripes.length}%`
+      return vertical
+        ? `<rect x="${at}" width="${size}" height="100%" fill="${color}"/>`
+        : `<rect y="${at}" height="${size}" width="100%" fill="${color}"/>`
+    })
+    .join('')
+  return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20">${rects}</svg>`)}`
+}
+
 /** A gallery entry: a config plus how to present it. */
 interface Item {
   title: string
@@ -898,6 +913,69 @@ const ITEMS: Item[] = [
       size: { min: 6, max: 34 },
     },
     span: 2,
+  })),
+  seeded('Flags', () => ({
+    title: 'Flags',
+    note: 'Points with an image: a picture in place of the dot, sized like a bubble.',
+    config: {
+      type: scatter,
+      ...common,
+      data: {
+        series: [
+          {
+            name: 'Countries',
+            points: [
+              { x: 52000, y: 83.2, size: 84, label: 'Germany', image: flag('#000 #d00 #fc0') },
+              {
+                x: 45000,
+                y: 82.5,
+                size: 68,
+                label: 'France',
+                image: flag('#002395 #fff #ed2939', true),
+              },
+              { x: 38000, y: 78.4, size: 38, label: 'Poland', image: flag('#fff #dc143c') },
+              {
+                x: 36000,
+                y: 83.9,
+                size: 59,
+                label: 'Italy',
+                image: flag('#009246 #fff #ce2b37', true),
+              },
+              {
+                x: 58000,
+                y: 82.1,
+                size: 18,
+                label: 'Netherlands',
+                image: flag('#ae1c28 #fff #21468b'),
+              },
+              {
+                x: 29000,
+                y: 76.3,
+                size: 10,
+                label: 'Hungary',
+                image: flag('#ce2939 #fff #477050'),
+              },
+              {
+                x: 47000,
+                y: 79.8,
+                size: 19,
+                label: 'Romania',
+                image: flag('#002b7f #fcd116 #ce1126', true),
+              },
+              { x: 25000, y: 74.6, size: 37, label: 'Ukraine', image: flag('#0057b7 #ffd700') },
+            ],
+          },
+        ],
+      },
+      x: {
+        min: 20000,
+        max: 65000,
+        format: { style: 'currency', currency: 'USD', notation: 'compact' },
+      },
+      y: { min: 72, max: 86, format: (v: number) => `${v} y` },
+      size: { min: 10, max: 26 },
+      legend: false,
+    },
   })),
   seeded('Correlation', () => ({
     title: 'Correlation',

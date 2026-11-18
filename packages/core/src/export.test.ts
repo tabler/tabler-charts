@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { Chart } from './chart-default.ts'
 import { line } from './charts/line.ts'
+import { scatter } from './charts/scatter.ts'
 import { downloadChart, exportSVG } from './export.ts'
 import { flush } from './scheduler.ts'
 
@@ -97,6 +98,20 @@ describe('exportSVG()', () => {
     const swatches = Array.from(svg.querySelectorAll(':scope > g > circle'))
     expect(swatches[1]?.getAttribute('style')).toContain('fill:none')
     expect(parse(exportSVG(chart, { legend: false })).querySelector(':scope > g > text')).toBeNull()
+  })
+
+  test('gives the pictures of points absolute urls', () => {
+    const el = document.createElement('div')
+    document.body.append(el)
+    const chart = new Chart(el, {
+      type: scatter,
+      data: { series: [{ name: 'A', points: [{ x: 1, y: 1, image: 'flags/pl.svg' }] }] },
+      width: 400,
+      height: 200,
+    })
+    flush()
+    const href = parse(exportSVG(chart)).querySelector('image')?.getAttribute('href')
+    expect(href).toBe(new URL('flags/pl.svg', document.baseURI).href)
   })
 
   test('explains a missing chart', () => {

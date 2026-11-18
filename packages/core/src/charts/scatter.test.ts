@@ -234,4 +234,81 @@ describe('scatter', () => {
     // 1000 lookups among 20k points stay well under a frame each.
     expect((performance.now() - start) / 1000).toBeLessThan(1)
   })
+
+  describe('pictures', () => {
+    const flag = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E'
+    const pictured = (points: ScatterOptions['data']['series'][number]['points'], rest = {}) =>
+      render({ data: { series: [{ name: 'Countries', points }] }, ...rest })
+
+    test('a point with an image is a picture over its circle, cut round', () => {
+      const svg = pictured([
+        { x: 1, y: 1, image: flag, label: 'Poland' },
+        { x: 2, y: 2 },
+      ])
+      const [image] = findByClass(svg, 'tc-point-image')
+      const [ring] = findByClass(svg, 'tc-point-ring')
+      expect(image?.tag).toBe('image')
+      expect(image?.attrs.href).toBe(flag)
+      expect(image?.attrs['clip-path']).toBe('url(#s-round)')
+      expect(image?.attrs.preserveAspectRatio).toBe('xMidYMid slice')
+      // 12 pixels in radius, with a ring of 2 around the image.
+      expect(ring?.attrs.r).toBe(12)
+      expect(image?.attrs.width).toBe(20)
+      expect(Number(image?.attrs.x) + 10).toBe(ring?.attrs.cx)
+      expect(
+        chartToString(
+          { ...base, data: { series: [{ name: 'A', points: [{ x: 1, y: 1, image: flag }] }] } },
+          size,
+        ),
+      ).toContain('<clipPath id="')
+      // The other point stays in the shared path of dots.
+      expect(findByClass(svg, 'tc-dots')).toHaveLength(1)
+      expect(findByClass(svg, 'tc-bubble')).toHaveLength(1)
+    })
+
+    test('follows the size of a bubble, or the radius option', () => {
+      const sized = pictured([
+        { x: 1, y: 1, size: 100, image: flag },
+        { x: 2, y: 2, size: 25, image: flag },
+      ])
+      expect(findByClass(sized, 'tc-point-ring').map((c) => c.attrs.r)).toEqual([24, 14])
+      const fixed = pictured([{ x: 1, y: 1, image: flag }], { radius: 20 })
+      expect(findByClass(fixed, 'tc-point-ring')[0]?.attrs.r).toBe(20)
+    })
+
+    test('is hit within its radius', () => {
+      const interaction = interactionOf({
+        data: { series: [{ name: 'Countries', points: [{ x: 1, y: 1, image: flag }] }] },
+      })
+      const hit = interaction.hitIndex(0)
+      expect(hit?.mark?.d).toContain('16')
+    })
+
+    test('draws no image from an unsafe url', () => {
+      for (const image of [
+        'javascript:alert(1)',
+        ' JavaScript:alert(1)',
+        'data:text/html,x',
+        'file:///etc/passwd',
+        7,
+      ]) {
+        const svg = pictured([{ x: 1, y: 1, image: image as string }])
+        expect(findByClass(svg, 'tc-point-image')).toHaveLength(0)
+      }
+      for (const image of [
+        'https://example.com/a.png',
+        '/flags/pl.svg',
+        'flags/pl.svg',
+        'blob:x',
+        flag,
+      ]) {
+        const svg = pictured([{ x: 1, y: 1, image }])
+        expect(findByClass(svg, 'tc-point-image')[0]?.attrs.href).toBe(image)
+      }
+    })
+
+    test('charts without images have no round clip', () => {
+      expect(chartToString(base, size)).not.toContain('-round')
+    })
+  })
 })

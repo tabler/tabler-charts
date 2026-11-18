@@ -181,12 +181,22 @@ function legendLayer(
  * ```
  */
 export function exportSVG(target: ExportTarget, options: ExportOptions = {}): string {
+  return new XMLSerializer().serializeToString(standalone(target, options))
+}
+
+/** The copy of the chart that `exportSVG()` writes out. */
+function standalone(target: ExportTarget, options: ExportOptions): SVGSVGElement {
   const svg = rootOf(target)
   // Read the resting state, not a frame in the middle of an entrance or update.
   for (const animation of svg.getAnimations?.({ subtree: true }) ?? []) animation.finish()
   const copy = svg.cloneNode(true) as SVGSVGElement
   inline(svg, copy)
   const doc = svg.ownerDocument
+  // Pictures keep working outside the page: relative URLs become absolute.
+  for (const image of Array.from(copy.querySelectorAll('image'))) {
+    const href = image.getAttribute('href')
+    if (href) image.setAttribute('href', new URL(href, doc.baseURI).href)
+  }
   const width = Number(svg.getAttribute('width'))
   const height = Number(svg.getAttribute('height'))
   copy.setAttribute('xmlns', SVG_NS)
@@ -235,7 +245,35 @@ export function exportSVG(target: ExportTarget, options: ExportOptions = {}): st
     rect.setAttribute('fill', background)
     copy.insertBefore(rect, copy.querySelector(':scope > title')?.nextSibling ?? copy.firstChild)
   }
-  return new XMLSerializer().serializeToString(copy)
+  return copy
+}
+
+/**
+ * Put the pictures of `copy` into the file itself, as an SVG drawn as an
+ * image loads nothing from outside. One that cannot be read (another origin
+ * without CORS, a missing file) is left out: the circle under it shows.
+ */
+async function embedImages(copy: SVGSVGElement): Promise<void> {
+  await Promise.all(
+    Array.from(copy.querySelectorAll('image'), async (image) => {
+      const href = image.getAttribute('href') ?? ''
+      if (href.startsWith('data:')) return
+      try {
+        const response = await fetch(href)
+        if (!response.ok) throw 0
+        const blob = await response.blob()
+        const url = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(String(reader.result))
+          reader.onerror = reject
+          reader.readAsDataURL(blob)
+        })
+        image.setAttribute('href', url)
+      } catch {
+        image.remove()
+      }
+    }),
+  )
 }
 
 /**
@@ -248,11 +286,13 @@ export function exportSVG(target: ExportTarget, options: ExportOptions = {}): st
  */
 export async function exportImage(target: ExportTarget, options: ImageOptions = {}): Promise<Blob> {
   const { type = 'image/png', scale = 2, quality } = options
-  const markup = exportSVG(target, {
+  const copy = standalone(target, {
     ...options,
     // JPEG has no transparency: without a background it would turn black.
     ...(type === 'image/jpeg' && options.background === false ? { background: '#fff' } : {}),
   })
+  await embedImages(copy)
+  const markup = new XMLSerializer().serializeToString(copy)
   const doc = rootOf(target).ownerDocument
   const image = new Image()
   image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`

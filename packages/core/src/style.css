@@ -402,6 +402,16 @@
   fill-opacity: var(--tc-bubble-opacity);
 }
 
+/* The circle under a picture is its ring, so it is solid. */
+.tc-point-ring {
+  fill-opacity: 1;
+}
+
+/* A picture in place of a point; the circle under it takes the pointer. */
+.tc-point-image {
+  pointer-events: none;
+}
+
 .tc-point {
   fill: var(--tc-series-color);
   stroke: var(--tc-surface);
@@ -690,6 +700,7 @@
 .tc-parliament-seats .tc-series,
 .tc-parliament-seats .tc-seat,
 .tc-series-list .tc-point,
+.tc-series-list .tc-point-image,
 .tc-heatmap-cells,
 .tc-calendar-cells,
 .tc-treemap-tiles,
