@@ -355,7 +355,10 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
     d: `M0,0h${round(nodeWidth)}v${round(n.height)}h${round(-nodeWidth)}Z`,
     x: n.x,
     y: n.y,
+    under: true,
   })
+  // Marks go under the chart: over it, a hovered flow would cover the labels on it.
+  const linkMark = (link: Link) => ({ d: linkPath(link, nodeWidth), x: 0, y: 0, under: true })
   const linkItem = (link: Link): HitItem => ({
     name: `${link.source.data.name} ${ctx.rtl ? '←' : '→'} ${link.target.data.name}`,
     seriesIndex: link.index,
@@ -386,7 +389,7 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
       area: plot,
       items: [own, ...flows],
       seriesIndex: focused ? linkIndex : own.seriesIndex,
-      mark: link ? { d: linkPath(link, nodeWidth), x: 0, y: 0 } : nodeMark(n),
+      mark: link ? linkMark(link) : nodeMark(n),
     }
   }
   const hitLink = (link: Link): Hit => {
@@ -399,7 +402,7 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
       area: plot,
       items: [item],
       seriesIndex: link.index,
-      mark: { d: linkPath(link, nodeWidth), x: 0, y: 0 },
+      mark: linkMark(link),
     }
   }
 

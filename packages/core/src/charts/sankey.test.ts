@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig } from '../chart.ts'
+import { hoverOverlay, hoverUnderlay } from '../components/hover.ts'
 import type { Interaction } from '../interaction.ts'
 import { estimateTextWidth } from '../layout.ts'
 import { findByClass } from '../test-utils.ts'
@@ -200,6 +201,7 @@ describe('sankey', () => {
       d: 'M0,0h12v80h-12Z'.replace('80', String(income.height)),
       x: income.x,
       y: income.y,
+      under: true,
     })
     // Between the first and second column, in the upper ribbon: Wages → Income.
     const wages = nodes[0] as { x: number; y: number; height: number }
@@ -210,6 +212,9 @@ describe('sankey', () => {
     expect(link?.index).toBe(0)
     expect(link?.seriesIndex).toBe(0)
     expect(link?.mark?.d).toMatch(/^M.*C.*L.*C.*Z$/)
+    // Drawn under the chart, so the ribbon never covers the labels lying on it.
+    expect(link && findByClass(hoverOverlay(link), 'tc-hover-mark')).toHaveLength(0)
+    expect(link && findByClass(hoverUnderlay(link), 'tc-hover-mark')).toHaveLength(1)
     // The gap between the columns above every ribbon: nothing.
     expect(interaction.hitTest((wages.x + income.x) / 2, 2)).toBeNull()
   })
