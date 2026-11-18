@@ -1,6 +1,6 @@
 {
   "name": "@tabler/charts-bootstrap",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Bootstrap 5.3 and Tabler theme mapping (CSS and SCSS) and a data API for @tabler/charts.",
   "keywords": [
     "charts",

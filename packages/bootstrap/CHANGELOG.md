@@ -1,5 +1,16 @@
 # @tabler/charts-bootstrap
 
+## 0.3.0
+
+### Patch Changes
+
+- Updated dependencies [0f5373f]
+- Updated dependencies [47d6eb4]
+- Updated dependencies [a07f7dd]
+- Updated dependencies [48178cb]
+- Updated dependencies [2d57d21]
+  - @tabler/charts@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
