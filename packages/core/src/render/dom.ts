@@ -165,7 +165,7 @@ function patchChildren(parent: Element, next: Child[]): void {
   const used = new Set<Node>()
   let cursor = 0
   for (let i = 0; i < next.length; i++) {
-    const child = next[i] as Child
+    const child = next[i]!
     let candidate: Node | undefined
     if (typeof child !== 'string' && child.key !== undefined) {
       candidate = keyed.get(child.key)
@@ -189,7 +189,7 @@ function patchChildren(parent: Element, next: Child[]): void {
   const doc = parent.ownerDocument
   let anchor: Node | null = null
   for (let i = next.length - 1; i >= 0; i--) {
-    const child = next[i] as Child
+    const child = next[i]!
     let node = matched[i]
     if (node) {
       patchNode(node, child)

@@ -463,7 +463,7 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
       'g',
       { key: 'labels', class: 'tc-sankey-labels', 'aria-hidden': 'true' },
       nodes.map((n, i) => {
-        const label = labels[i] as NodeLabel
+        const label = labels[i]!
         if (!label.name && !label.value) return null
         // The label's side is the one of the left-to-right layout: mirrored with it.
         const before = (label.side === 'left') !== (ctx.rtl === true)

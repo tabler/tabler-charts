@@ -108,15 +108,15 @@ function squarify(
     const short = Math.min(w, hgt)
     // Pixels of area per unit of value in what is left of the rectangle.
     const k = (w * hgt) / left
-    const largest = (sorted[i] as Sized).value
+    const largest = sorted[i]!.value
     let sum = 0
     let best = Number.POSITIVE_INFINITY
     let j = i
     for (; j < sorted.length; j++) {
-      const next = sum + (sorted[j] as Sized).value
+      const next = sum + sorted[j]!.value
       // Thickness of the row squared: its worst tile is the largest or the smallest.
       const t2 = ((next * k) / short) ** 2
-      const worst = Math.max(t2 / ((sorted[j] as Sized).value * k), (largest * k) / t2)
+      const worst = Math.max(t2 / (sorted[j]!.value * k), (largest * k) / t2)
       if (worst > best) break
       best = worst
       sum = next
@@ -124,7 +124,7 @@ function squarify(
     const thickness = (sum * k) / short
     let offset = 0
     for (; i < j; i++) {
-      const item = sorted[i] as Sized
+      const item = sorted[i]!
       const length = (item.value * k) / thickness
       if (w >= hgt) place(item, x, y + offset, thickness, length)
       else place(item, x + offset, y, length, thickness)
@@ -277,7 +277,7 @@ function renderTreemap(options: TreemapOptions, ctx: RenderContext): ChildInput 
           py >= tile.y - gap / 2 &&
           py <= tile.y + tile.height + gap / 2,
       )
-      return index < 0 ? null : hitFor(tiles[index] as Tile, index)
+      return index < 0 ? null : hitFor(tiles[index]!, index)
     },
   }
   ctx.onHitTest(interaction)

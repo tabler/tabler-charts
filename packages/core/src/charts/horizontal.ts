@@ -8,7 +8,6 @@ import {
   type CartesianOptions,
   EDGE,
   finishLayout,
-  type Label,
   labelFormatter,
   labelKey,
   resolveLabels,
@@ -78,7 +77,7 @@ export function horizontalLayout(
   const yTicks = thinTicks(value.ticks(y), 'bottom', fontSize)
   const xTicks = showCategories
     ? thinTicks(
-        bandTicks(x, (_: BandKey, i) => format(labels[i] as Label, i)),
+        bandTicks(x, (_: BandKey, i) => format(labels[i]!, i)),
         'left',
         fontSize,
       )

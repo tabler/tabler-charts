@@ -49,7 +49,7 @@ export function markerPath(slot: number, x: number, y: number, r: number): strin
   }
   let d = ''
   for (let i = 0; i < shape.length; i += 2) {
-    d += `${i ? 'L' : 'M'}${round(x + (shape[i] as number) * r)},${round(y + (shape[i + 1] as number) * r)}`
+    d += `${i ? 'L' : 'M'}${round(x + shape[i]! * r)},${round(y + shape[i + 1]! * r)}`
   }
   return `${d}Z`
 }

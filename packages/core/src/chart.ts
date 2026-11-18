@@ -237,7 +237,7 @@ function renderContent<O extends object>(
   )
   const content = config.type.render(config, ctx)
   // Optional features finish the content (point shapes, value labels).
-  return features.post ? features.post(config as ChartConfig<object>, content, found, ctx) : content
+  return features.post ? features.post(config, content, found, ctx) : content
 }
 
 /** Render context for a config and size (also used by plugins such as the data table). */
@@ -389,11 +389,11 @@ export function buildChart<O extends object>(
   id: string = config.id ?? 'tc',
   onHitTest: (interaction: Interaction) => void = () => {},
 ): VNode {
-  assertType(config as ChartConfig<object>)
+  assertType(config)
   config = cleanData(config)
   const hidden = defaultHidden(resolveLegend(config).items)
   const content = renderContent(config, size, id, onHitTest, hidden)
-  const base = config as ChartConfig<object>
+  const base: ChartConfig<object> = config
   return composeChart(base, size, id, isStatic(base, content), content)
 }
 
@@ -432,6 +432,12 @@ export const chartEvents: readonly (keyof ChartEvents)[] = [
 
 type Handler<T> = (event: T) => void
 
+/** The handlers of each event: a `Map` that knows which event its key names. */
+interface Handlers extends Map<keyof ChartEvents, Set<Handler<never>>> {
+  get<K extends keyof ChartEvents>(name: K): Set<Handler<ChartEvents[K]>> | undefined
+  set<K extends keyof ChartEvents>(name: K, handlers: Set<Handler<ChartEvents[K]>>): this
+}
+
 /** Where the current highlight came from. */
 type Source =
   | { kind: 'pointer'; x: number; y: number }
@@ -468,7 +474,7 @@ const mounted = /* @__PURE__ */ new WeakMap<Element, Chart<object>>()
  */
 export class Chart<O extends object = object> {
   /** Element the chart renders into. */
-  readonly element: Element
+  readonly element: HTMLElement
   /** Id prefix used for elements inside the chart. */
   readonly id: string
   #cfg: ChartConfig<O>
@@ -487,7 +493,7 @@ export class Chart<O extends object = object> {
     }
   }
   #measured: Partial<Size> = {}
-  readonly #handlers = new Map<keyof ChartEvents, Set<Handler<never>>>()
+  readonly #handlers = new Map() as Handlers
   #unobserve: () => void
   readonly #plugins: PluginInstance[] = []
   #destroyed = false
@@ -511,15 +517,16 @@ export class Chart<O extends object = object> {
   #rtl = false
 
   constructor(
-    target: Element | string,
+    target: HTMLElement | string,
     config: ChartConfig<O>,
     defaultPlugins: readonly ChartPlugin[] = [],
   ) {
-    const element = typeof target === 'string' ? document.querySelector(target) : target
+    const element =
+      typeof target === 'string' ? document.querySelector<HTMLElement>(target) : target
     if (!element) throw new Error(`@tabler/charts: element "${String(target)}" not found.`)
     // One chart per element: a new one replaces the chart already there.
     mounted.get(element)?.destroy()
-    mounted.set(element, this as unknown as Chart<object>)
+    mounted.set(element, this)
     this.element = element
     this.#cfg = cleanData(config)
     this.id = config.id ?? nextId()
@@ -528,7 +535,7 @@ export class Chart<O extends object = object> {
     this.#unobserve = observeResize(element, this.#onResize)
     try {
       for (const plugin of [...defaultPlugins, ...(config.plugins ?? [])]) {
-        this.#plugins.push(plugin.install(this as unknown as Chart<object>))
+        this.#plugins.push(plugin.install(this))
       }
       this.render()
     } catch (error) {
@@ -699,7 +706,7 @@ export class Chart<O extends object = object> {
     if (this.#destroyed) return this
     cancel(this)
     const cfg = this.#cfg
-    const config = cfg as ChartConfig<object>
+    const config: ChartConfig<object> = cfg
     assertType(config)
     const legend = resolveLegend(cfg)
     const hidden = this.#hiddenSet(legend.items)
@@ -764,7 +771,7 @@ export class Chart<O extends object = object> {
         fontSize,
         rtl,
         content,
-        still: isStatic(cfg as ChartConfig<object>, content),
+        still: isStatic(cfg, content),
       }
       this.#cache = cache
     }
@@ -784,7 +791,7 @@ export class Chart<O extends object = object> {
 
   /** The root svg: the content, with the plugins' hover layers and attributes. */
   #compose(content: Content<O>, size: Size): VNode {
-    const config = this.#cfg as ChartConfig<object>
+    const config: ChartConfig<object> = this.#cfg
     const hit = this.#hit
     const under: ChildInput[] = []
     const over: ChildInput[] = []
@@ -824,9 +831,9 @@ export class Chart<O extends object = object> {
       set = new Set()
       this.#handlers.set(name, set)
     }
-    set.add(handler as Handler<never>)
+    set.add(handler)
     return () => {
-      set.delete(handler as Handler<never>)
+      set.delete(handler)
     }
   }
 
@@ -834,7 +841,7 @@ export class Chart<O extends object = object> {
   destroy(): void {
     if (this.#destroyed) return
     this.#destroyed = true
-    if (mounted.get(this.element) === (this as never)) mounted.delete(this.element)
+    if (mounted.get(this.element) === this) mounted.delete(this.element)
     cancel(this)
     clearTimeout(this.#resizeTimer)
     this.#unobserve()
@@ -890,7 +897,7 @@ export class Chart<O extends object = object> {
 
   /** Measure the content box, matching what `ResizeObserver` reports. */
   #measure(): void {
-    const el = this.element as HTMLElement
+    const el = this.element
     const style = typeof getComputedStyle === 'function' ? getComputedStyle(el) : undefined
     const px = (value: string | undefined) => Number.parseFloat(value ?? '') || 0
     this.#measured = {
@@ -902,6 +909,6 @@ export class Chart<O extends object = object> {
   /** Call the handlers of an event (plugins emit `click`, for instance). */
   emit<K extends keyof ChartEvents>(name: K, event: ChartEvents[K]): void {
     const set = this.#handlers.get(name)
-    if (set) for (const handler of set) (handler as Handler<ChartEvents[K]>)(event)
+    if (set) for (const handler of set) handler(event)
   }
 }

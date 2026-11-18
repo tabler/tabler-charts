@@ -12,7 +12,7 @@ import { defaultPlugins } from './plugins/index.ts'
  * ```
  */
 export class Chart<O extends object = object> extends CoreChart<O> {
-  constructor(target: Element | string, config: ChartConfig<O>) {
+  constructor(target: HTMLElement | string, config: ChartConfig<O>) {
     super(target, config, defaultPlugins())
   }
 }

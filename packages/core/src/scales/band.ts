@@ -56,7 +56,7 @@ export function band(
 
   const index = new Map<BandKey, number>()
   for (let i = 0; i < n; i++) {
-    const key = domain[i] as BandKey
+    const key = domain[i]!
     if (!index.has(key)) index.set(key, i)
   }
 

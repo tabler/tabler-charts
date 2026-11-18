@@ -76,7 +76,7 @@ function emit(path: PathBuilder, input: readonly Pt[], curve: Curve, move: boole
       break
     default:
       for (let i = 1; i < points.length; i++) {
-        const p = points[i] as Pt
+        const p = points[i]!
         path.lineTo(p[0], p[1])
       }
   }
@@ -92,8 +92,8 @@ function dedupe(points: readonly Pt[]): readonly Pt[] {
 
 function step(path: PathBuilder, points: readonly Pt[], t: number): void {
   for (let i = 1; i < points.length; i++) {
-    const [x0, y0] = points[i - 1] as Pt
-    const [x1, y1] = points[i] as Pt
+    const [x0, y0] = points[i - 1]!
+    const [x1, y1] = points[i]!
     if (t <= 0) {
       path.lineTo(x0, y1)
       path.lineTo(x1, y1)
@@ -120,16 +120,16 @@ function monotone(path: PathBuilder, points: readonly Pt[]): void {
   const n = points.length
   if (n < 2) return
   if (n === 2) {
-    const p = points[1] as Pt
+    const p = points[1]!
     path.lineTo(p[0], p[1])
     return
   }
 
   const tangents = new Array<number>(n)
   for (let i = 1; i < n - 1; i++) {
-    const [x0, y0] = points[i - 1] as Pt
-    const [x1, y1] = points[i] as Pt
-    const [x2, y2] = points[i + 1] as Pt
+    const [x0, y0] = points[i - 1]!
+    const [x1, y1] = points[i]!
+    const [x2, y2] = points[i + 1]!
     const h0 = x1 - x0
     const h1 = x2 - x1
     const s0 = (y1 - y0) / (h0 || (h1 < 0 ? -0 : 0))
@@ -138,21 +138,14 @@ function monotone(path: PathBuilder, points: readonly Pt[]): void {
     tangents[i] =
       (sign(s0) + sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p)) || 0
   }
-  tangents[0] = endTangent(points[0] as Pt, points[1] as Pt, tangents[1] as number)
-  tangents[n - 1] = endTangent(points[n - 2] as Pt, points[n - 1] as Pt, tangents[n - 2] as number)
+  tangents[0] = endTangent(points[0]!, points[1]!, tangents[1]!)
+  tangents[n - 1] = endTangent(points[n - 2]!, points[n - 1]!, tangents[n - 2]!)
 
   for (let i = 1; i < n; i++) {
-    const [x0, y0] = points[i - 1] as Pt
-    const [x1, y1] = points[i] as Pt
+    const [x0, y0] = points[i - 1]!
+    const [x1, y1] = points[i]!
     const dx = (x1 - x0) / 3
-    path.curveTo(
-      x0 + dx,
-      y0 + dx * (tangents[i - 1] as number),
-      x1 - dx,
-      y1 - dx * (tangents[i] as number),
-      x1,
-      y1,
-    )
+    path.curveTo(x0 + dx, y0 + dx * tangents[i - 1]!, x1 - dx, y1 - dx * tangents[i]!, x1, y1)
   }
 }
 
@@ -196,7 +189,7 @@ export function linePath(points: readonly Point[], options: PathOptions = {}): s
   for (const run of runs(points)) {
     const drawn = emit(
       path,
-      run.map((i) => points[i] as Pt),
+      run.map((i) => points[i]!),
       curve,
       true,
     )
@@ -223,12 +216,12 @@ export function areaPath(
   for (const run of runs(points, (i) => Number.isFinite(baseAt(i)))) {
     emit(
       path,
-      run.map((i) => points[i] as Pt),
+      run.map((i) => points[i]!),
       curve,
       true,
     )
 
-    const bottom = run.map((i) => [(points[i] as Pt)[0], baseAt(i)] as const).reverse()
+    const bottom = run.map((i) => [points[i]![0], baseAt(i)] as const).reverse()
     // Walking backwards mirrors step curves, so stacked steps line up. A flat
     // baseline takes the same curve (it stays straight) so that the path keeps
     // its commands between flat and stacked, and CSS can morph one into the other.

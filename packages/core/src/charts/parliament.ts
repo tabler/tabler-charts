@@ -114,11 +114,11 @@ function distribute(total: number, radii: readonly number[]): number[] {
   let left = total - counts.reduce((a, n) => a + n, 0)
   // The remainder goes to the rows that lost most in rounding, outer rows first.
   const order = radii
-    .map((r, i) => ({ i, lost: (total * r) / sum - (counts[i] as number) }))
+    .map((r, i) => ({ i, lost: (total * r) / sum - counts[i]! }))
     .sort((a, b) => b.lost - a.lost || b.i - a.i)
   for (const { i } of order) {
     if (left <= 0) break
-    counts[i] = (counts[i] as number) + 1
+    counts[i] = counts[i]! + 1
     left--
   }
   return counts
@@ -160,7 +160,7 @@ function layoutSeats(
   // Seats are as far apart as the tightest row's neighbors, or the rows.
   let spacing = n > 1 ? pitch : Number.POSITIVE_INFINITY
   radii.forEach((r, row) => {
-    const count = counts[row] as number
+    const count = counts[row]!
     const step = count > 1 ? span / (closed ? count : count - 1) : 0
     if (count > 1) spacing = Math.min(spacing, r * step)
     for (let k = 0; k < count; k++) {

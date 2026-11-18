@@ -61,7 +61,7 @@ function shallowEqual(a: object, b: object): boolean {
 
 export interface UseChart<O extends object> {
   /** Callback ref for the element the chart renders into. */
-  ref: (element: Element | null) => void
+  ref: (element: HTMLElement | null) => void
   /** The chart, once the element mounted (`null` before and during SSR). */
   chart: Chart<O> | null
 }
@@ -81,7 +81,7 @@ export function useChart<O extends object>(
   config: ChartConfig<O>,
   events: ChartEventProps = {},
 ): UseChart<O> {
-  const [element, setElement] = useState<Element | null>(null)
+  const [element, setElement] = useState<HTMLElement | null>(null)
   const [chart, setChart] = useState<Chart<O> | null>(null)
   // Latest values for the effects and event handlers, without re-subscribing.
   const latest = useRef({ config, events })

@@ -197,8 +197,8 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
     let max = -1
     values.forEach((v, i) => {
       if (v === null) return
-      if (min === -1 || v < (values[min] as number)) min = i
-      if (max === -1 || v > (values[max] as number)) max = i
+      if (min === -1 || v < values[min]!) min = i
+      if (max === -1 || v > values[max]!) max = i
     })
     if (min !== -1) extremes.push(dotAt(min, 'tc-point-min'))
     if (max !== -1 && max !== min) extremes.push(dotAt(max, 'tc-point-max'))

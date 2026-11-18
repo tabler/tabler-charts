@@ -43,8 +43,7 @@ export function morph(el: Element, from: string, to: string): boolean {
     current?.length === end.length ? current : start,
     end,
     duration,
-    (now) =>
-      now.reduce((d, value, i) => d + round(value) + (text[i + 1] as string), text[0] as string),
+    (now) => now.reduce((d, value, i) => d + round(value) + text[i + 1]!, text[0]!),
     to,
   )
   return true

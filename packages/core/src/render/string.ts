@@ -109,7 +109,7 @@ const ATTR_RE = /[&"<>]/
 const TEXT_RE_G = /[&<>]/g
 const ATTR_RE_G = /[&"<>]/g
 const ENTITIES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }
-const replaceEntity = (char: string): string => ENTITIES[char] as string
+const replaceEntity = (char: string): string => ENTITIES[char]!
 
 /** Escape text content. */
 export function escapeText(value: string): string {

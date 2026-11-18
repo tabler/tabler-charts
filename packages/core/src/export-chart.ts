@@ -111,7 +111,7 @@ function inline(live: Element, copy: Element): boolean {
   const liveChildren = Array.from(live.children)
   const copies = Array.from(copy.children)
   liveChildren.forEach((child, i) => {
-    const twin = copies[i] as Element
+    const twin = copies[i]!
     if (child.classList.contains('tc-hover-layer') || !inline(child, twin)) twin.remove()
   })
   return true
