@@ -1,3 +1,4 @@
+import { swatchShape } from '../features.ts'
 import { legendContent } from '../legend.ts'
 import type { ChartPlugin } from '../plugin.ts'
 import { render } from '../render/dom.ts'
@@ -46,7 +47,7 @@ export function legend(): ChartPlugin {
       }
 
       return {
-        beforeRender({ legend, hidden }) {
+        beforeRender({ config, legend, hidden }) {
           if (!legend.show || typeof document === 'undefined') {
             remove()
             return
@@ -62,7 +63,7 @@ export function legend(): ChartPlugin {
           el.dataset.position = legend.position
           // A right-to-left chart reads right to left, whatever the page around it.
           el.dir = chart.rtl ? 'rtl' : ''
-          render(el, legendContent(legend.items, hidden), adopt)
+          render(el, legendContent(legend.items, hidden, swatchShape(config)), adopt)
           adopt = null
           place()
         },

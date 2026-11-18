@@ -13,75 +13,40 @@ export interface PathOptions {
 
 type Pt = readonly [number, number]
 
-/** Accumulates SVG path commands with rounded coordinates. */
-class PathBuilder {
-  d = ''
-  readonly #k: number
+/** Writes a coordinate pair, rounded to `precision` decimals. */
+type XY = (x: number, y: number) => string
 
-  constructor(precision: number) {
-    this.#k = 10 ** Math.max(0, Math.min(12, Math.floor(precision)))
-  }
-
-  #n(value: number): string {
-    const rounded = Math.round(value * this.#k) / this.#k
-    return String(rounded === 0 ? 0 : rounded)
-  }
-
-  #xy(x: number, y: number): string {
-    return `${this.#n(x)},${this.#n(y)}`
-  }
-
-  moveTo(x: number, y: number): void {
-    this.d += `M${this.#xy(x, y)}`
-  }
-
-  lineTo(x: number, y: number): void {
-    this.d += `L${this.#xy(x, y)}`
-  }
-
-  curveTo(x1: number, y1: number, x2: number, y2: number, x: number, y: number): void {
-    this.d += `C${this.#xy(x1, y1)},${this.#xy(x2, y2)},${this.#xy(x, y)}`
-  }
-
-  close(): void {
-    this.d += 'Z'
-  }
+function pair(precision: number): XY {
+  const k = 10 ** Math.max(0, Math.min(12, Math.floor(precision)))
+  const n = (value: number): number => Math.round(value * k) / k || 0
+  return (x, y) => `${n(x)},${n(y)}`
 }
+
+/** Monotone tangents break on zero-length segments, so coincident points are dropped. */
+const prepare = (input: readonly Pt[], curve: Curve): readonly Pt[] =>
+  curve === 'monotone' ? dedupe(input) : input
 
 /**
- * Emit `points` with a curve. The first point is a `moveTo` when `move` is
- * true, otherwise a `lineTo` (continuing an existing subpath). Returns the
- * number of points drawn.
+ * Path commands through `points` with a curve. The first point is a move
+ * when `move` is true, otherwise a line (continuing an existing subpath).
  */
-function emit(path: PathBuilder, input: readonly Pt[], curve: Curve, move: boolean): number {
-  // Monotone tangents break on zero-length segments, so drop coincident points.
-  const points = curve === 'monotone' ? dedupe(input) : input
+function emit(xy: XY, points: readonly Pt[], curve: Curve, move: boolean): string {
   const first = points[0]
-  if (!first) return 0
-  if (move) path.moveTo(first[0], first[1])
-  else path.lineTo(first[0], first[1])
-
-  switch (curve) {
-    case 'monotone':
-      monotone(path, points)
-      break
-    case 'step':
-      step(path, points, 0.5)
-      break
-    case 'step-before':
-      step(path, points, 0)
-      break
-    case 'step-after':
-      step(path, points, 1)
-      break
-    default:
-      for (let i = 1; i < points.length; i++) {
-        const p = points[i] as Pt
-        path.lineTo(p[0], p[1])
-      }
+  if (!first) return ''
+  const start = (move ? 'M' : 'L') + xy(first[0], first[1])
+  if (curve === 'monotone') return start + monotone(xy, points)
+  const t = STEPS[curve]
+  if (t !== undefined) return start + step(xy, points, t)
+  let d = start
+  for (let i = 1; i < points.length; i++) {
+    const p = points[i] as Pt
+    d += `L${xy(p[0], p[1])}`
   }
-  return points.length
+  return d
 }
+
+/** Where a step curve turns between two points, as a share of the way. */
+const STEPS: Partial<Record<Curve, number>> = { step: 0.5, 'step-before': 0, 'step-after': 1 }
 
 function dedupe(points: readonly Pt[]): readonly Pt[] {
   return points.filter((p, i) => {
@@ -90,24 +55,21 @@ function dedupe(points: readonly Pt[]): readonly Pt[] {
   })
 }
 
-function step(path: PathBuilder, points: readonly Pt[], t: number): void {
+function step(xy: XY, points: readonly Pt[], t: number): string {
+  let d = ''
   for (let i = 1; i < points.length; i++) {
     const [x0, y0] = points[i - 1] as Pt
     const [x1, y1] = points[i] as Pt
-    if (t <= 0) {
-      path.lineTo(x0, y1)
-      path.lineTo(x1, y1)
-    } else if (t >= 1) {
-      path.lineTo(x1, y0)
-      path.lineTo(x1, y1)
-    } else {
+    if (t <= 0) d += `L${xy(x0, y1)}L${xy(x1, y1)}`
+    else if (t >= 1) d += `L${xy(x1, y0)}L${xy(x1, y1)}`
+    else {
       const xm = x0 * (1 - t) + x1 * t
-      path.lineTo(xm, y0)
-      path.lineTo(xm, y1)
+      d += `L${xy(xm, y0)}L${xy(xm, y1)}`
       // The next horizontal run continues from here, so only the last point is needed.
-      if (i === points.length - 1) path.lineTo(x1, y1)
+      if (i === points.length - 1) d += `L${xy(x1, y1)}`
     }
   }
+  return d
 }
 
 const sign = (x: number): number => (x < 0 ? -1 : 1)
@@ -116,13 +78,12 @@ const sign = (x: number): number => (x < 0 ? -1 : 1)
  * Monotone cubic interpolation in x (Steffen, 1990), as in d3's
  * `curveMonotoneX`: smooth, but never overshoots the data.
  */
-function monotone(path: PathBuilder, points: readonly Pt[]): void {
+function monotone(xy: XY, points: readonly Pt[]): string {
   const n = points.length
-  if (n < 2) return
+  if (n < 2) return ''
   if (n === 2) {
     const p = points[1] as Pt
-    path.lineTo(p[0], p[1])
-    return
+    return `L${xy(p[0], p[1])}`
   }
 
   const tangents = new Array<number>(n)
@@ -141,19 +102,17 @@ function monotone(path: PathBuilder, points: readonly Pt[]): void {
   tangents[0] = endTangent(points[0] as Pt, points[1] as Pt, tangents[1] as number)
   tangents[n - 1] = endTangent(points[n - 2] as Pt, points[n - 1] as Pt, tangents[n - 2] as number)
 
+  let d = ''
   for (let i = 1; i < n; i++) {
     const [x0, y0] = points[i - 1] as Pt
     const [x1, y1] = points[i] as Pt
     const dx = (x1 - x0) / 3
-    path.curveTo(
-      x0 + dx,
-      y0 + dx * (tangents[i - 1] as number),
+    d += `C${xy(x0 + dx, y0 + dx * (tangents[i - 1] as number))},${xy(
       x1 - dx,
       y1 - dx * (tangents[i] as number),
-      x1,
-      y1,
-    )
+    )},${xy(x1, y1)}`
   }
+  return d
 }
 
 /** One-sided tangent for the first/last point from the neighbour's tangent. */
@@ -192,17 +151,17 @@ function runs(points: readonly Point[], valid: (i: number) => boolean = () => tr
  */
 export function linePath(points: readonly Point[], options: PathOptions = {}): string {
   const { curve = 'linear', precision = 2 } = options
-  const path = new PathBuilder(precision)
+  const xy = pair(precision)
+  let d = ''
   for (const run of runs(points)) {
-    const drawn = emit(
-      path,
+    const drawn = prepare(
       run.map((i) => points[i] as Pt),
       curve,
-      true,
     )
-    if (drawn === 1) path.close()
+    d += emit(xy, drawn, curve, true)
+    if (drawn.length === 1) d += 'Z'
   }
-  return path.d
+  return d
 }
 
 /**
@@ -216,14 +175,18 @@ export function areaPath(
   options: PathOptions = {},
 ): string {
   const { curve = 'linear', precision = 2 } = options
-  const path = new PathBuilder(precision)
+  const xy = pair(precision)
+  let d = ''
   const baseAt = (i: number): number =>
     typeof baseline === 'number' ? baseline : (baseline[i] ?? Number.NaN)
 
   for (const run of runs(points, (i) => Number.isFinite(baseAt(i)))) {
-    emit(
-      path,
-      run.map((i) => points[i] as Pt),
+    d += emit(
+      xy,
+      prepare(
+        run.map((i) => points[i] as Pt),
+        curve,
+      ),
       curve,
       true,
     )
@@ -234,8 +197,7 @@ export function areaPath(
     // its commands between flat and stacked, and CSS can morph one into the other.
     const back =
       curve === 'step-before' ? 'step-after' : curve === 'step-after' ? 'step-before' : curve
-    emit(path, bottom, back, false)
-    path.close()
+    d += `${emit(xy, prepare(bottom, back), back, false)}Z`
   }
-  return path.d
+  return d
 }

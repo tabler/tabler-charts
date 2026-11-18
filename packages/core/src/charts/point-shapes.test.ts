@@ -7,7 +7,7 @@ import '../patterns.ts'
 import '../point-shapes.ts'
 import { flush } from '../scheduler.ts'
 import { line } from './line.ts'
-import { markerPath } from './point-shapes.ts'
+import { markerClip, markerPath } from './point-shapes.ts'
 import { radar } from './radar.ts'
 import { scatter } from './scatter.ts'
 
@@ -19,6 +19,39 @@ const render = (options: Record<string, unknown>) =>
   chartToString({ id: 's', locale: 'en-US', ...options } as ChartConfig<object>, size)
 
 describe('point shapes', () => {
+  test('swatches take the shapes as CSS shapes, a circle where the slot has none', () => {
+    expect(markerClip(0)).toBeUndefined()
+    expect(markerClip(8)).toBeUndefined()
+    expect(markerClip(1)).toEqual({ '--tc-shape': 'inset(10% round 1px)', '--tc-shape-radius': 0 })
+    expect(markerClip(2)?.['--tc-shape']).toBe('polygon(50% 3.59%,92.84% 82.13%,7.16% 82.13%)')
+    expect(markerClip(3)?.['--tc-shape']).toBe('polygon(50% 3.59%,96.41% 50%,50% 96.41%,3.59% 50%)')
+    // Every shape stays inside the swatch.
+    for (let slot = 2; slot < 8; slot++) {
+      for (const n of String(markerClip(slot)?.['--tc-shape']).match(/[\d.]+(?=%)/g) ?? []) {
+        expect(+n).toBeGreaterThanOrEqual(0)
+        expect(+n).toBeLessThanOrEqual(100)
+      }
+    }
+  })
+
+  test('the legend and tooltip of a chart with shapes carry them on their entries', () => {
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const data = { labels, series: series(3) }
+    const chart = new Chart(el, { type: line, data, shapes: true, locale: 'en-US' })
+    const styles = () =>
+      [...el.querySelectorAll('.tc-legend-item')].map((item) => item.getAttribute('style') ?? '')
+    expect(styles()[0]).not.toContain('--tc-shape')
+    expect(styles()[1]).toContain('--tc-shape: inset(10% round 1px)')
+    expect(styles()[2]).toContain('--tc-shape: polygon(')
+    expect(styles()[2]).toContain('--tc-shape-radius: 0')
+    chart.update({ shapes: false })
+    flush()
+    expect(styles().join('')).not.toContain('--tc-shape')
+    chart.destroy()
+    el.remove()
+  })
+
   test('each slot has its own closed shape, the same commands at any size and place', () => {
     const commands = (d: string) => d.replace(/[^A-Za-z]/g, '')
     const shapes = Array.from({ length: 8 }, (_, slot) => markerPath(slot, 10, 10, 4))

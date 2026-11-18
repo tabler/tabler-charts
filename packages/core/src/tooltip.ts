@@ -1,3 +1,4 @@
+import type { SwatchShape } from './features.ts'
 import type { Hit } from './interaction.ts'
 import { type ChildInput, h, type VNode } from './vnode.ts'
 
@@ -29,8 +30,11 @@ export interface TooltipOptions {
   footer?: (hit: Hit) => ChildInput
 }
 
-/** Default tooltip content: the category title and one row per series. */
-export function tooltipContent(hit: Hit, options: TooltipOptions = {}): VNode {
+/**
+ * Default tooltip content: the category title and one row per series
+ * (`shape` gives their swatches the point shapes of their slots).
+ */
+export function tooltipContent(hit: Hit, options: TooltipOptions = {}, shape?: SwatchShape): VNode {
   const body: ChildInput = options.format
     ? options.format(hit)
     : [
@@ -46,7 +50,7 @@ export function tooltipContent(hit: Hit, options: TooltipOptions = {}): VNode {
                 `tc-series-${item.seriesIndex + 1}`,
                 hit.seriesIndex === item.seriesIndex && 'tc-tooltip-item-active',
               ],
-              style: { '--tc-series-color': item.color },
+              style: { '--tc-series-color': item.color, ...shape?.(item.seriesIndex) },
             },
             h('span', { class: 'tc-tooltip-swatch' }),
             h('span', { class: 'tc-tooltip-name' }, item.name),
