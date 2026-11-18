@@ -4,7 +4,7 @@ import type { Chart, ChartConfig, ChartEvents, ChartPlugin, ChartType } from '@t
 export interface ChartElementSetup {
   /** `Chart` class to instantiate (the bare one from `@tabler/charts/core`, or the default one). */
   Chart: new (
-    target: Element,
+    target: HTMLElement,
     config: ChartConfig<object>,
     plugins?: readonly ChartPlugin[],
   ) => Chart<object>
@@ -19,7 +19,7 @@ export interface ChartElementSetup {
 /** Where a chart element renders; `shadow` from `@tabler/charts-elements/shadow` is one. */
 export interface ShadowMode {
   /** Return the container to render into for `host`, creating it on first use. */
-  mount(host: HTMLElement): Element
+  mount(host: HTMLElement): HTMLElement
 }
 
 /** Public surface of a `<tabler-chart>` element. */

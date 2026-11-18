@@ -176,7 +176,7 @@ export function chartComponent<O extends object>(
  * ```
  */
 export function useChart<O extends object>(
-  target: Ref<Element | null | undefined>,
+  target: Ref<HTMLElement | null | undefined>,
   config: MaybeRefOrGetter<ChartConfig<O>>,
 ): ShallowRef<Chart<O> | null> {
   const chart = shallowRef<Chart<O> | null>(null)

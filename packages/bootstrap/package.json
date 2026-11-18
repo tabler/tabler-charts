@@ -23,21 +23,16 @@
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.cts",
   "unpkg": "./dist/tabler-charts-bootstrap.min.js",
   "jsdelivr": "./dist/tabler-charts-bootstrap.min.js",
   "style": "./dist/bootstrap.css",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
-      }
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
+    "./package.json": "./package.json",
     "./bootstrap.css": "./dist/bootstrap.css",
     "./tabler.css": "./dist/tabler.css",
     "./scss/charts": {
@@ -47,8 +42,7 @@
     "./scss/tabler": {
       "sass": "./scss/_tabler.scss",
       "default": "./scss/_tabler.scss"
-    },
-    "./package.json": "./package.json"
+    }
   },
   "files": [
     "dist",

@@ -12,4 +12,6 @@ export const baseConfig: UserConfig = {
   sourcemap: true,
   clean: true,
   treeshake: true,
+  // `exports`, `main`, `module` and `types` in package.json follow `entry`.
+  exports: true,
 }

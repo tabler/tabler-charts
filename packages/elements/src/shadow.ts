@@ -105,7 +105,10 @@ export const shadow: ShadowMode = {
     adopt(root)
     followTheme(host)
     // (:scope matches nothing in a shadow root's querySelector, so look at its children.)
-    let container = [...root.children].find((child) => child.classList.contains('tc-root'))
+    let container = [...root.children].find(
+      (child): child is HTMLElement =>
+        child instanceof HTMLElement && child.classList.contains('tc-root'),
+    )
     if (!container) {
       container = root.ownerDocument.createElement('div')
       container.className = 'tc-root'

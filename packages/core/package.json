@@ -63,280 +63,118 @@
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.cts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
-      }
-    },
-    "./core": {
-      "import": {
-        "types": "./dist/core.d.ts",
-        "default": "./dist/core.js"
-      },
-      "require": {
-        "types": "./dist/core.d.cts",
-        "default": "./dist/core.cjs"
-      }
-    },
-    "./line": {
-      "import": {
-        "types": "./dist/line.d.ts",
-        "default": "./dist/line.js"
-      },
-      "require": {
-        "types": "./dist/line.d.cts",
-        "default": "./dist/line.cjs"
-      }
-    },
-    "./area": {
-      "import": {
-        "types": "./dist/area.d.ts",
-        "default": "./dist/area.js"
-      },
-      "require": {
-        "types": "./dist/area.d.cts",
-        "default": "./dist/area.cjs"
-      }
-    },
-    "./bar": {
-      "import": {
-        "types": "./dist/bar.d.ts",
-        "default": "./dist/bar.js"
-      },
-      "require": {
-        "types": "./dist/bar.d.cts",
-        "default": "./dist/bar.cjs"
-      }
-    },
-    "./pie": {
-      "import": {
-        "types": "./dist/pie.d.ts",
-        "default": "./dist/pie.js"
-      },
-      "require": {
-        "types": "./dist/pie.d.cts",
-        "default": "./dist/pie.cjs"
-      }
-    },
-    "./gauge": {
-      "import": {
-        "types": "./dist/gauge.d.ts",
-        "default": "./dist/gauge.js"
-      },
-      "require": {
-        "types": "./dist/gauge.d.cts",
-        "default": "./dist/gauge.cjs"
-      }
-    },
-    "./radar": {
-      "import": {
-        "types": "./dist/radar.d.ts",
-        "default": "./dist/radar.js"
-      },
-      "require": {
-        "types": "./dist/radar.d.cts",
-        "default": "./dist/radar.cjs"
-      }
-    },
-    "./sankey": {
-      "import": {
-        "types": "./dist/sankey.d.ts",
-        "default": "./dist/sankey.js"
-      },
-      "require": {
-        "types": "./dist/sankey.d.cts",
-        "default": "./dist/sankey.cjs"
-      }
-    },
-    "./parliament": {
-      "import": {
-        "types": "./dist/parliament.d.ts",
-        "default": "./dist/parliament.js"
-      },
-      "require": {
-        "types": "./dist/parliament.d.cts",
-        "default": "./dist/parliament.cjs"
-      }
-    },
-    "./percentage-bar": {
-      "import": {
-        "types": "./dist/percentage-bar.d.ts",
-        "default": "./dist/percentage-bar.js"
-      },
-      "require": {
-        "types": "./dist/percentage-bar.d.cts",
-        "default": "./dist/percentage-bar.cjs"
-      }
-    },
-    "./treemap": {
-      "import": {
-        "types": "./dist/treemap.d.ts",
-        "default": "./dist/treemap.js"
-      },
-      "require": {
-        "types": "./dist/treemap.d.cts",
-        "default": "./dist/treemap.cjs"
-      }
-    },
-    "./export": {
-      "import": {
-        "types": "./dist/export.d.ts",
-        "default": "./dist/export.js"
-      },
-      "require": {
-        "types": "./dist/export.d.cts",
-        "default": "./dist/export.cjs"
-      }
-    },
-    "./candlestick": {
-      "import": {
-        "types": "./dist/candlestick.d.ts",
-        "default": "./dist/candlestick.js"
-      },
-      "require": {
-        "types": "./dist/candlestick.d.cts",
-        "default": "./dist/candlestick.cjs"
-      }
-    },
-    "./calendar": {
-      "import": {
-        "types": "./dist/calendar.d.ts",
-        "default": "./dist/calendar.js"
-      },
-      "require": {
-        "types": "./dist/calendar.d.cts",
-        "default": "./dist/calendar.cjs"
-      }
-    },
-    "./heatmap": {
-      "import": {
-        "types": "./dist/heatmap.d.ts",
-        "default": "./dist/heatmap.js"
-      },
-      "require": {
-        "types": "./dist/heatmap.d.cts",
-        "default": "./dist/heatmap.cjs"
-      }
-    },
-    "./scatter": {
-      "import": {
-        "types": "./dist/scatter.d.ts",
-        "default": "./dist/scatter.js"
-      },
-      "require": {
-        "types": "./dist/scatter.d.cts",
-        "default": "./dist/scatter.cjs"
-      }
-    },
-    "./sparkline": {
-      "import": {
-        "types": "./dist/sparkline.d.ts",
-        "default": "./dist/sparkline.js"
-      },
-      "require": {
-        "types": "./dist/sparkline.d.cts",
-        "default": "./dist/sparkline.cjs"
-      }
-    },
-    "./decimate": {
-      "import": {
-        "types": "./dist/decimate.d.ts",
-        "default": "./dist/decimate.js"
-      },
-      "require": {
-        "types": "./dist/decimate.d.cts",
-        "default": "./dist/decimate.cjs"
-      }
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./annotations": {
-      "import": {
-        "types": "./dist/annotations.d.ts",
-        "default": "./dist/annotations.js"
-      },
-      "require": {
-        "types": "./dist/annotations.d.cts",
-        "default": "./dist/annotations.cjs"
-      }
+      "import": "./dist/annotations.js",
+      "require": "./dist/annotations.cjs"
     },
-    "./patterns": {
-      "import": {
-        "types": "./dist/patterns.d.ts",
-        "default": "./dist/patterns.js"
-      },
-      "require": {
-        "types": "./dist/patterns.d.cts",
-        "default": "./dist/patterns.cjs"
-      }
+    "./area": {
+      "import": "./dist/area.js",
+      "require": "./dist/area.cjs"
     },
-    "./value-labels": {
-      "import": {
-        "types": "./dist/value-labels.d.ts",
-        "default": "./dist/value-labels.js"
-      },
-      "require": {
-        "types": "./dist/value-labels.d.cts",
-        "default": "./dist/value-labels.cjs"
-      }
+    "./bar": {
+      "import": "./dist/bar.js",
+      "require": "./dist/bar.cjs"
     },
-    "./point-shapes": {
-      "import": {
-        "types": "./dist/point-shapes.d.ts",
-        "default": "./dist/point-shapes.js"
-      },
-      "require": {
-        "types": "./dist/point-shapes.d.cts",
-        "default": "./dist/point-shapes.cjs"
-      }
+    "./calendar": {
+      "import": "./dist/calendar.js",
+      "require": "./dist/calendar.cjs"
+    },
+    "./candlestick": {
+      "import": "./dist/candlestick.js",
+      "require": "./dist/candlestick.cjs"
+    },
+    "./core": {
+      "import": "./dist/core.js",
+      "require": "./dist/core.cjs"
+    },
+    "./decimate": {
+      "import": "./dist/decimate.js",
+      "require": "./dist/decimate.cjs"
+    },
+    "./export": {
+      "import": "./dist/export.js",
+      "require": "./dist/export.cjs"
+    },
+    "./gauge": {
+      "import": "./dist/gauge.js",
+      "require": "./dist/gauge.cjs"
+    },
+    "./heatmap": {
+      "import": "./dist/heatmap.js",
+      "require": "./dist/heatmap.cjs"
     },
     "./hydrate": {
-      "import": {
-        "types": "./dist/hydrate.d.ts",
-        "default": "./dist/hydrate.js"
-      },
-      "require": {
-        "types": "./dist/hydrate.d.cts",
-        "default": "./dist/hydrate.cjs"
-      }
+      "import": "./dist/hydrate.js",
+      "require": "./dist/hydrate.cjs"
     },
-    "./morph": {
-      "import": {
-        "types": "./dist/morph.d.ts",
-        "default": "./dist/morph.js"
-      },
-      "require": {
-        "types": "./dist/morph.d.cts",
-        "default": "./dist/morph.cjs"
-      }
-    },
-    "./time": {
-      "import": {
-        "types": "./dist/time.d.ts",
-        "default": "./dist/time.js"
-      },
-      "require": {
-        "types": "./dist/time.d.cts",
-        "default": "./dist/time.cjs"
-      }
+    "./line": {
+      "import": "./dist/line.js",
+      "require": "./dist/line.cjs"
     },
     "./log": {
-      "import": {
-        "types": "./dist/log.d.ts",
-        "default": "./dist/log.js"
-      },
-      "require": {
-        "types": "./dist/log.d.cts",
-        "default": "./dist/log.cjs"
-      }
+      "import": "./dist/log.js",
+      "require": "./dist/log.cjs"
     },
-    "./style.css": "./dist/style.css",
-    "./package.json": "./package.json"
+    "./morph": {
+      "import": "./dist/morph.js",
+      "require": "./dist/morph.cjs"
+    },
+    "./parliament": {
+      "import": "./dist/parliament.js",
+      "require": "./dist/parliament.cjs"
+    },
+    "./patterns": {
+      "import": "./dist/patterns.js",
+      "require": "./dist/patterns.cjs"
+    },
+    "./percentage-bar": {
+      "import": "./dist/percentage-bar.js",
+      "require": "./dist/percentage-bar.cjs"
+    },
+    "./pie": {
+      "import": "./dist/pie.js",
+      "require": "./dist/pie.cjs"
+    },
+    "./point-shapes": {
+      "import": "./dist/point-shapes.js",
+      "require": "./dist/point-shapes.cjs"
+    },
+    "./radar": {
+      "import": "./dist/radar.js",
+      "require": "./dist/radar.cjs"
+    },
+    "./sankey": {
+      "import": "./dist/sankey.js",
+      "require": "./dist/sankey.cjs"
+    },
+    "./scatter": {
+      "import": "./dist/scatter.js",
+      "require": "./dist/scatter.cjs"
+    },
+    "./sparkline": {
+      "import": "./dist/sparkline.js",
+      "require": "./dist/sparkline.cjs"
+    },
+    "./time": {
+      "import": "./dist/time.js",
+      "require": "./dist/time.cjs"
+    },
+    "./treemap": {
+      "import": "./dist/treemap.js",
+      "require": "./dist/treemap.cjs"
+    },
+    "./value-labels": {
+      "import": "./dist/value-labels.js",
+      "require": "./dist/value-labels.cjs"
+    },
+    "./package.json": "./package.json",
+    "./style.css": "./dist/style.css"
   },
   "files": [
     "dist"

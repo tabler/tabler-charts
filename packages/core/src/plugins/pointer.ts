@@ -43,16 +43,16 @@ export function listenPointer(chart: Chart<object>): (() => void) | undefined {
     const hit = point ? chart.hitTest(point.x, point.y) : null
     if (hit) chart.emit('click', { hit, event })
   }
-  el.addEventListener('pointermove', onMove as EventListener)
-  el.addEventListener('pointerdown', onMove as EventListener)
-  el.addEventListener('pointerleave', onLeave as EventListener)
-  el.addEventListener('click', onClick as EventListener)
+  el.addEventListener('pointermove', onMove)
+  el.addEventListener('pointerdown', onMove)
+  el.addEventListener('pointerleave', onLeave)
+  el.addEventListener('click', onClick)
   return () => {
     listening.delete(chart)
-    el.removeEventListener('pointermove', onMove as EventListener)
-    el.removeEventListener('pointerdown', onMove as EventListener)
-    el.removeEventListener('pointerleave', onLeave as EventListener)
-    el.removeEventListener('click', onClick as EventListener)
+    el.removeEventListener('pointermove', onMove)
+    el.removeEventListener('pointerdown', onMove)
+    el.removeEventListener('pointerleave', onLeave)
+    el.removeEventListener('click', onClick)
   }
 }
 
