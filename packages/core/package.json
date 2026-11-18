@@ -81,6 +81,10 @@
       "import": "./dist/bar.js",
       "require": "./dist/bar.cjs"
     },
+    "./calendar": {
+      "import": "./dist/calendar.js",
+      "require": "./dist/calendar.cjs"
+    },
     "./candlestick": {
       "import": "./dist/candlestick.js",
       "require": "./dist/candlestick.cjs"
