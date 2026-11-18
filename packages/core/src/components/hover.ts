@@ -15,9 +15,27 @@ function seriesGroup(seriesIndex: number, color: string | undefined, child: VNod
   )
 }
 
+/** The hit's own mark, in the color of its series. */
+function hoverMark(hit: Hit, mark: NonNullable<Hit['mark']>): VNode | undefined {
+  const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
+  return (
+    item &&
+    seriesGroup(
+      item.seriesIndex,
+      item.color,
+      h('path', {
+        class: 'tc-hover-mark',
+        d: mark.d,
+        style: `transform:translate(${round(mark.x)}px,${round(mark.y)}px)`,
+      }),
+    )
+  )
+}
+
 /**
  * Hover marks drawn below the series: a band behind the hovered category of
- * band charts (bars), or a vertical crosshair for point charts (lines).
+ * band charts (bars), a vertical crosshair for point charts (lines), or the
+ * hit's own mark when it asks to stay `under` the chart (sankey flows).
  */
 export function hoverUnderlay(hit: Hit, crosshair = true): VNode {
   const { area } = hit
@@ -25,7 +43,7 @@ export function hoverUnderlay(hit: Hit, crosshair = true): VNode {
     'g',
     { class: 'tc-hover', 'aria-hidden': 'true' },
     hit.mark
-      ? null
+      ? hit.mark.under && hoverMark(hit, hit.mark)
       : hit.band
         ? h('rect', {
             class: 'tc-hover-band',
@@ -67,21 +85,7 @@ export function hoverOverlay(
 ): VNode {
   const { mark } = hit
   if (mark) {
-    const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
-    return h(
-      'g',
-      { class: 'tc-hover', 'aria-hidden': 'true' },
-      item &&
-        seriesGroup(
-          item.seriesIndex,
-          item.color,
-          h('path', {
-            class: 'tc-hover-mark',
-            d: mark.d,
-            style: `transform:translate(${round(mark.x)}px,${round(mark.y)}px)`,
-          }),
-        ),
-    )
+    return h('g', { class: 'tc-hover', 'aria-hidden': 'true' }, !mark.under && hoverMark(hit, mark))
   }
   return h(
     'g',

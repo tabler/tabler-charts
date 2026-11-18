@@ -47,9 +47,10 @@ export interface Hit {
   guide?: { x1: number; y1: number; x2: number; y2: number }
   /**
    * A shape to highlight instead of a crosshair or band (e.g. a halo around a
-   * pie slice): path data `d`, drawn translated by `x` / `y`.
+   * pie slice): path data `d`, drawn translated by `x` / `y`. `under` draws
+   * it below the chart instead of above, so it never covers the labels.
    */
-  mark?: { d: string; x: number; y: number }
+  mark?: { d: string; x: number; y: number; under?: boolean }
 }
 
 /** Maps a point in chart pixels to what lies there. */

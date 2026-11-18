@@ -3,6 +3,8 @@ import { baseConfig } from '../../tsdown.config.base.ts'
 
 export default defineConfig({
   ...baseConfig,
+  // The stylesheet is built by scripts/build-css.mjs, not from an entry.
+  exports: { customExports: { './style.css': './dist/style.css' } },
   entry: [
     'src/index.ts',
     'src/core.ts',

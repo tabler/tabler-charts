@@ -53,7 +53,7 @@ export function tooltip(): ChartPlugin {
     name: 'tooltip',
     install(chart) {
       const stop = listenPointer(chart)
-      const el = chart.element as HTMLElement
+      const el = chart.element
       // Positioning context for the tooltip (zero specificity in CSS, so page styles win).
       const addedClass = !el.classList.contains('tc-container')
       el.classList.add('tc-container')

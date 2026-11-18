@@ -96,10 +96,13 @@ function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext):
     const length = (segment.value / total) * area.width
     const left = position === 0 ? 0 : gap / 2
     const right = position === drawn.length - 1 ? 0 : gap / 2
+    const boxWidth = Math.max(0, length - left - right)
+    const start = offset + left
     const box = {
-      x: offset + left,
+      // Right to left, the bar starts from the right: every segment takes its mirror place.
+      x: ctx.rtl ? area.x * 2 + area.width - start - boxWidth : start,
       y: area.y,
-      width: Math.max(0, length - left - right),
+      width: boxWidth,
       height: area.height,
     }
     offset += length
@@ -142,6 +145,7 @@ function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext):
 
   const interaction: Interaction = {
     count: drawn.length,
+    reversed: ctx.rtl === true,
     hitIndex: (position) => (drawn[position] ? hitFor(position) : null),
     hitTest(px, py) {
       if (py < area.y || py > area.y + area.height) return null

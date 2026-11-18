@@ -112,6 +112,30 @@ describe('percentage bar', () => {
     expect(findByClass(render(), 'tc-percentage-bar-track').length).toBe(0)
   })
 
+  test('rtl: the bar starts from the right, the mirror image of the left-to-right one', () => {
+    const xs = (rtl: boolean) =>
+      findByClass(render({ rtl, padding: { left: 20 } }), 'tc-segment').map((rect) => ({
+        x: Number(rect.attrs.x),
+        width: Number(rect.attrs.width),
+      }))
+    const ltr = xs(false)
+    const rtl = xs(true)
+    // Padding is physical: 20 px stay free on the left, the bar spans 20…400.
+    rtl.forEach((box, i) => {
+      const twin = ltr[i] as (typeof ltr)[number]
+      expect(box.width).toBeCloseTo(twin.width, 1)
+      expect(box.x).toBeCloseTo(420 - twin.x - twin.width, 1)
+    })
+    expect(rtl[0]?.x).toBeGreaterThan(rtl[1]?.x as number)
+    expect((rtl[0]?.x as number) + (rtl[0]?.width as number)).toBeCloseTo(400, 1)
+
+    const interaction = interactionOf({ rtl: true })
+    expect(interaction.reversed).toBe(true)
+    expect(interaction.hitTest(390, 8)?.label).toBe('Paid')
+    expect(interaction.hitTest(5, 8)?.label).toBe('Overdue')
+    expect(interactionOf().reversed).toBe(false)
+  })
+
   describe('maxSlices', () => {
     const many = [5, 30, 10, 20, 8, 15, 12].map((value, i) => ({ name: `n${i}`, value }))
 

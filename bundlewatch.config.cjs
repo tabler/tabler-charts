@@ -27,7 +27,7 @@ module.exports = {
     { path: '.size/default-chart-line.js', maxSize: '22.5KB' },
     { path: '.size/ssr-charttostring-line.js', maxSize: '9.25KB' },
     { path: '.size/elements-core-line.js', maxSize: '13.25KB' },
-    { path: '.size/elements-every-type.js', maxSize: '44.25KB' },
+    { path: '.size/elements-every-type.js', maxSize: '44.5KB' },
     { path: '.size/react-linechart.js', maxSize: '23.75KB' },
     { path: '.size/vue-linechart.js', maxSize: '23.75KB' },
     { path: '.size/bootstrap-data-api.js', maxSize: '44.25KB' },
