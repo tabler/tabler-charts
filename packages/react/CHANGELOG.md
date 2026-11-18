@@ -1,5 +1,21 @@
 # @tabler/charts-react
 
+## 0.3.0
+
+### Minor Changes
+
+- 0f5373f: Added `calendar` chart type that shows one value per day as a grid of weeks.
+
+### Patch Changes
+
+- 47d6eb4: Updated `Chart` and `useChart()` to take an `HTMLElement` target, so `chart.element` is typed as `HTMLElement`.
+- Updated dependencies [0f5373f]
+- Updated dependencies [47d6eb4]
+- Updated dependencies [a07f7dd]
+- Updated dependencies [48178cb]
+- Updated dependencies [2d57d21]
+  - @tabler/charts@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

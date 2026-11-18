@@ -1,5 +1,18 @@
 # @tabler/charts
 
+## 0.3.0
+
+### Minor Changes
+
+- 0f5373f: Added `calendar` chart type that shows one value per day as a grid of weeks.
+
+### Patch Changes
+
+- 47d6eb4: Updated `Chart` and `useChart()` to take an `HTMLElement` target, so `chart.element` is typed as `HTMLElement`.
+- a07f7dd: Updated `rtl` option to mirror the `percentageBar` chart too.
+- 48178cb: Fixed the hover highlight of a `sankey` flow covering the node labels drawn on it.
+- 2d57d21: Updated legend and tooltip swatch shapes to come from `--tc-shape` set on each entry, which makes `style.css` smaller.
+
 ## 0.2.0
 
 ### Minor Changes
