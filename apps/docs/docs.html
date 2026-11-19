@@ -223,7 +223,7 @@ const chart = new Chart('#sales', {
   type: line,
   data,
   x: { type: 'time' },                      // labels are dates: real distances, calendar ticks
-  y: { min: 0, ticks: 5, format: { notation: 'compact' } },
+  y: { min: 0, ticks: 5, format: { notation: 'compact' }, title: 'Uptime (%)' },
   annotations: [
     { y: 99.9, label: 'SLA' },              // a line at a value
     { y: [40, 60], label: 'Normal' },       // a band between values
@@ -234,6 +234,11 @@ const chart = new Chart('#sales', {
             <code>y</code> also takes <code>max</code>, <code>zero</code>, <code>nice</code>,
             <code>scale: 'log'</code>, <code>grid</code> and <code>show</code>;
             <code>x</code> takes <code>utc</code>, <code>grid</code>, <code>line</code> and <code>show</code>.
+          </p>
+          <p>
+            Both axes take a <code>title</code>: <code>y.title</code> is turned 90° beside the value
+            axis (on the right in a right-to-left chart), <code>x.title</code> sits below the
+            categories. Style them with <code>.tc-axis-title</code>.
           </p>
         </section>
 

@@ -185,3 +185,84 @@ describe('rtl, horizontal bars', () => {
     })
   })
 })
+
+describe('axis titles', () => {
+  const titleOf = (node: VNode, axis: string) =>
+    findByClass(node, axis.replace('tc-axis', 'tc-axis-title'))[0] as VNode
+  const place = (title: VNode) => {
+    const [, x, y, angle] =
+      String(title.attrs.transform).match(
+        /translate\((-?[\d.]+),(-?[\d.]+)\)(?: rotate\((-?\d+)\))?/,
+      ) ?? []
+    return { x: Number(x), y: Number(y), angle: angle === undefined ? 0 : Number(angle) }
+  }
+
+  test('none by default, and the plot keeps its place', () => {
+    expect(findByClass(lines().node, 'tc-axis-title')).toHaveLength(0)
+  })
+
+  test('y.title is turned 90° on the left, and the plot makes room for it', () => {
+    const plain = lines()
+    const { node } = lines({ y: { title: 'Merge time (days)' } })
+    const title = titleOf(node, 'tc-axis-left')
+    expect(title.children.join('')).toBe('Merge time (days)')
+    const at = place(title)
+    expect(at.angle).toBe(-90)
+    // Centered on the plot, which sits a little above the chart's middle.
+    expect(at.y).toBeGreaterThan(80)
+    expect(at.y).toBeLessThan(100)
+    // Left of the tick labels, inside the chart.
+    const edge = tickXs(node, 'tc-axis-left')[0] as number
+    expect(at.x).toBeGreaterThan(0)
+    expect(at.x).toBeLessThan(edge - 20)
+    expect(edge).toBeGreaterThan(tickXs(plain.node, 'tc-axis-left')[0] as number)
+  })
+
+  test('y.title moves to the right in rtl, as the mirror image', () => {
+    const y = { title: 'Days' }
+    const ltr = place(titleOf(lines({ y }).node, 'tc-axis-left'))
+    const rtl = place(titleOf(lines({ y, rtl: true }).node, 'tc-axis-right'))
+    expect(rtl.angle).toBe(90)
+    expect(rtl.x).toBeCloseTo(size.width - ltr.x, 1)
+  })
+
+  test('x.title sits below the category labels', () => {
+    const plain = lines()
+    const { node } = lines({ x: { title: 'Quarter' } })
+    const at = place(titleOf(node, 'tc-axis-bottom'))
+    expect(at.angle).toBe(0)
+    expect(at.x).toBeCloseTo(tickXs(node, 'tc-axis-bottom').reduce((a, b) => a + b) / 4, 0)
+    expect(at.y).toBeLessThan(size.height)
+    // The plot gives up a line at the bottom.
+    const bottom = (n: VNode) =>
+      Number(
+        String(
+          findByClass(findByClass(n, 'tc-axis-bottom')[0] as VNode, 'tc-tick')[0]?.attrs.style,
+        ).match(/,(-?[\d.]+)px\)/)?.[1],
+      )
+    expect(bottom(node)).toBeLessThan(bottom(plain.node))
+    expect(at.y).toBeGreaterThan(bottom(node))
+  })
+
+  test('a hidden axis keeps its title', () => {
+    const { node } = lines({ y: { show: false, title: 'Days' } })
+    expect(findByClass(node, 'tc-axis-left')).toHaveLength(0)
+    expect(findByClass(node, 'tc-axis-title-left')).toHaveLength(1)
+  })
+
+  test('horizontal bars: the value title goes below, the category title beside', () => {
+    const config: ChartConfig<BarOptions> = {
+      type: bar,
+      locale: 'en-US',
+      data,
+      orientation: 'horizontal',
+      y: { title: 'Revenue' },
+      x: { title: 'Quarter' },
+    }
+    const node = buildChart(config, size, 'r', () => {})
+    expect(place(titleOf(node, 'tc-axis-bottom')).angle).toBe(0)
+    expect(titleOf(node, 'tc-axis-bottom').children.join('')).toBe('Revenue')
+    expect(place(titleOf(node, 'tc-axis-left')).angle).toBe(-90)
+    expect(titleOf(node, 'tc-axis-left').children.join('')).toBe('Quarter')
+  })
+})
