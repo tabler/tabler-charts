@@ -13,11 +13,13 @@ import { calendar } from './charts/calendar.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
 import { parliament } from './charts/parliament.ts'
 import { percentageBar } from './charts/percentage-bar.ts'
 import { pie } from './charts/pie.ts'
 import { scatter } from './charts/scatter.ts'
 import { treemap } from './charts/treemap.ts'
+import { world } from './maps/world.ts'
 import { flush } from './scheduler.ts'
 import { normalizeStyle } from './vnode.ts'
 
@@ -82,6 +84,10 @@ const cases: [string, Record<string, unknown>][] = [
       data: [{ date: '2026-01-05', value: 1 }],
       colors: [EVIL, 'blue'],
     },
+  ],
+  [
+    'map scale',
+    { type: map, map: world, data: { PL: 1, DE: 2, SG: 3 }, colors: [EVIL, 'red', EVIL] },
   ],
   [
     'heatmap ranges',

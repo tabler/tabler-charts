@@ -22,6 +22,7 @@
     "docs:dev": "pnpm --filter @tabler/charts-docs dev",
     "docs:build": "pnpm --filter @tabler/charts-docs build",
     "size": "node scripts/bundles.mjs && node scripts/check-size.mjs",
+    "generate:maps": "node scripts/generate-maps.ts",
     "examples:build": "pnpm -r --filter \"./examples/**\" build",
     "visual": "playwright test",
     "visual:update": "playwright test --update-snapshots",

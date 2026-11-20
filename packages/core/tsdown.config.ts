@@ -7,6 +7,8 @@ export default defineConfig({
   exports: { customExports: { './style.css': './dist/style.css' } },
   entry: [
     'src/index.ts',
+    // Map files keep their folder: `@tabler/charts/maps/world`.
+    { 'maps/world': 'src/maps/world.ts' },
     'src/core.ts',
     'src/line.ts',
     'src/area.ts',
@@ -20,6 +22,7 @@ export default defineConfig({
     'src/treemap.ts',
     'src/heatmap.ts',
     'src/calendar.ts',
+    'src/map.ts',
     'src/candlestick.ts',
     'src/annotations.ts',
     'src/patterns.ts',

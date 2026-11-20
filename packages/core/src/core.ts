@@ -59,6 +59,17 @@ export type { HeatmapOptions, HeatmapRange } from './charts/heatmap.ts'
 export { heatmap } from './charts/heatmap.ts'
 export type { LineOptions } from './charts/line.ts'
 export { line } from './charts/line.ts'
+export type {
+  MapData,
+  MapHit,
+  MapLayout,
+  MapLine,
+  MapMarker,
+  MapOptions,
+  MapRegion,
+  MapView,
+} from './charts/map.ts'
+export { addMap, map } from './charts/map.ts'
 export type { ParliamentOptions, ParliamentParty } from './charts/parliament.ts'
 export { parliament } from './charts/parliament.ts'
 export type { PercentageBarOptions, PercentageBarSegment } from './charts/percentage-bar.ts'

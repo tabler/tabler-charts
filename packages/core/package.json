@@ -121,6 +121,14 @@
       "import": "./dist/log.js",
       "require": "./dist/log.cjs"
     },
+    "./map": {
+      "import": "./dist/map.js",
+      "require": "./dist/map.cjs"
+    },
+    "./maps/world": {
+      "import": "./dist/maps/world.js",
+      "require": "./dist/maps/world.cjs"
+    },
     "./morph": {
       "import": "./dist/morph.js",
       "require": "./dist/morph.cjs"
