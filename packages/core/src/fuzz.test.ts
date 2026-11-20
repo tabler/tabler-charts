@@ -9,6 +9,7 @@ import { candlestick } from './charts/candlestick.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
 import { scatter } from './charts/scatter.ts'
@@ -19,6 +20,7 @@ import './line.ts'
 import './log.ts'
 import { flush } from './scheduler.ts'
 import './time.ts'
+import { world } from './maps/world.ts'
 
 /**
  * Randomized DOM-level test: mount charts with random configs, then apply
@@ -102,6 +104,7 @@ function randomConfig(): ChartConfig<object> {
     'gauge',
     'heatmap',
     'calendar',
+    'map',
     'candlestick',
     'radar',
   ])
@@ -153,6 +156,26 @@ function randomConfig(): ChartConfig<object> {
       levels: maybe(0.2, pick([1, 2, 9])),
       colors: maybe(0.2, pick(['diverging', ['#fff', '#000']])),
       max: maybe(0.2, pick([0, 10])),
+    } as ChartConfig<object>
+  }
+  if (kind === 'map') {
+    const codes = ['PL', 'DE', 'US', 'SG', 'FR', 'ZZ', 'BR', 'AU']
+    return {
+      type: map,
+      ...base,
+      map: world,
+      data: Object.fromEntries(series(1, len)[0]?.values.map((v, i) => [codes[i % 8], v]) ?? []),
+      min: maybe(0.2, 0),
+      max: maybe(0.2, pick([0, 10])),
+      colors: maybe(0.3, ['red', 'white', 'green']),
+      mid: maybe(0.2, 0),
+      scale: maybe(0.3, false),
+      markers: maybe(0.5, [
+        { name: 'A', lat: 52, lng: 21 },
+        { name: 'B', lat: -33, lng: 151 },
+        { lat: pick([0, 90, -90, 400]), lng: pick([0, 180, -720]) },
+      ]),
+      lines: maybe(0.5, [{ from: 'A', to: pick(['B', 'C']) }]),
     } as ChartConfig<object>
   }
   if (kind === 'heatmap') {

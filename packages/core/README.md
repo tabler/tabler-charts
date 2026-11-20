@@ -91,6 +91,7 @@ A feature you use but did not import throws an error that names the import.
 | `scatter` | `{ series: [{ name, points: [{ x, y, size? }] }] }` | `radius`, `size` (bubble radii); points with `size` are bubbles |
 | `heatmap` | `{ labels, series }` (rows) | `min`, `max`, `ranges`, `colors` + `mid` (scales), `colorBy: 'series'` |
 | `calendar` | `[{ date, value }]`, or `{ series }` of them (added up per day) | `weeks`, `from`, `to` (more than a year is split into bands of twelve months), `weekStart`, `levels`, `min`, `max`, `colors` + `mid` (a scale of colors, `'diverging'` around zero), `scale`, `dateFormat`; the height follows the range unless `aspectRatio` or `height` is set |
+| `map` | `{ PL: 80, DE: 45 }` (a value per region code) | `map` (a map file such as `world` from `@tabler/charts/maps/world`, or the name given with `addMap()`), `min`, `max`, `colors` + `mid`, `markers` (`{ name, lat, lng }`), `lines` (`{ from, to }`), `markerRadius`, `scale`, `zoom`, `view`, `select`, `selected`, `onSelect`; the proportions follow the map unless `aspectRatio` or `height` is set |
 | `candlestick` | `[{ x, open, high, low, close }]` | time axes, `maxCandleWidth` |
 | `sparkline` | `number[]` | `variant` (`'line'`, `'area'`, `'bar'`, `'tristate'`), `point`, `markers: 'minmax'` |
 
@@ -118,6 +119,36 @@ annotations: [
   { x: 'Jun', label: 'Launch' },         // a line at a category (or a date)
 ]
 ```
+
+### Maps
+
+`map` draws the regions of a map file as SVG shapes and shades them by value. The shapes are projected when the map file is built, so no geo library ships to the browser, and the map file is an import of its own:
+
+```ts
+import { Chart, map } from '@tabler/charts'
+import { world } from '@tabler/charts/maps/world'
+
+new Chart('#visits', {
+  type: map,
+  map: world,
+  data: { US: 100, DE: 80, PL: 54 },          // by ISO 3166-1 alpha-2 code
+  markers: [
+    { name: 'Warsaw', lat: 52.23, lng: 21.01 },
+    { name: 'New York', lat: 40.71, lng: -74.01 },
+  ],
+  lines: [{ from: 'Warsaw', to: 'New York' }],
+})
+```
+
+Regions take one hue from the empty shade to the full color (`--tc-heat-color` and `--tc-heat-empty`, as heatmap cells do), or a scale through `colors`. Countries too small for a shape are drawn as a dot when they have a value. `--tc-map-marker-color` and `--tc-map-line-color` color the markers and the lines. The `click` event gives the region code in `hit.region` (or the marker's name in `hit.marker`).
+
+`zoom: true` lets the map be magnified with its buttons, the wheel, a double click, a pinch or the `+`, `-` and `0` keys, and dragged around; `zoom: { max: 16, wheel: false }` sets the limit and leaves the wheel to the page. The part in sight is the `view` option (`{ x, y, scale }` in the coordinates of the map file): zooming writes it, and you can set it to start on a part of the map, or `chart.update({ view: undefined })` to show all of it again.
+
+`select: 'single'` or `'multiple'` lets a click (or Enter on the region the keyboard is on) select regions; a click on a selected region takes it out. The codes are the `selected` option, and `onSelect(selected, code)` is called when they change. `.tc-region-selected` styles the outline.
+
+For charts declared in markup or JSON, register the map under a name and pass that name: `addMap('world', world)`, then `map: 'world'`.
+
+`world` is the countries of [Natural Earth](https://www.naturalearthdata.com/) (public domain) in the Miller projection, 27 kB gzipped. `pnpm generate:maps` rebuilds it.
 
 ### Value labels
 

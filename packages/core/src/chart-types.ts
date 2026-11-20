@@ -6,6 +6,7 @@ import { candlestick } from './charts/candlestick.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
 import { parliament } from './charts/parliament.ts'
 import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
@@ -31,6 +32,7 @@ export const types: Readonly<Record<string, ChartType<never>>> = {
   gauge,
   heatmap,
   calendar,
+  map,
   candlestick,
   radar,
   sankey,
