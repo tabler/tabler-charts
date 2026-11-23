@@ -291,11 +291,13 @@ function assertType(config: ChartConfig<object>): void {
   }
 }
 
+const POSITIONS: readonly unknown[] = ['top', 'bottom', 'left', 'right', 'auto']
+
 /** Legend entries of a config, whether a legend is shown and where. */
 export interface ResolvedLegend {
   items: LegendItem[]
   show: boolean
-  position: 'top' | 'bottom'
+  position: NonNullable<LegendOptions['position']>
 }
 
 /** Legend entries of a config, and whether the legend is shown. */
@@ -303,7 +305,8 @@ export function resolveLegend<O extends object>(config: ChartConfig<O>): Resolve
   const items = config.type.legend?.(config) ?? []
   const option = config.legend
   const show = option === undefined ? items.length >= 2 : option !== false && items.length > 0
-  const position = typeof option === 'object' && option.position === 'bottom' ? 'bottom' : 'top'
+  const asked = typeof option === 'object' ? option.position : undefined
+  const position = asked && POSITIONS.includes(asked) ? asked : 'top'
   return { items, show, position }
 }
 
@@ -570,6 +573,10 @@ export class Chart<O extends object = object> {
     // In 'container' height mode, plugins such as the legend take part of the
     // container. Only then: measuring them forces a layout of the page.
     let measured = this.#measured
+    // A legend beside the chart takes its width (it reads its own layout only then).
+    let beside = 0
+    for (const plugin of this.#plugins) beside += plugin.reservedWidth?.() ?? 0
+    if (beside && measured.width) measured = { ...measured, width: measured.width - beside }
     if (this.#cfg.height === 'container' && measured.height) {
       let reserved = 0
       for (const plugin of this.#plugins) reserved += plugin.reservedHeight?.() ?? 0

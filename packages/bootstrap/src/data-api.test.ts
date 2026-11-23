@@ -17,6 +17,23 @@ afterEach(() => {
 })
 
 describe('data API', () => {
+  test('data-tc-legend takes every position, and true or false', async () => {
+    document.body.innerHTML = ['left', 'right', 'auto', 'top', 'false']
+      .map(
+        (v) =>
+          `<div data-tc-chart="donut" data-tc-legend="${v}" data-tc-data='[{"name":"A","value":1}]'></div>`,
+      )
+      .join('')
+    const charts = await init()
+    expect(charts.map((c) => c.config.legend)).toEqual([
+      { position: 'left' },
+      { position: 'right' },
+      { position: 'auto' },
+      { position: 'top' },
+      false,
+    ])
+  })
+
   test('creates charts from data-tc-* attributes and inline JSON', async () => {
     document.body.innerHTML = `
       <div id="a" data-tc-chart="bar" data-tc-width="400" data-tc-aspect-ratio="4"

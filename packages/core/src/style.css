@@ -904,6 +904,37 @@
   margin: 8px 0 0;
 }
 
+/*
+ * A legend beside the chart: the container lays them out in two columns,
+ * the legend's as wide as its entries. Anything else spans both.
+ */
+:where(:has(> .tc-legend:is([data-position="left"], [data-position="right"]))) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 16px;
+}
+
+:where(:has(> .tc-legend:is([data-position="left"], [data-position="right"]) + svg.tc-chart)) {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+:where(:has(> .tc-legend:is([data-position="left"], [data-position="right"])))
+  > :not(.tc-legend, svg.tc-chart) {
+  grid-column: 1 / -1;
+}
+
+.tc-legend:is([data-position="left"], [data-position="right"]) {
+  justify-self: start;
+  max-width: 16em;
+  margin: 0;
+}
+
+.tc-legend:is([data-position="left"], [data-position="right"]) .tc-legend-items {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
 .tc-legend-items {
   display: flex;
   flex-wrap: wrap;

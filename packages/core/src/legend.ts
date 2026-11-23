@@ -15,8 +15,14 @@ export interface LegendItem {
 }
 
 export interface LegendOptions {
-  /** Place the legend above or below the chart. Defaults to `'top'`. */
-  position?: 'top' | 'bottom'
+  /**
+   * Where the legend goes: above or below the chart, or beside it (`'left'`,
+   * `'right'`, mirrored in a right-to-left chart) with its entries stacked
+   * and the chart in the remaining width. `'auto'` puts it on the right when
+   * the chart keeps two thirds of the container that way, and below
+   * otherwise. Defaults to `'top'`.
+   */
+  position?: 'top' | 'bottom' | 'left' | 'right' | 'auto'
 }
 
 /**

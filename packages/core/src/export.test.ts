@@ -99,6 +99,28 @@ describe('exportSVG()', () => {
     expect(parse(exportSVG(chart, { legend: false })).querySelector(':scope > g > text')).toBeNull()
   })
 
+  test('draws a legend beside the chart where the page shows it', () => {
+    const { el, chart } = mount()
+    chart.update({ legend: { position: 'right' } } as never)
+    flush()
+    const legend = el.querySelector('.tc-legend') as HTMLElement
+    const rect = (x: number, y: number, width: number, height: number) =>
+      ({ left: x, top: y, right: x + width, bottom: y + height, width, height }) as DOMRect
+    // The chart at the left, the legend 16px to its right, centered on it.
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (this === legend) return rect(416, 80, 90, 40)
+      if (legend.contains(this)) return rect(420, 90, 8, 8)
+      return rect(0, 0, 400, 200)
+    })
+    const svg = parse(exportSVG(chart))
+    expect(svg.getAttribute('viewBox')).toBe('0 0 506 200')
+    const [wrap, entries] = Array.from(svg.querySelectorAll(':scope > g'))
+    expect(wrap?.getAttribute('transform')).toBeNull()
+    expect(entries?.getAttribute('transform')).toBe('translate(416 80)')
+  })
+
   test('explains a missing chart', () => {
     expect(() => exportSVG(document.createElement('div'))).toThrow(/no rendered chart/)
   })

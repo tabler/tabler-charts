@@ -134,6 +134,8 @@ A chart type of your own gets labels from its hits like the built-in ones. Its `
 
 `rtl` mirrors line, area, bar, candlestick, scatter, heatmap, sparkline, sankey and percentage bar charts for right-to-left pages: the value axis on the right, categories from the right, flows running to the left, the arrow keys following the screen. The legend, the tooltip and the download menu follow the chart: they read right to left (the menu in the left corner) even on a left-to-right page.
 
+`legend: { position: 'left' }` or `'right'` puts the legend beside the chart, its entries stacked, and the chart takes the remaining width (sides swap with `rtl`). `'auto'` puts it on the right when the chart keeps two thirds of the container that way and below it otherwise, so a card is not taller on a wide screen and not cramped on a phone. The legend's `data-position` says where it ended up, for styling.
+
 ```ts
 // <html dir="rtl">
 new Chart('#sales', {
@@ -171,7 +173,7 @@ An option that is `NaN` or infinite (a `radius`, a `startAngle`, a `width`, a si
 | `rtl` | `false` | Mirror cartesian charts, heatmaps, sparklines and sankey diagrams for right-to-left pages: value axis on the right, categories from the right (`x: { reverse: false }` keeps those). Horizontal bars grow to the left. `'auto'` follows the container's `direction` |
 | `fontSize` | `--tc-font-size` | Used to lay out labels; set it for SSR |
 | `id` | generated | Prefix of ids inside the SVG; set it for SSR |
-| `legend` | for 2+ entries | `false`, `true` or `{ position: 'bottom' }` |
+| `legend` | for 2+ entries | `false`, `true` or `{ position }`: `'top'`, `'bottom'`, `'left'`, `'right'` or `'auto'` (see below) |
 | `tooltip` | `true` | `false`, or `{ theme, format, footer }`: `theme: 'light'` for a white tooltip instead of the dark one, `format` and `footer` for custom content |
 | `crosshair` | `true` | |
 | `table` | `true` | Hidden data table for screen readers; `'visible'` shows it |

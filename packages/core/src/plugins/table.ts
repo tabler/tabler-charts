@@ -67,8 +67,8 @@ export function dataTable(): ChartPlugin {
         render(el, tableContent(rows, caption), adopt)
         adopt = null
         const svg = host.querySelector(':scope > svg.tc-chart')
-        const bottomLegend = host.querySelector(':scope > .tc-legend[data-position="bottom"]')
-        const after = bottomLegend ?? svg
+        // After a legend below or beside (after) the chart.
+        const after = host.querySelector(':scope > svg.tc-chart + .tc-legend') ?? svg
         if (after && after.nextElementSibling !== el) after.after(el)
         else if (!el.isConnected) host.appendChild(el)
       }

@@ -218,3 +218,104 @@ describe('Chart legend', () => {
     expect(el.querySelector('.tc-legend')).toBeNull()
   })
 })
+
+describe('legend beside the chart', () => {
+  let el: HTMLElement
+  let chart: Chart<object> | undefined
+  const fluid = { ...base, width: undefined } as ChartConfig<object>
+  const legendOf = () => el.querySelector<HTMLElement>(':scope > .tc-legend')
+  const svgOf = () => el.querySelector(':scope > svg.tc-chart')
+  /** happy-dom has no layout: a container and a legend of the given widths, 16px apart. */
+  const layout = (container: number, legend = 100) => {
+    el.style.columnGap = '16px'
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(container)
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(legend)
+  }
+
+  beforeEach(() => {
+    el = document.createElement('div')
+    document.body.appendChild(el)
+  })
+
+  afterEach(() => {
+    chart?.destroy()
+    chart = undefined
+    el.remove()
+    vi.restoreAllMocks()
+  })
+
+  test('resolveLegend() takes every position, and the top for anything else', () => {
+    for (const position of ['top', 'bottom', 'left', 'right', 'auto'] as const) {
+      expect(resolveLegend({ ...base, legend: { position } }).position).toBe(position)
+    }
+    expect(resolveLegend({ ...base, legend: { position: 'middle' as never } }).position).toBe('top')
+  })
+
+  test('right comes after the svg, left before it', () => {
+    chart = new Chart(el, { ...base, legend: { position: 'right' } })
+    expect(legendOf()?.dataset.position).toBe('right')
+    expect(svgOf()?.nextElementSibling).toBe(legendOf())
+    chart.destroy()
+    chart = new Chart(el, { ...base, legend: { position: 'left' } })
+    expect(legendOf()?.dataset.position).toBe('left')
+    expect(legendOf()?.nextElementSibling).toBe(svgOf())
+  })
+
+  test('sides swap in a right-to-left chart', () => {
+    chart = new Chart(el, { ...base, rtl: true, legend: { position: 'left' } })
+    expect(legendOf()?.dataset.position).toBe('right')
+    expect(svgOf()?.nextElementSibling).toBe(legendOf())
+  })
+
+  test('in a right-to-left container, the start side comes first', () => {
+    el.dir = 'rtl'
+    el.style.direction = 'rtl'
+    chart = new Chart(el, { ...base, rtl: 'auto', legend: { position: 'left' } })
+    // Mirrored to the right, which is where a right-to-left container starts.
+    expect(legendOf()?.dataset.position).toBe('right')
+    expect(legendOf()?.nextElementSibling).toBe(svgOf())
+  })
+
+  test('the chart takes the width the legend and the gap leave', () => {
+    layout(600)
+    chart = new Chart(el, { ...fluid, legend: { position: 'right' } })
+    expect(chart.size.width).toBe(600 - 100 - 16)
+    expect(svgOf()?.getAttribute('width')).toBe('484')
+  })
+
+  test('a legend beside the chart takes no height from the container', () => {
+    layout(600)
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(300)
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(80)
+    chart = new Chart(el, { ...fluid, height: 'container', legend: { position: 'left' } })
+    expect(chart.size).toEqual({ width: 484, height: 300 })
+  })
+
+  test('auto: beside when the chart keeps two thirds of the container, else below', () => {
+    layout(600)
+    chart = new Chart(el, { ...fluid, legend: { position: 'auto' } })
+    expect(legendOf()?.dataset.position).toBe('right')
+    chart.destroy()
+    vi.restoreAllMocks()
+    layout(300)
+    chart = new Chart(el, { ...fluid, legend: { position: 'auto' } })
+    expect(legendOf()?.dataset.position).toBe('bottom')
+    expect(svgOf()?.nextElementSibling).toBe(legendOf())
+    expect(chart.size.width).toBe(300)
+  })
+
+  test('a legend above or below is never measured for its width', () => {
+    const read = vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+    chart = new Chart(el, { ...fluid, legend: { position: 'bottom' } })
+    chart.update({ data: { ...data } } as never)
+    flush()
+    expect(read).not.toHaveBeenCalled()
+  })
+
+  test('the data table goes after a legend beside the chart, not between them', () => {
+    chart = new Chart(el, { ...base, legend: { position: 'right' }, table: true } as never)
+    const table = el.querySelector(':scope > .tc-table-wrap')
+    expect(table).not.toBeNull()
+    expect(legendOf()?.nextElementSibling).toBe(table)
+  })
+})
