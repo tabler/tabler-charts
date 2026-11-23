@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
+import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, renderOf, tableOf } from '../test-utils.ts'
 import { h } from '../vnode.ts'
 import { type HeatmapOptions, heatmap } from './heatmap.ts'
 
@@ -22,14 +22,8 @@ const base: ChartConfig<HeatmapOptions> = {
 const render = (config: Partial<ChartConfig<HeatmapOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'h')
 
-function interactionOf(config: Partial<ChartConfig<HeatmapOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'h', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<HeatmapOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'h')
 
 const heat = (node: ReturnType<typeof render>) =>
   findByClass(node, 'tc-cell').map((c) => c.attrs.style ?? null)
@@ -100,7 +94,7 @@ describe('heatmap', () => {
   })
 
   test('lists the values as a table', () => {
-    const table = heatmap.table?.(base, { ...ctx(), hidden: new Set() }, 100)
+    const table = tableOf(base, 100)
     expect(table?.columns).toEqual(['', 'Mon', 'Tue'])
     expect(table?.rows[0]).toEqual(['W1', '0', '2'])
   })
@@ -145,10 +139,13 @@ describe('heatmap', () => {
       expect(unnamed?.map((i) => i.name)).toEqual(['< 3', '3–8', '≥ 8'])
       expect(findByClass(render({ ranges }), 'tc-cell-empty')).toHaveLength(1)
       // Hiding "High" from the legend empties its two cells (plus the missing one).
-      const content = heatmap.render(
+      const { content } = renderOf(
         { ...base, ranges },
-        { ...ctx(), hidden: new Set(['High']) },
-      ) as never
+        { width: 300, height: 120 },
+        {
+          hidden: new Set(['High']),
+        },
+      )
       const cells = findByClass(h('g', null, content), 'tc-cell')
       expect(cells.filter((c) => String(c.attrs.class).includes('tc-cell-empty'))).toHaveLength(3)
     })
@@ -167,8 +164,7 @@ describe('heatmap', () => {
         '0,00–1.234,50',
         '≥ 1.234,50',
       ])
-      const ctx = renderContext(config, size, 'h', () => {}, new Set())
-      expect(heatmap.table?.(config, ctx, 10).rows[0]).toEqual(['W1', '0,00', '2,00'])
+      expect(tableOf(config, 10)?.rows[0]).toEqual(['W1', '0,00', '2,00'])
     })
 
     test('the tooltip names the range of each value', () => {
@@ -240,7 +236,3 @@ describe('heatmap', () => {
     })
   })
 })
-
-function ctx() {
-  return { width: 300, height: 120, fontSize: 12, locale: 'en-US', id: 'h', onHitTest() {} }
-}

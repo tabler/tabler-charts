@@ -1,10 +1,10 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets, round } from '../layout.ts'
 import { DEG } from '../shapes/arc.ts'
-import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { type ClassValue, h } from '../vnode.ts'
 import { cleanData, finite, named, records } from './clean.ts'
 import { groupAttrs, keyOf, legendItems } from './named.ts'
 
@@ -179,7 +179,7 @@ function layoutSeats(
   return { seats, dot, box }
 }
 
-function renderParliament(options: ParliamentOptions, ctx: RenderContext): ChildInput {
+function renderParliament(options: ParliamentOptions, ctx: RenderContext): RenderResult {
   const { width, height, locale } = ctx
   const area = innerRect(width, height, insets(options.padding, 0))
   const span = Math.min(360, Math.max(0, options.angle ?? 180)) * DEG
@@ -291,7 +291,6 @@ function renderParliament(options: ParliamentOptions, ctx: RenderContext): Child
       return best ? hitFor(best.party, best.seat) : null
     },
   }
-  ctx.onHitTest(interaction)
 
   const circle = (seat: Seat, key: number, cls: string) => {
     const [x, y] = at(seat)
@@ -312,7 +311,7 @@ function renderParliament(options: ParliamentOptions, ctx: RenderContext): Child
 
   const centerValue = showCenter ? (center?.value ?? value(total)) : ''
 
-  return [
+  const content = [
     // Seats sit in their own group: the entrance animation transforms it, not the translated parent.
     h(
       'g',
@@ -358,6 +357,7 @@ function renderParliament(options: ParliamentOptions, ctx: RenderContext): Child
         ),
       ),
   ]
+  return { content, interaction }
 }
 
 function parliamentTable(options: ParliamentOptions, ctx: RenderContext): DataTable {

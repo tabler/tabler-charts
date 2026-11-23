@@ -1,10 +1,10 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets, round } from '../layout.ts'
 import { rectPath } from '../shapes/rect.ts'
-import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { type ClassValue, h } from '../vnode.ts'
 import { cleanData, finite, isRecord, list, named } from './clean.ts'
 import { fit } from './fit.ts'
 import { groupAttrs, keyOf, legendItems } from './named.ts'
@@ -199,7 +199,7 @@ function layout(
   })
 }
 
-function renderTreemap(options: TreemapOptions, ctx: RenderContext): ChildInput {
+function renderTreemap(options: TreemapOptions, ctx: RenderContext): RenderResult {
   const { width, height, fontSize, locale } = ctx
   const gap = Math.max(0, options.gap ?? 2)
   const radius = Math.max(0, options.radius ?? 3)
@@ -269,7 +269,6 @@ function renderTreemap(options: TreemapOptions, ctx: RenderContext): ChildInput 
       return index < 0 ? null : hitFor(tiles[index] as Tile, index)
     },
   }
-  ctx.onHitTest(interaction)
 
   const groups = entries.map(({ entry, index }) =>
     h(
@@ -321,10 +320,11 @@ function renderTreemap(options: TreemapOptions, ctx: RenderContext): ChildInput 
       ]
     })
 
-  return [
+  const content = [
     h('g', { class: 'tc-treemap-tiles' }, groups),
     labels && h('g', { class: 'tc-treemap-labels', 'aria-hidden': 'true' }, labels),
   ]
+  return { content, interaction }
 }
 
 function treemapTable(options: TreemapOptions, ctx: RenderContext, limit: number): DataTable {

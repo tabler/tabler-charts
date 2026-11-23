@@ -7,19 +7,25 @@ export type { DataTable } from './a11y.ts'
 export { describeHit, tableContent } from './a11y.ts'
 export type {
   BaseOptions,
+  BuiltChart,
   ChartConfig,
   ChartEvents,
   ChartType,
+  ContextOptions,
   RenderContext,
+  RenderResult,
   ResolvedLegend,
   Size,
+  TableContext,
 } from './chart.ts'
 export {
   buildChart,
   Chart,
   chartEvents,
   chartLabel,
+  chartModel,
   chartToString,
+  renderChart,
   renderContext,
   resolveLegend,
   resolveSize,

@@ -11,6 +11,7 @@ import {
   type Hit,
   h,
   highlight,
+  type Interaction,
   innerRect,
   linear,
   linearTicks,
@@ -33,7 +34,7 @@ interface Options {
  */
 const multiLine: ChartType<Options> = {
   name: 'multi-line',
-  render({ labels, series, curve }, { width, height, fontSize, locale, onHitTest }) {
+  render({ labels, series, curve }, { width, height, fontSize, locale }) {
     const all = series.flatMap((s) => s.values)
     const [, max] = extent(all) ?? [0, 1]
     const domain = linear([0, max], [0, 1]).nice().domain
@@ -65,14 +66,14 @@ const multiLine: ChartType<Options> = {
         return { name: s.name, seriesIndex, value, text: fmt(value), x: x.at(index), y: y(value) }
       }),
     })
-    onHitTest({
+    const interaction: Interaction = {
       count: labels.length,
       hitIndex,
       hitTest: (px, py) =>
         py >= area.y && py <= area.y + area.height ? hitIndex(x.indexAt(px)) : null,
-    })
+    }
 
-    return [
+    const content = [
       grid({ direction: 'y', ticks: yTicks, area }),
       axis({ position: 'left', ticks: yTicks, area }),
       axis({ position: 'bottom', ticks: thinTicks(bandTicks(x), 'bottom', fontSize), area }),
@@ -87,6 +88,8 @@ const multiLine: ChartType<Options> = {
         )
       }),
     ]
+    // With its interaction, the chart gets tooltips, hover and keyboard navigation.
+    return { content, interaction }
   },
 }
 

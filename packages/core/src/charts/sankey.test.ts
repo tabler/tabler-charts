@@ -3,7 +3,7 @@ import { buildChart, type ChartConfig } from '../chart.ts'
 import { hoverOverlay, hoverUnderlay } from '../components/hover.ts'
 import type { Interaction } from '../interaction.ts'
 import { estimateTextWidth } from '../layout.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { type SankeyData, type SankeyOptions, sankey } from './sankey.ts'
 
@@ -21,14 +21,8 @@ const base: ChartConfig<SankeyOptions> = { type: sankey, data, id: 's', locale: 
 const render = (config: Partial<ChartConfig<SankeyOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 's')
 
-function interactionOf(config: Partial<ChartConfig<SankeyOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 's', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<SankeyOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 's')
 
 const num = (v: unknown) => Number(v)
 /** Node rects by name, in render order. */

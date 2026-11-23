@@ -1,8 +1,8 @@
 import '../log.ts'
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
+import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, tableOf } from '../test-utils.ts'
 import { type ScatterOptions, scatter } from './scatter.ts'
 
 const size = { width: 400, height: 240 }
@@ -31,14 +31,8 @@ const base: ChartConfig<ScatterOptions> = { type: scatter, data, id: 's', locale
 const render = (config: Partial<ChartConfig<ScatterOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 's')
 
-function interactionOf(config: Partial<ChartConfig<ScatterOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 's', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<ScatterOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 's')
 
 /** Every point as a circle: bubbles are circles, plain dots arcs in one path per series. */
 const circles = (node: ReturnType<typeof render>) =>
@@ -144,11 +138,7 @@ describe('scatter', () => {
   })
 
   test('describes the points as a table', () => {
-    const table = scatter.table?.(
-      base,
-      renderContext(base, size, 's', () => {}, new Set()),
-      100,
-    )
+    const table = tableOf(base, 100)
     expect(table?.columns).toEqual(['', 'Label', 'x', 'y'])
     expect(table?.rows[0]).toEqual(['North', 'Oslo', '10', '20'])
     expect(table?.rows).toHaveLength(5)

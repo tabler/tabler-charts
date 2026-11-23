@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass } from '../test-utils.ts'
 import { type SparklineOptions, sparkline } from './sparkline.ts'
 
 const size = { width: 120, height: 40 }
@@ -14,14 +14,8 @@ const base: ChartConfig<SparklineOptions> = {
 const render = (config: Partial<ChartConfig<SparklineOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'sp')
 
-function interactionOf(config: Partial<ChartConfig<SparklineOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'sp', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<SparklineOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'sp')
 
 describe('sparkline', () => {
   test('renders a line with a last dot and nothing else', () => {

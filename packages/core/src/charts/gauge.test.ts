@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass, findByTag } from '../test-utils.ts'
+import { chartInteraction, findByClass, findByTag, tableOf } from '../test-utils.ts'
 import { type GaugeOptions, gauge } from './gauge.ts'
 
 const size = { width: 200, height: 200 }
@@ -10,14 +10,8 @@ const base: ChartConfig<GaugeOptions> = { type: gauge, data: 58, id: 'g', locale
 const render = (config: Partial<ChartConfig<GaugeOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'g')
 
-function interactionOf(config: Partial<ChartConfig<GaugeOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'g', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<GaugeOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'g')
 
 const texts = (node: ReturnType<typeof render>) =>
   findByTag(node, 'text').map((t) => t.children.join(''))
@@ -48,7 +42,7 @@ describe('gauge', () => {
     const node = render({ data: { name: 'completed', value: 1392, max: 2400 } })
     expect(texts(node)).toEqual(['58%', 'completed'])
     expect(
-      gauge.table?.({ data: { name: 'completed', value: 1392, max: 2400 } }, ctx(), 1000),
+      tableOf({ type: gauge, data: { name: 'completed', value: 1392, max: 2400 } }, 1000),
     ).toEqual({
       columns: ['', 'Value', 'Share'],
       rows: [['completed', '1,392', '58%']],
@@ -203,15 +197,3 @@ describe('gauge', () => {
     expect(arcOf(50, 'tc-gauge-track')).toEqual(arcOf(100, 'tc-gauge-track'))
   })
 })
-
-function ctx() {
-  return {
-    width: 200,
-    height: 200,
-    fontSize: 12,
-    locale: 'en-US',
-    id: 'g',
-    onHitTest() {},
-    hidden: new Set<string>(),
-  }
-}

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass, findByTag } from '../test-utils.ts'
+import { chartInteraction, findByClass, findByTag, tableOf } from '../test-utils.ts'
 import { type ParliamentOptions, parliament } from './parliament.ts'
 
 const size = { width: 400, height: 200 }
@@ -16,14 +16,8 @@ const base: ChartConfig<ParliamentOptions> = { type: parliament, data, id: 'p', 
 const render = (config: Partial<ChartConfig<ParliamentOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'p')
 
-function interactionOf(config: Partial<ChartConfig<ParliamentOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'p', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<ParliamentOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'p')
 
 const texts = (node: ReturnType<typeof render>) =>
   findByTag(node, 'text').map((t) => t.children.join(''))
@@ -34,16 +28,6 @@ const positionOf = (seat: { attrs: Record<string, unknown> }) =>
     .match(/translate\(([\d.-]+)px,([\d.-]+)px\)/)
     ?.slice(1)
     .map(Number) ?? []) as [number, number]
-
-const ctx = () => ({
-  width: 400,
-  height: 200,
-  fontSize: 12,
-  locale: 'en-US',
-  id: 'p',
-  onHitTest() {},
-  hidden: new Set<string>(),
-})
 
 describe('parliament', () => {
   test('draws one seat per party seat, in palette slots, with the total in the middle', () => {
@@ -144,7 +128,7 @@ describe('parliament', () => {
       { key: 'Mi Hazánk', name: 'Mi Hazánk', index: 2 },
       { key: 'German minority', name: 'German minority', index: 3 },
     ])
-    expect(parliament.table?.({ data }, ctx(), 1000)).toEqual({
+    expect(tableOf({ type: parliament, data }, 1000)).toEqual({
       columns: ['', 'Seats', 'Share'],
       rows: [
         ['Fidesz', '135', '67.8%'],

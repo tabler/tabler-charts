@@ -1,12 +1,12 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { features } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
 import { arcNode, sweep } from '../render/sweep.ts'
 import { arcCentroid, arcPathStable, DEG, HALO, padAngleForGap } from '../shapes/arc.ts'
-import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems } from './clean.ts'
 import { groupAttrs, keyOf } from './named.ts'
 import { groupLegend, groupSlices } from './others.ts'
@@ -168,7 +168,6 @@ function renderPie(
       return position === -1 ? null : hitFor(drawn[position] as Slice, position)
     },
   }
-  ctx.onHitTest(interaction)
 
   const groups = slices.map((slice) =>
     h(
@@ -186,7 +185,7 @@ function renderPie(
   const centerValue = showCenter ? (center?.value ?? value(total)) : ''
   const centerLabel = showCenter ? center?.label : undefined
 
-  return [
+  const content = [
     h(
       'g',
       { class: 'tc-pie', style: `transform:translate(${cx}px,${cy}px)` },
@@ -232,6 +231,7 @@ function renderPie(
           ),
       ),
   ]
+  return { content, interaction }
 }
 
 function pieTable(options: PieOptions, ctx: RenderContext): DataTable {
@@ -252,7 +252,7 @@ function pieType(name: string, defaults: { inner: number; corner: number }): Cha
   return {
     name,
     clean: cleanData(cleanItems),
-    render: (options, ctx): ChildInput => {
+    render: (options, ctx): RenderResult => {
       // Set here, not as the module loads: a module with side effects would
       // stay in every bundle that imports another chart type next to it.
       features.sweep = sweep

@@ -235,7 +235,6 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
       return best === -1 ? null : hitFor(placed[best] as Placed, best)
     },
   }
-  ctx.onHitTest(interaction)
 
   /** One path drawing a dot of `radius` at every point (two arcs each, or the series' shape). */
   const shape = markerShape(options)
@@ -287,13 +286,14 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
       ),
   )
 
-  return [
+  const content = [
     h('defs', null, clip.def),
     background,
     h('g', { key: 'series', class: 'tc-series-list', 'clip-path': clip.url }, groups),
     showY && axis({ position: rtl ? 'right' : 'left', ticks: yTicks, area }),
     showX && axis({ position: 'bottom', ticks: xTicks, area }),
   ]
+  return { content, interaction }
 }
 
 function scatterTable(

@@ -1,9 +1,9 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets, round } from '../layout.ts'
-import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { type ClassValue, h } from '../vnode.ts'
 import { cleanData, finite, named, records } from './clean.ts'
 import { fit } from './fit.ts'
 import { keyOf } from './named.ts'
@@ -100,13 +100,13 @@ function stagePath(
   )
 }
 
-function renderFunnel(options: FunnelOptions, ctx: RenderContext): ChildInput {
+function renderFunnel(options: FunnelOptions, ctx: RenderContext): RenderResult {
   const { width, height, fontSize, locale } = ctx
   const radius = Math.max(0, options.radius ?? 4)
   const area = innerRect(width, height, insets(options.padding, 0))
   const stages = stagesOf(options)
   const count = stages.length
-  if (count === 0) return null
+  if (count === 0) return { content: null }
 
   const value = formatNumber(options.format, locale)
   const percent = getNumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 })
@@ -179,7 +179,6 @@ function renderFunnel(options: FunnelOptions, ctx: RenderContext): ChildInput {
       return hitFor(Math.min(count - 1, Math.floor((px - area.x) / (column || 1))))
     },
   }
-  ctx.onHitTest(interaction)
 
   const dividers = stages.slice(1).map((stage, i) =>
     h('line', {
@@ -246,11 +245,12 @@ function renderFunnel(options: FunnelOptions, ctx: RenderContext): ChildInput {
       ]
     })
 
-  return [
+  const content = [
     h('g', { class: 'tc-funnel-dividers', 'aria-hidden': 'true' }, dividers),
     h('g', { class: 'tc-funnel-stages' }, shapes),
     labels && h('g', { class: 'tc-funnel-labels', 'aria-hidden': 'true' }, labels),
   ]
+  return { content, interaction }
 }
 
 function funnelTable(options: FunnelOptions, ctx: RenderContext, limit: number): DataTable {

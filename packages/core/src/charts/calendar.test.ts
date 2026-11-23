@@ -1,13 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import {
-  buildChart,
-  type ChartConfig,
-  chartToString,
-  renderContext,
-  resolveSize,
-} from '../chart.ts'
+import { buildChart, type ChartConfig, chartToString, resolveSize } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, renderOf, tableOf } from '../test-utils.ts'
 import { h } from '../vnode.ts'
 import { type CalendarOptions, calendar } from './calendar.ts'
 
@@ -43,14 +37,8 @@ const base: ChartConfig<CalendarOptions> = {
 const render = (config: Partial<ChartConfig<CalendarOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'c')
 
-function interactionOf(config: Partial<ChartConfig<CalendarOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'c', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<CalendarOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'c')
 
 const cells = (node: ReturnType<typeof render>) =>
   findByClass(findByClass(node, 'tc-calendar-cells')[0] ?? node, 'tc-cell')
@@ -79,10 +67,9 @@ describe('calendar', () => {
   })
 
   test('hides a series from the legend and leaves its values out of the shade', () => {
-    let found: Interaction | undefined
-    const ctx = renderContext(base, size, 'c', (i) => (found = i), new Set(['Reviews']))
-    const node = h('g', null, calendar.render(base, ctx))
-    const hit = found?.hitIndex(1)
+    const { content, interaction } = renderOf(base, size, { hidden: new Set(['Reviews']) })
+    const node = h('g', null, content)
+    const hit = interaction?.hitIndex(1)
     expect(hit?.items.map((i) => i.name)).toEqual(['Commits'])
     // 5 of 10 → level 2 of 4; with Reviews shown it was 8 of 10 → level 4.
     expect(findByClass(node, 'tc-cell')[1]?.attrs.style).toBe('--tc-heat:50%')
@@ -154,11 +141,7 @@ describe('calendar', () => {
   })
 
   test('lists the days with data as a table', () => {
-    const table = calendar.table?.(
-      base,
-      renderContext(base, size, 'c', () => {}, new Set()),
-      100,
-    )
+    const table = tableOf(base, 100)
     expect(table?.columns).toEqual(['', 'Commits', 'Reviews'])
     expect(table?.rows).toEqual([
       ['Oct 5, 2026', '0', '–'],
@@ -166,13 +149,7 @@ describe('calendar', () => {
       ['Oct 7, 2026', '10', '–'],
       ['Oct 18, 2026', '–', '–'],
     ])
-    expect(
-      calendar.table?.(
-        base,
-        renderContext(base, size, 'c', () => {}, new Set()),
-        1,
-      )?.total,
-    ).toBe(4)
+    expect(tableOf(base, 1)?.total).toBe(4)
   })
 
   test('takes a plain list of days, with no legend', () => {

@@ -3,7 +3,7 @@ import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import '../log.ts'
 import { candlestick } from '../candlestick.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass } from '../test-utils.ts'
 import type { CandlestickOptions } from './candlestick.ts'
 
 const size = { width: 400, height: 200 }
@@ -21,14 +21,8 @@ const base: ChartConfig<CandlestickOptions> = {
 const render = (config: Partial<ChartConfig<CandlestickOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'c')
 
-function interactionOf(config: Partial<ChartConfig<CandlestickOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'c', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<CandlestickOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'c')
 
 const num = (v: unknown) => Number(v)
 
@@ -143,19 +137,7 @@ describe('candlestick', () => {
     ]
     const hit = interactionOf({ data, x: { type: 'time', utc: true } }).hitIndex(0)
     expect(hit?.title).toBe('Jan 1, 2026')
-    const table = candlestick.table?.(
-      { data },
-      {
-        width: 400,
-        height: 200,
-        fontSize: 12,
-        locale: 'en-US',
-        id: 'c',
-        onHitTest() {},
-        hidden: new Set(),
-      },
-      100,
-    )
+    const table = candlestick.table?.({ data }, { locale: 'en-US', hidden: new Set() }, 100)
     expect(table?.columns).toEqual(['', 'Open', 'High', 'Low', 'Close'])
   })
 })

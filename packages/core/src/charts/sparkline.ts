@@ -121,7 +121,6 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
       return hitFor(place(Math.max(0, Math.min(count - 1, i))))
     },
   }
-  ctx.onHitTest(interaction)
 
   const marks = []
   if (tristate) {
@@ -213,7 +212,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
     }
   }
 
-  return [
+  const content = [
     variant === 'area' && h('defs', null, fadeMask(`${ctx.id}-fade`)),
     h(
       'g',
@@ -223,6 +222,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
       last !== -1 && !bars && dotAt(last, 'tc-point-last'),
     ),
   ]
+  return { content, interaction }
 }
 
 /**

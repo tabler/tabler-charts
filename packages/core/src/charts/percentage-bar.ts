@@ -1,9 +1,9 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets, round } from '../layout.ts'
-import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { type ClassValue, h } from '../vnode.ts'
 import { cleanItems } from './clean.ts'
 import { groupAttrs, keyOf } from './named.ts'
 import { type Grouped, groupLegend, groupSlices } from './others.ts'
@@ -82,7 +82,7 @@ function segmentsOf(
   return { segments, total: segments.reduce((sum, segment) => sum + segment.value, 0) }
 }
 
-function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext): ChildInput {
+function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext): RenderResult {
   const { width, height, locale } = ctx
   const gap = Math.max(0, options.gap ?? 2)
   const radius = Math.max(0, options.radius ?? 4)
@@ -155,9 +155,8 @@ function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext):
       return position < 0 ? null : hitFor(position)
     },
   }
-  ctx.onHitTest(interaction)
 
-  return h(
+  const content = h(
     'g',
     { class: 'tc-percentage-bar' },
     // Empty: the track alone, so the chart keeps its place.
@@ -188,6 +187,7 @@ function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext):
       )
     }),
   )
+  return { content, interaction }
 }
 
 function percentageBarTable(options: PercentageBarOptions, ctx: RenderContext): DataTable {
