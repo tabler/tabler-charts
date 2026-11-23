@@ -268,7 +268,7 @@ function renderParliament(options: ParliamentOptions, ctx: RenderContext): Rende
       area: { x: cx - outer, y: cy - outer, width: outer * 2, height: outer * 2 },
       items: [item],
       seriesIndex: party.index,
-      mark: { d, x: 0, y: 0 },
+      highlight: { kind: 'halo', d },
     }
   }
 

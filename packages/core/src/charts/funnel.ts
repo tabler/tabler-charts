@@ -166,7 +166,7 @@ function renderFunnel(options: FunnelOptions, ctx: RenderContext): RenderResult 
       x,
       area,
       // The whole column is highlighted, as it is the whole hit area.
-      band: { x: columnX(i), y: area.y, width: column, height: area.height },
+      highlight: { kind: 'band', x: columnX(i), y: area.y, width: column, height: area.height },
       items,
     }
   }

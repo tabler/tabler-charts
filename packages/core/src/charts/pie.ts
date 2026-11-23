@@ -140,7 +140,8 @@ function renderPie(
       items: [item],
       seriesIndex: slice.index,
       // A thin halo just outside the slice.
-      mark: {
+      highlight: {
+        kind: 'halo',
         d: arcPathStable({ ...geometry(slice, outer + 2, outer + 6), cornerRadius: 2 }),
         x: cx,
         y: cy,

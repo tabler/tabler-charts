@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { chartInteraction, findByClass, findByTag, tableOf } from '../test-utils.ts'
+import { chartInteraction, findByClass, findByTag, highlightOf, tableOf } from '../test-utils.ts'
 import { type GaugeOptions, gauge } from './gauge.ts'
 
 const size = { width: 200, height: 200 }
@@ -174,7 +174,7 @@ describe('gauge', () => {
     expect(interaction.hitTest(100, 100)).toBeNull()
     const hit = interaction.hitIndex(1)
     expect(hit?.items[0]?.text).toBe('25 (25%)')
-    expect(hit?.mark?.d).toContain('A')
+    expect(highlightOf(hit, 'halo')?.d).toContain('A')
   })
 
   test('renders to a string without a DOM', () => {

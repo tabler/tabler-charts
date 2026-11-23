@@ -413,7 +413,10 @@ function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
       area: grid,
       items,
       seriesIndex,
-      mark: { d: rectPath(box.x - 2, box.y - 2, cell + 4, cell + 4, radius + 2), x: 0, y: 0 },
+      highlight: {
+        kind: 'halo',
+        d: rectPath(box.x - 2, box.y - 2, cell + 4, cell + 4, radius + 2),
+      },
     }
   }
 

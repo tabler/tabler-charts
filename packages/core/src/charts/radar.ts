@@ -228,7 +228,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): RenderResult {
       x: x2,
       area: { x: cx - radius, y: cy - radius, width: radius * 2, height: radius * 2 },
       items,
-      guide: { x1: cx, y1: cy, x2, y2 },
+      highlight: { kind: 'spoke', x1: cx, y1: cy, x2, y2 },
     }
   }
 

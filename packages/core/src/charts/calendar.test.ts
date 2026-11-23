@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString, resolveSize } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { chartInteraction, findByClass, renderOf, tableOf } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf, renderOf, tableOf } from '../test-utils.ts'
 import { h } from '../vnode.ts'
 import { type CalendarOptions, calendar } from './calendar.ts'
 
@@ -132,7 +132,7 @@ describe('calendar', () => {
     expect(hit?.label).toBe('2026-10-06')
     expect(hit?.title).toBe('Oct 6, 2026')
     expect(hit?.items.map((i) => i.text)).toEqual(['5', '3'])
-    expect(hit?.mark?.d).toMatch(/^M.*Z$/)
+    expect(highlightOf(hit, 'halo')?.d).toMatch(/^M.*Z$/)
     // Keyboard: a day with a series picked; a day without data lists dashes.
     expect(interaction.hitIndex(8, 1)?.seriesIndex).toBe(1)
     expect(interaction.hitIndex(8)?.items.map((i) => i.text)).toEqual(['–', '–'])

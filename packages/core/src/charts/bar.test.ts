@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString, renderChart } from '../chart.ts'
-import { findByClass, gridLineOffset } from '../test-utils.ts'
+import { findByClass, gridLineOffset, highlightOf } from '../test-utils.ts'
 import '../line.ts'
 import { type BarOptions, bar } from './bar.ts'
 
@@ -274,8 +274,9 @@ describe('bar', () => {
       expect(hit?.axis).toBe('y')
       expect(hit?.seriesIndex).toBe(0)
       expect(hit?.items[0]?.x).toBeCloseTo(a.right)
-      expect(hit?.band?.height).toBeGreaterThan(0)
-      expect(hit?.band?.width).toBe(hit?.area.width)
+      const band = highlightOf(hit, 'band')
+      expect(band?.height).toBeGreaterThan(0)
+      expect(band?.width).toBe(hit?.area.width)
     })
   })
 

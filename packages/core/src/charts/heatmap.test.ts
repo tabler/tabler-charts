@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { chartInteraction, findByClass, renderOf, tableOf } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf, renderOf, tableOf } from '../test-utils.ts'
 import { h } from '../vnode.ts'
 import { type HeatmapOptions, heatmap } from './heatmap.ts'
 
@@ -87,7 +87,7 @@ describe('heatmap', () => {
     expect(hit?.seriesIndex).toBe(1)
     expect(hit?.title).toBe('W3')
     expect(hit?.items.map((i) => i.text)).toEqual(['10', '8'])
-    expect(hit?.mark?.d).toMatch(/^M.*Z$/)
+    expect(highlightOf(hit, 'halo')?.d).toMatch(/^M.*Z$/)
     // Keyboard: a column with a row picked.
     expect(interaction.hitIndex(1, 1)?.items[1]?.text).toBe('–')
     expect(interaction.hitTest(0, 0)).toBeNull()

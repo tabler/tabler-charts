@@ -100,7 +100,7 @@ export {
   getNumberFormat,
   stepPrecision,
 } from './format.ts'
-export type { Hit, HitItem, HitTester, Interaction } from './interaction.ts'
+export type { Highlight, Hit, HitItem, HitTester, Interaction } from './interaction.ts'
 export type { Insets, InsetsInput, Rect } from './layout.ts'
 export { estimateTextWidth, innerRect, insets, LINE_HEIGHT } from './layout.ts'
 export type { LegendItem, LegendOptions } from './legend.ts'

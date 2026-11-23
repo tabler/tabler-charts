@@ -244,10 +244,9 @@ function renderTreemap(options: TreemapOptions, ctx: RenderContext): RenderResul
       items: [item],
       seriesIndex: tile.top,
       // A ring just inside the hovered tile.
-      mark: {
+      highlight: {
+        kind: 'halo',
         d: rectPath(tile.x + 1, tile.y + 1, tile.width - 2, tile.height - 2, radius - 1),
-        x: 0,
-        y: 0,
       },
     }
   }

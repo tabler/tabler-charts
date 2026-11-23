@@ -8,7 +8,7 @@ import {
   renderContext,
   type Size,
 } from './chart.ts'
-import type { Interaction } from './interaction.ts'
+import type { Highlight, Hit, Interaction } from './interaction.ts'
 import { estimateTextWidth } from './layout.ts'
 import type { Child, ChildInput, VNode } from './vnode.ts'
 
@@ -94,3 +94,10 @@ export function tickLabelExtent(
   }
   return [left, right]
 }
+
+/** The highlight of a hit when it is of `kind`. */
+export const highlightOf = <K extends Highlight['kind']>(
+  hit: Hit | null | undefined,
+  kind: K,
+): Extract<Highlight, { kind: K }> | undefined =>
+  hit?.highlight?.kind === kind ? (hit.highlight as Extract<Highlight, { kind: K }>) : undefined

@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, renderChart } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { estimateTextWidth } from '../layout.ts'
-import { chartInteraction, findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { type RadarOptions, radar } from './radar.ts'
 
@@ -204,8 +204,8 @@ describe('radar', () => {
     expect(up?.index).toBe(0)
     expect(up?.title).toBe('Speed')
     expect(up?.items.map((i) => i.text)).toEqual(['80', '50'])
-    expect(up?.guide?.x1).toBeCloseTo(cx)
-    expect(up?.guide?.y2).toBeLessThan(cy)
+    expect(highlightOf(up, 'spoke')?.x1).toBeCloseTo(cx)
+    expect(highlightOf(up, 'spoke')?.y2).toBeLessThan(cy)
     expect(interaction.hitTest(cx - 30, cy + 40)?.index).toBe(3)
     // Outside the outer ring: nothing.
     expect(interaction.hitTest(2, 2)).toBeNull()

@@ -135,10 +135,9 @@ function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext):
       items: [item],
       seriesIndex: segment.index,
       // A ring just inside the hovered segment.
-      mark: {
+      highlight: {
+        kind: 'halo',
         d: `M${n(box.x + 1)},${n(box.y + 1)}h${n(box.width - 2)}v${n(box.height - 2)}h${n(2 - box.width)}Z`,
-        x: 0,
-        y: 0,
       },
     }
   }

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { chartInteraction, findByClass, tableOf } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf, tableOf } from '../test-utils.ts'
 import { donut, type PieOptions, pie } from './pie.ts'
 
 const size = { width: 300, height: 200 }
@@ -58,7 +58,7 @@ describe('pie', () => {
     expect(hit?.items).toHaveLength(1)
     expect(hit?.items[0]?.text).toBe('50 (50%)')
     expect(hit?.seriesIndex).toBe(0)
-    expect(hit?.mark?.d).toMatch(/^M/)
+    expect(highlightOf(hit, 'halo')?.d).toMatch(/^M/)
   })
 
   test('ignores the center of a donut and points outside', () => {

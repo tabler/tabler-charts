@@ -248,10 +248,9 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
       items,
       seriesIndex: j,
       // A ring just outside the hovered cell.
-      mark: {
+      highlight: {
+        kind: 'halo',
         d: rectPath(cellX(i) - 2, cellY(j) - 2, cellW + 4, cellH + 4, radius + 2),
-        x: 0,
-        y: 0,
       },
     }
   }

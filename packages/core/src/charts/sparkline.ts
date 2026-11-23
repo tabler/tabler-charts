@@ -106,7 +106,9 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
       area,
       items: [item],
     }
-    if (value !== null) hit.mark = { d: circlePath(pointRadius + 3), x: px, y: yOf(value) }
+    if (value !== null) {
+      hit.highlight = { kind: 'halo', d: circlePath(pointRadius + 3), x: px, y: yOf(value) }
+    }
     return hit
   }
   const interaction: Interaction = {

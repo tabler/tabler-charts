@@ -3,7 +3,7 @@ import { buildChart, type ChartConfig } from '../chart.ts'
 import { hoverOverlay, hoverUnderlay } from '../components/hover.ts'
 import type { Interaction } from '../interaction.ts'
 import { estimateTextWidth } from '../layout.ts'
-import { chartInteraction, findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { type SankeyData, type SankeyOptions, sankey } from './sankey.ts'
 
@@ -191,7 +191,8 @@ describe('sankey', () => {
       ['Income → Savings', '50'],
     ])
     expect(hit?.items[0]?.color).toBe('var(--tc-color-1)')
-    expect(hit?.mark).toEqual({
+    expect(hit?.highlight).toEqual({
+      kind: 'halo',
       d: 'M0,0h12v80h-12Z'.replace('80', String(income.height)),
       x: income.x,
       y: income.y,
@@ -205,7 +206,7 @@ describe('sankey', () => {
     expect(link?.items[0]?.text).toBe('60')
     expect(link?.index).toBe(0)
     expect(link?.seriesIndex).toBe(0)
-    expect(link?.mark?.d).toMatch(/^M.*C.*L.*C.*Z$/)
+    expect(highlightOf(link, 'halo')?.d).toMatch(/^M.*C.*L.*C.*Z$/)
     // Drawn under the chart, so the ribbon never covers the labels lying on it.
     expect(link && findByClass(hoverOverlay(link), 'tc-hover-mark')).toHaveLength(0)
     expect(link && findByClass(hoverUnderlay(link), 'tc-hover-mark')).toHaveLength(1)
@@ -220,7 +221,7 @@ describe('sankey', () => {
     expect(node?.seriesIndex).toBe(4 + 2)
     const flow = interaction.hitIndex(2, 1)
     expect(flow?.seriesIndex).toBe(1)
-    expect(flow?.mark?.d).toMatch(/^M.*C.*L.*C.*Z$/)
+    expect(highlightOf(flow, 'halo')?.d).toMatch(/^M.*C.*L.*C.*Z$/)
     expect(interaction.hitIndex(9)).toBeNull()
   })
 

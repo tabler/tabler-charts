@@ -2,7 +2,7 @@ import '../log.ts'
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { chartInteraction, findByClass, tableOf } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf, tableOf } from '../test-utils.ts'
 import { type ScatterOptions, scatter } from './scatter.ts'
 
 const size = { width: 400, height: 240 }
@@ -117,7 +117,7 @@ describe('scatter', () => {
     const hit = interactionOf().hitTest(oslo.cx + 3, oslo.cy - 2)
     expect(hit?.title).toBe('Oslo')
     expect(hit?.items[0]).toMatchObject({ name: 'North', text: '10, 20' })
-    expect(hit?.mark?.d).toMatch(/^M/)
+    expect(highlightOf(hit, 'halo')?.d).toMatch(/^M/)
     expect(interactionOf().hitTest(oslo.cx + 60, oslo.cy + 60)).toBeNull()
   })
 

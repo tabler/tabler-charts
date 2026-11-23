@@ -192,7 +192,7 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): RenderResult {
       items: [item],
       seriesIndex: ring.index,
       // The value arc, slightly enlarged.
-      mark: { d: arcPathStable(geometry(ring, 2)), x: cx, y: cy },
+      highlight: { kind: 'halo', d: arcPathStable(geometry(ring, 2)), x: cx, y: cy },
     }
   }
 

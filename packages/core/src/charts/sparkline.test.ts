@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { chartInteraction, findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf } from '../test-utils.ts'
 import { type SparklineOptions, sparkline } from './sparkline.ts'
 
 const size = { width: 120, height: 40 }
@@ -96,14 +96,14 @@ describe('sparkline', () => {
     expect(last?.items[0]).toMatchObject({ name: 'Sales', text: '4' })
     expect(hit.hitTest(5, 20)?.index).toBe(0)
     expect(hit.hitIndex(2)?.items[0]?.text).toBe('–')
-    expect(hit.hitIndex(2)?.mark).toBeUndefined()
+    expect(hit.hitIndex(2)?.highlight).toBeUndefined()
     expect(hit.hitTest(60, 200)).toBeNull()
     expect(hit.hitIndex(7)).toBeNull()
   })
 
   test('tristate hover marks stay on the bar ends, whatever the magnitude', () => {
     const hit = interactionOf({ variant: 'tristate', data: [40, -40, 0] })
-    const ys = [0, 1, 2].map((i) => hit.hitIndex(i)?.mark?.y as number)
+    const ys = [0, 1, 2].map((i) => highlightOf(hit.hitIndex(i), 'halo')?.y as number)
     // The win mark is at the top of the plot, the loss at the bottom, the draw in the middle.
     expect(ys[0]).toBeGreaterThanOrEqual(0)
     expect(ys[1]).toBeLessThanOrEqual(size.height)

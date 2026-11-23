@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { chartInteraction, findByClass, findByTag, tableOf } from '../test-utils.ts'
+import { chartInteraction, findByClass, findByTag, highlightOf, tableOf } from '../test-utils.ts'
 import { type TreemapOptions, treemap } from './treemap.ts'
 
 const size = { width: 400, height: 200 }
@@ -192,7 +192,7 @@ describe('treemap', () => {
     expect(hit?.title).toBe('Engineering')
     expect(hit?.seriesIndex).toBe(0)
     expect(hit?.items[0]).toMatchObject({ name: 'Salaries', value: 50, text: '50 (50%)' })
-    expect(hit?.mark?.d).toMatch(/^M/)
+    expect(highlightOf(hit, 'halo')?.d).toMatch(/^M/)
     expect(interaction.hitTest(-5, 10)).toBeNull()
     const cloud = interaction.hitIndex(1)
     expect(cloud?.items[0]).toMatchObject({ name: 'Cloud', color: '#f76707' })

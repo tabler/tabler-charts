@@ -140,7 +140,7 @@ describe('funnel', () => {
     // Far above the low shape of the last stage.
     const hit = interaction.hitTest(350, 5)
     expect(hit?.index).toBe(3)
-    expect(hit?.band).toEqual({ x: 300, y: 0, width: 100, height: 200 })
+    expect(hit?.highlight).toEqual({ kind: 'band', x: 300, y: 0, width: 100, height: 200 })
     expect(hit?.items.map((item) => [item.name, item.text])).toEqual([
       ['Paid', '50'],
       ['of Visits', '5%'],

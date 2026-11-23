@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { chartInteraction, findByClass, findByTag, tableOf } from '../test-utils.ts'
+import { chartInteraction, findByClass, findByTag, highlightOf, tableOf } from '../test-utils.ts'
 import { type ParliamentOptions, parliament } from './parliament.ts'
 
 const size = { width: 400, height: 200 }
@@ -161,7 +161,7 @@ describe('parliament', () => {
     expect(hit?.index).toBe(1)
     expect(hit?.seriesIndex).toBe(1)
     // The halo marks every seat of the party.
-    expect(hit?.mark?.d.split('M')).toHaveLength(58)
+    expect(highlightOf(hit, 'halo')?.d.split('M')).toHaveLength(58)
     // Nothing in the hollow, nothing beyond the benches.
     expect(interaction.hitTest(cx, cy)).toBeNull()
     expect(interaction.hitTest(0, 0)).toBeNull()

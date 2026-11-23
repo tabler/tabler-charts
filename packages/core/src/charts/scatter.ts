@@ -201,7 +201,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
       area,
       items: [item],
       seriesIndex: p.seriesIndex,
-      mark: { d: circlePath(round(p.r + 4)), x: p.cx, y: p.cy },
+      highlight: { kind: 'halo', d: circlePath(round(p.r + 4)), x: p.cx, y: p.cy },
     }
   }
 

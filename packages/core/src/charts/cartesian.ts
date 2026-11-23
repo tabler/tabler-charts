@@ -595,9 +595,9 @@ export function categoryInteraction(
       hit.axis = 'y'
     }
     if (x.bandwidth > 0) {
-      hit.band = horizontal
-        ? { x: area.x, y: start, width: area.width, height: x.bandwidth }
-        : { x: start, y: area.y, width: x.bandwidth, height: area.height }
+      hit.highlight = horizontal
+        ? { kind: 'band', x: area.x, y: start, width: area.width, height: x.bandwidth }
+        : { kind: 'band', x: start, y: area.y, width: x.bandwidth, height: area.height }
     }
     return hit
   }
