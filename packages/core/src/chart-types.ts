@@ -3,6 +3,7 @@ import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
 import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
+import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
@@ -39,4 +40,5 @@ export const types: Readonly<Record<string, ChartType<never>>> = {
   parliament,
   treemap,
   'percentage-bar': percentageBar,
+  funnel,
 } as Record<string, ChartType<never>>

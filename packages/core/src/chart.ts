@@ -43,6 +43,12 @@ export interface ChartType<O extends object = object> {
    */
   clean?(options: O): unknown
   render(options: O, context: RenderContext): ChildInput
+  /**
+   * Height in pixels at a width, for a type whose proportions are not one
+   * ratio (parts of it keep their size as it narrows). Asked when `height`
+   * is not set; `undefined` leaves it to `aspectRatio`.
+   */
+  height?(options: O, width: number): number | undefined
   /** Entries for the legend (series, slices); charts without it get no legend. */
   legend?(options: O): LegendItem[]
   /**
@@ -214,7 +220,8 @@ export function resolveSize(options: BaseOptions, measured?: Partial<Size>): Siz
     ? (options.height as number)
     : options.height === 'container' && (measured?.height ?? 0) > 0
       ? (measured?.height as number)
-      : width / ratio
+      : ((options as { type?: ChartType<BaseOptions> }).type?.height?.(options, width) ??
+        width / ratio)
   return { width, height: Math.max(0, Math.round(height)) }
 }
 

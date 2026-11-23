@@ -24,6 +24,8 @@ import {
   calendar,
   candlestick,
   donut,
+  type FunnelOptions,
+  funnel,
   type GaugeOptions,
   gauge,
   type HeatmapOptions,
@@ -112,3 +114,7 @@ export const TreemapChart: ChartComponent<TreemapOptions> = /* @__PURE__ */ char
 )
 export const PercentageBarChart: ChartComponent<PercentageBarOptions> =
   /* @__PURE__ */ chartComponent(percentageBar, 'PercentageBarChart')
+export const FunnelChart: ChartComponent<FunnelOptions> = /* @__PURE__ */ chartComponent(
+  funnel,
+  'FunnelChart',
+)

@@ -20,6 +20,7 @@ export default defineConfig({
     'src/parliament.ts',
     'src/percentage-bar.ts',
     'src/treemap.ts',
+    'src/funnel.ts',
     'src/heatmap.ts',
     'src/calendar.ts',
     'src/map.ts',
