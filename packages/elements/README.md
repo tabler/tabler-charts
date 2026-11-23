@@ -45,7 +45,7 @@ The element renders into itself (light DOM), so the page CSS and the `--tc-*` to
 
 | Attribute | Option |
 | --- | --- |
-| `type` | The chart type: `line`, `area`, `bar`, `pie`, `donut`, `gauge`, `radar`, `sankey`, `parliament`, `percentage-bar`, `treemap`, `scatter`, `heatmap`, `calendar`, `candlestick`, `sparkline` |
+| `type` | The chart type: `line`, `area`, `bar`, `pie`, `donut`, `gauge`, `radar`, `sankey`, `parliament`, `percentage-bar`, `treemap`, `funnel`, `scatter`, `heatmap`, `calendar`, `candlestick`, `sparkline` |
 | `label` | `title` (the accessible name) |
 | `description` | `description` |
 | `width`, `height`, `aspect-ratio` | Size; `height="container"` follows the element's height |

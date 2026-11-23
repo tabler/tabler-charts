@@ -232,7 +232,7 @@ const BAND_GAP = 10
 
 function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
   const { width, height, fontSize, locale } = ctx
-  const { gap = 2, radius = 2, utc = false } = options
+  const { radius = 2, utc = false } = options
   const levels = Math.min(64, Math.max(1, Math.floor(finite(options.levels) ?? 4)))
   const series = seriesOf(options.data)
   const visible = series.filter((s) => !ctx.hidden.has(keyOf(s)))
@@ -363,6 +363,8 @@ function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
   const n = bands.length
   const room = area.height - n * top - (n - 1) * BAND_GAP
   const step = columns ? Math.max(0, Math.min(area.width / columns, room / (7 * n))) : 0
+  // (On a phone the days are a few pixels: the gap is at most a quarter of one.)
+  const gap = Math.max(0, Math.min(finite(options.gap) ?? 2, step / 4))
   const cell = Math.max(0, step - gap)
   /** Top of the cells of band `k`, below its month names. */
   const bandY = (k: number) => area.y + k * (top + step * 7 + BAND_GAP) + top
@@ -542,19 +544,51 @@ function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
 }
 
 /**
- * Width to height of the grid with its names and scale at the size of a
- * contribution graph (13 pixel days, 12 pixel text), so a year is a low
- * strip of small squares instead of filling a chart half as tall as wide.
+ * Size of the grid with its names and scale at the size of a contribution
+ * graph (13 pixel days, 12 pixel text): `fixed` is the part of the height
+ * that stays as the days shrink (the month names, the scale).
  */
-function ratioOf(options: CalendarOptions): number | undefined {
+function naturalSize(options: CalendarOptions) {
   const { bands, columns } = rangeOf(options)
   const n = bands.length
   if (!n) return undefined
   const top = options.x?.show === false ? 0 : 23
-  const w = (options.y?.show === false ? 0 : 36) + columns * 13
-  const h = n * (top + 7 * 13) + (n - 1) * BAND_GAP + (options.scale === false ? 0 : 21)
+  const left = options.y?.show === false ? 0 : 36
+  const fixed = n * top + (n - 1) * BAND_GAP + (options.scale === false ? 0 : 21)
+  return {
+    left,
+    fixed,
+    rows: 7 * n,
+    columns,
+    width: left + columns * 13,
+    height: fixed + n * 7 * 13,
+  }
+}
+
+/**
+ * Width to height of the chart, so a year is a low strip of small squares
+ * instead of filling a chart half as tall as wide.
+ */
+function ratioOf(options: CalendarOptions): number | undefined {
+  const size = naturalSize(options)
   // (A few weeks alone would be taller than wide: not below the usual 2.)
-  return Math.max(2, round(w / h))
+  return size && Math.max(2, round(size.width / size.height))
+}
+
+/**
+ * Height for a width narrower than the contribution graph (a phone): the
+ * names and the scale keep their size there, so the ratio alone would leave
+ * the days no room. Your own `aspectRatio` is kept.
+ */
+function heightOf(
+  options: CalendarOptions & { aspectRatio?: number; autoRatio?: number },
+  width: number,
+): number | undefined {
+  const size = naturalSize(options)
+  if (!size || options.aspectRatio !== options.autoRatio || width >= size.width) return undefined
+  const days = (Math.max(0, width - size.left) / size.columns) * size.rows
+  // (Not taller than the usual half of the width, which a few weeks alone get.)
+  return Math.min(width / 2, size.fixed + days)
 }
 
 /** Legend: the series (kinds of activity), when the data has them. */
@@ -625,6 +659,7 @@ export const calendar: ChartType<CalendarOptions> = {
     return { ...config, aspectRatio: autoRatio, autoRatio }
   },
   render: renderCalendar,
+  height: heightOf,
   legend: calendarLegend,
   table: calendarTable,
   valueLabels: { marks: 'cell', format: (options) => options.format },

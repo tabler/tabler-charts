@@ -53,6 +53,8 @@ export {
   seriesLegend,
   seriesTable,
 } from './charts/cartesian.ts'
+export type { FunnelOptions, FunnelStage } from './charts/funnel.ts'
+export { funnel } from './charts/funnel.ts'
 export type { GaugeOptions, GaugeRing } from './charts/gauge.ts'
 export { gauge } from './charts/gauge.ts'
 export type { HeatmapOptions, HeatmapRange } from './charts/heatmap.ts'

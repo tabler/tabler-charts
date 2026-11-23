@@ -6,6 +6,7 @@ import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
 import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
+import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
@@ -150,6 +151,11 @@ const TYPES: [string, ChartType<object>, () => unknown][] = [
             }
       return list(() => node(0))
     },
+  ],
+  [
+    'funnel',
+    funnel as ChartType<object>,
+    () => list(() => (chance(0.1) ? junk() : { name: text(), value: num(), color: color() })),
   ],
   [
     'percentage bar',
@@ -331,6 +337,7 @@ test('numeric options that are not finite count as left out', () => {
     ],
     [treemap, slices, ['gap', 'radius']],
     [percentageBar, slices, ['gap', 'radius', 'maxSlices']],
+    [funnel, slices, ['radius']],
     [scatter, { series: [{ name: 'A', points: [{ x: 1, y: 2, size: 3 }] }] }, ['radius']],
     [sparkline, [1, 2, 3], ['pointRadius']],
     [
