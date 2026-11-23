@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig } from '../chart.ts'
+import { buildChart, type ChartConfig, resolveLegend } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { chartInteraction, findByClass, findByTag, highlightOf, tableOf } from '../test-utils.ts'
 import { type TreemapOptions, treemap } from './treemap.ts'
@@ -216,7 +216,7 @@ describe('treemap', () => {
   })
 
   test('the legend has the top-level entries', () => {
-    expect(treemap.legend?.({ data: nested })).toEqual([
+    expect(resolveLegend({ type: treemap, data: nested }).items).toEqual([
       { key: 'Engineering', name: 'Engineering', index: 0 },
       { key: 'Marketing', name: 'Marketing', index: 1 },
       { key: 'Office', name: 'Office', index: 2 },

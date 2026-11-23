@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
+import { buildChart, type ChartConfig, chartToString, resolveLegend } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { chartInteraction, findByClass, highlightOf, tableOf } from '../test-utils.ts'
 import { donut, type PieOptions, pie } from './pie.ts'
@@ -148,7 +148,7 @@ describe('pie', () => {
   })
 
   test('lists slices in the legend', () => {
-    expect(pie.legend?.(base)?.map((i) => [i.key, i.index])).toEqual([
+    expect(resolveLegend(base).items.map((i) => [i.key, i.index])).toEqual([
       ['Direct', 0],
       ['Search', 1],
       ['Social', 2],
@@ -221,7 +221,7 @@ describe('maxSlices', () => {
   })
 
   test('the legend and the table have the rest as one entry', () => {
-    expect(donut.legend?.(options)).toEqual([
+    expect(resolveLegend({ type: donut, ...options }).items).toEqual([
       { key: 'n1', name: 'n1', index: 1 },
       { key: 'n3', name: 'n3', index: 3 },
       { key: 'n5', name: 'n5', index: 5 },

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, resolveSize } from '../chart.ts'
+import { buildChart, type ChartConfig, resolveLegend, resolveSize } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { chartInteraction, findByClass, tableOf } from '../test-utils.ts'
 import { type PercentageBarOptions, percentageBar } from './percentage-bar.ts'
@@ -159,7 +159,7 @@ describe('percentage bar', () => {
 
     test('the legend, the tooltip and the table have the rest as one entry', () => {
       const options = { data: many, maxSlices: 4 }
-      expect(percentageBar.legend?.(options)).toEqual([
+      expect(resolveLegend({ type: percentageBar, ...options }).items).toEqual([
         { key: 'n1', name: 'n1', index: 1 },
         { key: 'n3', name: 'n3', index: 3 },
         { key: 'n5', name: 'n5', index: 5 },
