@@ -127,6 +127,19 @@ annotations: [
 new Chart('#el', { type: bar, data, valueLabels: true })
 ```
 
+A series' own `valueLabels` overrides the chart's for that series: `true` labels it even when the chart option is off, `false` leaves it out. Each label carries the classes of its series (`tc-series tc-series-{n}`), for styling per series.
+
+```js
+const data = {
+  labels,
+  series: [
+    { name: 'Revenue', values: revenue },
+    { name: 'Per person', values: perPax, type: 'line', valueLabels: true },
+  ],
+}
+new Chart('#el', { type: bar, data }) // only the line is labelled
+```
+
 A chart type of your own gets labels from its hits like the built-in ones. Its `valueLabels` says what its marks are, when not bars or points (`{ marks: 'slice' }` for shares inside slices, `{ marks: 'cell' }` for values in the middle of cells), and where its number format is (`{ format: (options) => options.format }`).
 
 ### Right to left
