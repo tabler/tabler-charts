@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
+import {
+  buildChart,
+  type ChartConfig,
+  chartToString,
+  renderContext,
+  resolveSize,
+} from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { findByClass } from '../test-utils.ts'
 import { h } from '../vnode.ts'
@@ -229,6 +235,23 @@ describe('calendar', () => {
     expect(clean({ aspectRatio: 3 }).aspectRatio).toBe(3)
     expect(clean({ ...year, data: base.data, from: undefined, to: undefined }).aspectRatio).toBe(2)
     expect(clean({ data: [] }).aspectRatio).toBeUndefined()
+  })
+
+  test('a year on a phone keeps room for its days', () => {
+    const year = { data: [], from: '2026-01-01', to: '2026-12-31' }
+    const cleaned = (config: object) =>
+      calendar.clean?.({ ...base, ...year, ...config } as never) as ChartConfig<CalendarOptions>
+    // Wide, the height follows the ratio.
+    expect(resolveSize(cleaned({}), { width: 1074 }).height).toBe(200)
+    // Narrow, the names and the scale keep their size: taller than the ratio's 54.
+    const phone = resolveSize(cleaned({}), { width: 290 })
+    expect(phone.height).toBeGreaterThan(70)
+    const days = cells(buildChart(cleaned({}), phone, 'c'))
+    expect(days).toHaveLength(365)
+    expect(days[0]?.attrs.width).toBeGreaterThan(3)
+    // Your own proportions and height are kept.
+    expect(resolveSize(cleaned({ aspectRatio: 5 }), { width: 290 }).height).toBe(58)
+    expect(resolveSize(cleaned({ height: 60 }), { width: 290 }).height).toBe(60)
   })
 
   test('the keyboard walks the grid by weeks and days', () => {

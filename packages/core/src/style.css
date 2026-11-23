@@ -345,6 +345,38 @@
   font-weight: 400;
 }
 
+/* Funnel stages in one color (--tc-funnel-color), paler where the funnel is
+   wide by --tc-funnel-shade, the share of the color set per stage. */
+.tc-funnel-stage {
+  fill: var(--tc-funnel-color, var(--tc-color-1));
+  transition: d var(--tc-duration) var(--tc-easing);
+}
+
+@supports (color: color-mix(in oklab, red 50%, blue)) {
+  .tc-funnel-stage {
+    fill: color-mix(
+      in oklab,
+      var(--tc-funnel-color, var(--tc-color-1)) var(--tc-funnel-shade, 100%),
+      var(--tc-surface)
+    );
+  }
+}
+
+.tc-funnel-name,
+.tc-funnel-share {
+  fill: var(--tc-text-muted);
+}
+
+.tc-funnel-value {
+  fill: var(--tc-text-color);
+  font-weight: 600;
+}
+
+.tc-funnel-value,
+.tc-funnel-share {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Sankey: nodes in their color, flows as translucent ribbons of their source's. */
 .tc-sankey-node {
   fill: var(--tc-series-color);
@@ -605,6 +637,7 @@
 .tc-calendar-cells,
 .tc-treemap-tiles,
 .tc-percentage-bar,
+.tc-funnel-stages,
 .tc-candles,
 .tc-tick,
 .tc-grid-line {
@@ -1070,7 +1103,8 @@
     fill: CanvasText;
     stroke: Canvas;
   }
-  .tc-tick-label {
+  .tc-tick-label,
+  .tc-funnel-labels {
     fill: CanvasText;
   }
   .tc-grid-line,
@@ -1090,6 +1124,7 @@
     fill: GrayText;
   }
   .tc-bar,
+  .tc-funnel-stage,
   .tc-point {
     fill: CanvasText;
     stroke: Canvas;

@@ -101,6 +101,10 @@
       "import": "./dist/export.js",
       "require": "./dist/export.cjs"
     },
+    "./funnel": {
+      "import": "./dist/funnel.js",
+      "require": "./dist/funnel.cjs"
+    },
     "./gauge": {
       "import": "./dist/gauge.js",
       "require": "./dist/gauge.cjs"

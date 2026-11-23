@@ -42,7 +42,14 @@ async function shoot(locator: Locator, name: (i: number) => Promise<string>): Pr
   const count = await locator.count()
   expect(count).toBeGreaterThan(0)
   for (let i = 0; i < count; i++) {
-    await locator.nth(i).scrollIntoViewIfNeeded()
+    // The playground is wider than a phone, so the page's viewport is larger
+    // than the screen and the screen can sit anywhere inside it; a screenshot
+    // taken while it is not at the top is cut from the wrong place. Scrolling
+    // to the element's top edge brings the screen back to the top.
+    await locator.nth(i).evaluate((el) => {
+      el.scrollIntoView({ block: 'start' })
+      el.scrollIntoView({ block: 'center' })
+    })
     await expect.soft(locator.nth(i)).toHaveScreenshot(`${await name(i)}.png`)
   }
 }
