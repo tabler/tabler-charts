@@ -101,8 +101,28 @@ Series take `name`, `values`, and optionally `id` (stable identity), `color`, `d
 Cartesian charts share two axes:
 - `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`, `title`.
 - `y`: `min`, `max`, `zero`, `nice`, `ticks`, `format`, `scale: 'log'`, `grid`, `show`, `title`.
+- `y2`: the same as `y`, for series with `axis: 'y2'`.
 
 An axis `title` names the axis (a unit, for example): `y.title` is turned 90° beside the value axis — on the right in an `rtl` chart — and `x.title` sits below the categories. Style both with `.tc-axis-title`.
+
+A series with `axis: 'y2'` is drawn against a second value axis on the right (on the left in `rtl`), with its own scale; `y2` takes the same options as `y`. Use it for series in different units, such as daily sales as bars and the average price per person as a line:
+
+```ts
+new Chart('#chart', {
+  type: bar,
+  data: {
+    labels,
+    series: [
+      { name: 'Net revenue', values: revenue },
+      { name: 'Net revenue / PAX', values: perPax, type: 'line', axis: 'y2' },
+    ],
+  },
+  y: { title: 'Net revenue' },
+  y2: { title: 'Net revenue / PAX' },
+})
+```
+
+Series on `y2` stay out of stacks (their bars stand beside the stack), and the grid lines follow `y`. Line, area and vertical bar charts.
 
 A number `format` is `Intl.NumberFormat` options or a function. `notation: 'compact'` shortens long numbers in the locale's words ("1.1M", "1,1 mln" in Polish); `compactSymbols` writes suffixes of your own in the locale's separators instead:
 

@@ -12,8 +12,10 @@ import {
   plottable,
   resolveLabels,
   seriesAttrs,
+  seriesAxes,
   seriesKey,
   seriesLegend,
+  seriesScale,
   seriesTable,
 } from './cartesian.ts'
 import { cleanData, cleanSeries } from './clean.ts'
@@ -75,21 +77,28 @@ export const bar: ChartType<BarOptions> = {
     // Series drawn as lines sit on top of the bars and stay out of the stacks.
     const isLine = (index: number) => (series[index]?.type ?? 'bar') !== 'bar'
     const lineKeys = series.filter((_, index) => isLine(index)).map(seriesKey)
-    const stackHidden = lineKeys.length ? new Set([...ctx.hidden, ...lineKeys]) : ctx.hidden
+    const axisOf = seriesAxes(options)
+    const onY2 = (index: number) => axisOf(series[index]).second
+    // Bars on the second axis stand beside the stack, in a column of their own.
+    const apart = series.filter((_, index) => isLine(index) || onY2(index)).map(seriesKey)
+    const stackHidden = apart.length ? new Set([...ctx.hidden, ...apart]) : ctx.hidden
     const stacks = stacked
       ? stackSeries(series, count, { percent: stacked === 'percent', hidden: stackHidden })
       : null
+    const inStack = (index: number) => !!stacks && !isLine(index) && !onY2(index)
 
     const layoutOptions: CartesianLayoutOptions = {
       scale: 'band',
       zero: true,
       paddingInner: groupPadding,
       paddingOuter: groupPadding / 2,
+      // Bars and areas on the second axis grow from zero too, lines need not.
+      zero2: series.some((s, index) => onY2(index) && s.type !== 'line'),
       ...(stacks
         ? {
             values: [
               ...stackBounds(stacks),
-              ...series.flatMap((s, index) => (isLine(index) ? s.values : [])),
+              ...series.flatMap((s, index) => (isLine(index) && !onY2(index) ? s.values : [])),
             ],
           }
         : {}),
@@ -98,32 +107,42 @@ export const bar: ChartType<BarOptions> = {
     const layout = horizontal
       ? horizontalLayout(options, ctx, layoutOptions)
       : cartesianLayout(options, ctx, layoutOptions)
-    const { x, y, labels } = layout
+    const { x, labels } = layout
+    const scaleOf = (index: number) => seriesScale(layout, series[index])
 
-    // Hidden series keep their color slot but give up their place in the group.
+    // The column of each bar series in its group: a stack takes one column
+    // for all its series. Hidden series keep their color slot but give up their place.
     const slots = new Map<number, number>()
+    let used = 0
+    let stackColumn = -1
     series.forEach((s, index) => {
-      if (!ctx.hidden.has(seriesKey(s)) && !isLine(index)) slots.set(index, slots.size)
+      if (ctx.hidden.has(seriesKey(s)) || isLine(index)) return
+      if (!inStack(index)) slots.set(index, used++)
+      else {
+        if (stackColumn < 0) stackColumn = used++
+        slots.set(index, stackColumn)
+      }
     })
     const order = [...slots.keys()]
-    const columns = stacks ? 1 : Math.max(1, slots.size)
+    const columns = Math.max(1, used)
 
     const barWidth = Math.max(
       0,
-      Math.min(maxBarWidth, (x.bandwidth - (stacks ? 0 : gap * (columns - 1))) / columns),
+      Math.min(maxBarWidth, (x.bandwidth - gap * (columns - 1)) / columns),
     )
-    const groupWidth = barWidth * columns + (stacks ? 0 : gap * (columns - 1))
+    const groupWidth = barWidth * columns + gap * (columns - 1)
     const offset = (x.bandwidth - groupWidth) / 2
     // Grouped bars follow the categories: from the right when those are reversed.
     const slotAt = (slot: number) => (x.range[1] < x.range[0] ? columns - 1 - slot : slot)
     const barLeft = (seriesIndex: number, i: number) =>
-      x.at(i) + offset + (stacks ? 0 : slotAt(slots.get(seriesIndex) ?? 0) * (barWidth + gap))
+      x.at(i) + offset + slotAt(slots.get(seriesIndex) ?? 0) * (barWidth + gap)
 
     /** Data extent of a bar: from zero to the value, or its stacked segment. */
     const segment = (seriesIndex: number, i: number): Segment | null => {
-      if (stacks) return stacks[seriesIndex]?.[i] ?? null
-      const v = series[seriesIndex]?.values[i]
-      return plottable(v, options.y) ? { y0: 0, y1: v } : null
+      if (inStack(seriesIndex)) return stacks?.[seriesIndex]?.[i] ?? null
+      const s = series[seriesIndex]
+      const v = s?.values[i]
+      return plottable(v, axisOf(s).axis) ? { y0: 0, y1: v } : null
     }
 
     // In a stack only the outermost segment of each sign gets rounded.
@@ -131,6 +150,7 @@ export const bar: ChartType<BarOptions> = {
       let up = -1
       let down = -1
       for (const index of order) {
+        if (!inStack(index)) continue
         const seg = segment(index, i)
         if (!seg) continue
         if (seg.y1 > seg.y0) up = index
@@ -145,6 +165,7 @@ export const bar: ChartType<BarOptions> = {
         options,
         ctx,
         (seriesIndex, i, v) => {
+          const y = scaleOf(seriesIndex)
           if (isLine(seriesIndex)) {
             const across = x.at(i) + x.bandwidth / 2
             return horizontal ? { x: y(v), y: across } : { x: across, y: y(v) }
@@ -172,21 +193,23 @@ export const bar: ChartType<BarOptions> = {
           // Pointer position across the categories and along the values.
           const across = horizontal ? py : px
           const along = horizontal ? px : py
-          if (stacks) {
-            // The segment under the pointer, within the column (gaps included).
-            const left = barLeft(0, i)
-            if (across < left - gap / 2 || across > left + barWidth + gap / 2) return undefined
+          // The column under the pointer, gaps included, so thin bars are easy to hit.
+          const column = slotAt(
+            Math.floor((across - (x.at(i) + offset) + gap / 2) / (barWidth + gap)),
+          )
+          if (column === stackColumn) {
+            // The segment under the pointer, within the stack (gaps included).
             return order.find((index) => {
+              if (!inStack(index)) return false
               const seg = segment(index, i)
               if (!seg) return false
+              const y = scaleOf(index)
               const a = y(seg.y0)
               const b = y(seg.y1)
               return along >= Math.min(a, b) - gap / 2 && along <= Math.max(a, b) + gap / 2
             })
           }
-          // The bar under the pointer, gaps included, so thin bars are easy to hit.
-          const slot = Math.floor((across - (x.at(i) + offset) + gap / 2) / (barWidth + gap))
-          const seriesIndex = order[slotAt(slot)]
+          const seriesIndex = order.find((index) => slots.get(index) === column)
           return seriesIndex !== undefined && segment(seriesIndex, i) ? seriesIndex : undefined
         },
       ),
@@ -201,12 +224,13 @@ export const bar: ChartType<BarOptions> = {
           labels.map((label, i) => {
             const seg = segment(index, i)
             if (!seg) return null
+            const y = scaleOf(index)
             const negative = seg.y1 < seg.y0
             // Leave a surface-colored gap where this segment sits on another one,
             // on the side it grows to (in pixels: up, right, or left when mirrored).
             const away = Math.sign(y(seg.y1) - y(seg.y0))
             const inner = seg.y0 === 0 ? 0 : away * gap
-            const rounded = !stacks || (negative ? outer[i]?.down : outer[i]?.up) === index
+            const rounded = !inStack(index) || (negative ? outer[i]?.down : outer[i]?.up) === index
             const draw = horizontal ? hbarPath : barPath
             return h('path', {
               key: labelKey(label),
@@ -226,13 +250,15 @@ export const bar: ChartType<BarOptions> = {
     // Lines through the band centers, drawn after (over) every bar. The path
     // generators come with the line module, so plain bar charts do not ship them.
     const paths = lineKeys.length ? feature('line') : null
-    const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
     const lines = series.map((s, index) => {
       if (!paths) return null
       if (!isLine(index) || ctx.hidden.has(seriesKey(s))) return null
+      const y = scaleOf(index)
+      const axis = axisOf(s).axis
+      const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
       const points = labels.map((_, i): Point => {
         const v = s.values[i]
-        if (!plottable(v, options.y)) return null
+        if (!plottable(v, axis)) return null
         const center = x.at(i) + x.bandwidth / 2
         return horizontal ? [y(v), center] : [center, y(v)]
       })
