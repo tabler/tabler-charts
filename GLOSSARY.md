@@ -27,3 +27,11 @@ _Avoid_: tooltip position
 **Highlight**:
 The one shape drawn to mark a hit — a crosshair, a band, a radar spoke or a halo around a slice.
 _Avoid_: hover mark, guide
+
+**Plot area**:
+The rectangle the data is drawn in, inside the axes and the padding.
+_Avoid_: inner rect, chart area
+
+**Start side / end side**:
+The side a chart is read from (the left, or the right in a right-to-left chart) and the side opposite it; the axis beside the plot sits on the start side.
+_Avoid_: mirror image, left/right when the reading direction matters
