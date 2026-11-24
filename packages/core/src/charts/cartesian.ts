@@ -239,6 +239,24 @@ export const markerShape = (options: object): NonNullable<Features['point-shapes
   return (shapes ?? patterns === true) ? features['point-shapes'] : undefined
 }
 
+/**
+ * A point of the series in color slot `slot`: a circle, or the slot's marker
+ * when the chart has point shapes (see `markerShape`).
+ */
+export function pointMark(
+  shape: ReturnType<typeof markerShape>,
+  slot: number,
+  key: string | number,
+  cls: ClassValue,
+  cx: number,
+  cy: number,
+  r: number,
+): VNode {
+  return shape
+    ? h('path', { key, class: [cls, 'tc-marker'], d: shape(slot, cx, cy, r) })
+    : h('circle', { key, class: cls, cx, cy, r })
+}
+
 /** The tick count asked for on an axis (a number up to 100), or `auto`. */
 export const tickCount = (axis: { ticks?: number } | undefined, auto: number): number =>
   Math.min(finite(axis?.ticks) ?? auto, 100)

@@ -17,6 +17,8 @@ import {
   domainOf,
   type Label,
   labelKey,
+  markerShape,
+  pointMark,
   resolveLabels,
   seriesAttrs,
   seriesKey,
@@ -273,6 +275,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
     }),
   )
 
+  const shape = markerShape(options)
   const groups = series.map((s, index) => {
     if (ctx.hidden.has(seriesKey(s))) return null
     const d = polygon(labels.map((_, i) => radiusOf(s.values[i])))
@@ -289,13 +292,15 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
             const v = s.values[i]
             if (v == null || !Number.isFinite(v)) return null
             const [x, y] = at(i, scale(v))
-            return h('circle', {
-              key: labelKey(label),
-              class: 'tc-point',
-              cx: round(x),
-              cy: round(y),
-              r: pointRadius,
-            })
+            return pointMark(
+              shape,
+              index,
+              labelKey(label),
+              'tc-point',
+              round(x),
+              round(y),
+              pointRadius,
+            )
           }),
         ),
     )
