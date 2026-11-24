@@ -9,7 +9,7 @@ import { arcCentroid, arcPathStable, DEG, HALO, padAngleForGap } from '../shapes
 import { type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems } from './clean.ts'
 import { groupAttrs, keyOf } from './named.ts'
-import { slicesLegend, type WithSlices, withSlices } from './others.ts'
+import { type SliceGrouping, slicesLegend, type WithSlices, withSlices } from './others.ts'
 
 /** One slice of a pie or donut. */
 export interface PieSlice {
@@ -29,17 +29,8 @@ export interface PieSlice {
   hidden?: boolean
 }
 
-export interface PieOptions {
+export interface PieOptions extends SliceGrouping {
   data: readonly PieSlice[]
-  /**
-   * The most slices drawn, the one for the rest included: with more entries
-   * than that, the largest `maxSlices - 1` keep a slice of their own and the
-   * others share one, named by `othersLabel`, after them. Defaults to `9`
-   * (the eight palette colors and the rest); `0` never groups.
-   */
-  maxSlices?: number
-  /** Name of the slice that groups the rest. Defaults to `'Others'`. */
-  othersLabel?: string
   /** Hole size relative to the radius, `0…0.95`. Defaults to `0` (`0.62` for `donut`). */
   innerRadius?: number
   /** Gap between slices in pixels, drawn as surface. Defaults to `2`. */
