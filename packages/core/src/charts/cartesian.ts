@@ -7,10 +7,9 @@ import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import {
   estimateTextWidth,
   type InsetsInput,
-  innerRect,
-  insets,
   LINE_HEIGHT,
-  mirrorSides,
+  type PlotFrame,
+  plotFrame,
   type Rect,
 } from '../layout.ts'
 import { type BandKey, type BandScale, band, point } from '../scales/band.ts'
@@ -351,11 +350,13 @@ export function valueAxis(
  * Finish a layout that has its plot area, scales and ticks with what is
  * drawn around the marks: grid lines and annotation bands below them,
  * annotation lines and the axes above. Values run along y and categories
- * along x, or the other way round when `horizontal`.
+ * along x, or the other way round when `horizontal`. The value axis (the
+ * category axis when `horizontal`) sits on the start `side`.
  */
 export function finishLayout(
   options: CartesianOptions,
   ctx: RenderContext,
+  side: PlotFrame['side'],
   overhang: number,
   plot: Omit<CartesianLayout, 'background' | 'foreground' | 'clip'>,
   keys: readonly BandKey[],
@@ -363,8 +364,6 @@ export function finishLayout(
 ): CartesianLayout {
   const { area, x, y, xTicks, yTicks, horizontal: flip } = plot
   const xOptions = options.x ?? {}
-  // The axis beside the plot: on the right in a right-to-left chart.
-  const side = ctx.rtl ? 'right' : 'left'
   // Annotations: bands under the series, lines above them (and below the axes).
   const notes = notesFeature(options)?.layers(options.annotations, {
     area,
@@ -407,10 +406,8 @@ export function cartesianLayout(
   const xOptions = options.x ?? {}
   const { fontSize, locale, width, height } = ctx
   const overhang = layout.overhang ?? 0
-  // Right to left, the sides are worked out as their mirror image, then swapped.
   const rtl = ctx.rtl === true
   const reverse = xOptions.reverse ?? rtl
-  const pad = mirrorSides(insets(options.padding), rtl)
   const labels = resolveLabels(data)
   const format = labelFormatter(options, ctx)
   const showY = yOptions.show !== false
@@ -452,33 +449,33 @@ export function cartesianLayout(
   // than that needs margin (long labels on narrow bands, e.g. dates on candles).
   // The step depends on the margins, so they are worked out twice.
   const valueWidth = showY ? axisSize('left', probeY, fontSize) : 0
-  const side = (halfStep: number) => {
-    const overflow = (label: number) =>
-      edgeX ? Math.ceil(label / 2) : Math.max(0, Math.ceil(label / 2 - halfStep))
-    return {
-      right: pad.right + Math.max(overflow(lastLabel), overhang, EDGE),
-      left: pad.left + Math.max(valueWidth, overflow(firstLabel), overhang, showY ? 0 : EDGE),
+  const { area, side, range } = plotFrame(ctx, options.padding, (pad) => {
+    const sides = (halfStep: number) => {
+      const overflow = (label: number) =>
+        edgeX ? Math.ceil(label / 2) : Math.max(0, Math.ceil(label / 2 - halfStep))
+      return {
+        start: pad.start + Math.max(valueWidth, overflow(firstLabel), overhang, showY ? 0 : EDGE),
+        end: pad.end + Math.max(overflow(lastLabel), overhang, EDGE),
+      }
     }
-  }
-  const steps = Math.max(1, labels.length) * 2
-  let sides = side((width - pad.left - pad.right - valueWidth) / steps)
-  if (!edgeX) sides = side((width - sides.left - sides.right) / steps)
-  const margins = {
-    top: pad.top + Math.max(showY ? halfLine : 0, overhang, EDGE / 2),
-    bottom:
-      pad.bottom +
-      Math.max(
-        // Without an x axis, the lowest value label still needs half a line.
-        showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : showY ? halfLine : 0,
-        overhang,
-        EDGE / 2,
-      ),
-    ...mirrorSides(sides, rtl),
-  }
-  const area = innerRect(width, height, margins)
+    const steps = Math.max(1, labels.length) * 2
+    let both = sides((width - pad.start - pad.end - valueWidth) / steps)
+    if (!edgeX) both = sides((width - both.start - both.end) / steps)
+    return {
+      top: pad.top + Math.max(showY ? halfLine : 0, overhang, EDGE / 2),
+      bottom:
+        pad.bottom +
+        Math.max(
+          // Without an x axis, the lowest value label still needs half a line.
+          showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : showY ? halfLine : 0,
+          overhang,
+          EDGE / 2,
+        ),
+      ...both,
+    }
+  })
 
-  const end = area.x + area.width
-  const x = xAxis.scale(reverse ? [end, area.x] : [area.x, end])
+  const x = xAxis.scale(range(reverse))
   const y = value.scale([area.y + area.height, area.y])
 
   // Nice ticks can outnumber the count asked for: on a short plot, thin them
@@ -489,6 +486,7 @@ export function cartesianLayout(
   return finishLayout(
     options,
     ctx,
+    side,
     overhang,
     { area, labels, x, y, horizontal: false, xTicks, yTicks },
     keys,
