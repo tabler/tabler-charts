@@ -1,6 +1,6 @@
 import type { DataTable } from './a11y.ts'
 import type { ValueLabelOptions } from './charts/value-labels.ts'
-import { feature, features } from './features.ts'
+import { type Features, feature, features } from './features.ts'
 import type { Locale, NumberFormat } from './format.ts'
 import { type Hit, hitKey, type Interaction } from './interaction.ts'
 import { defaultHidden, type LegendItem, type LegendOptions } from './legend.ts'
@@ -95,6 +95,13 @@ export interface ChartType<
    * names the number format of the values in the options (by default a label
    * shows the text of the tooltip).
    */
+  /**
+   * How the chart's marks turn to new data in the DOM, where CSS cannot
+   * animate them (arcs sweeping to their new angles). A chart in the page
+   * installs it; it is part of the type, not of a module that loads, so it
+   * ships only with the types that use it.
+   */
+  readonly sweep?: Features['sweep']
   readonly valueLabels?: {
     marks?: 'slice' | 'cell'
     format?(model: M): NumberFormat | undefined
@@ -813,6 +820,7 @@ export class Chart<O extends object = object> {
       cache.fontSize !== fontSize ||
       cache.rtl !== rtl
     if (!cache || stale) {
+      if (cfg.type.sweep) features.sweep = cfg.type.sweep
       const { content, interaction } = renderContent(
         cfg,
         renderContext(cfg, { size, id: this.id, hidden, fontSize, rtl }),
