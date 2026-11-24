@@ -14,6 +14,7 @@ import { parliament } from './charts/parliament.ts'
 import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
+import { sankey } from './charts/sankey.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
 import { treemap } from './charts/treemap.ts'
@@ -25,6 +26,7 @@ import './log.ts'
 import { flush } from './scheduler.ts'
 import './time.ts'
 import './value-labels.ts'
+import { missingTypes } from './test-utils.ts'
 
 /**
  * Bad input: data from users, APIs and JSON attributes is often not what the
@@ -110,6 +112,19 @@ const TYPES: [string, ChartType<object>, () => unknown][] = [
   ['heatmap', heatmap as ChartType<object>, seriesData],
   ['calendar', calendar as ChartType<object>, calendarData],
   ['radar', radar as ChartType<object>, seriesData],
+  [
+    'sankey',
+    sankey as ChartType<object>,
+    () =>
+      chance(0.08)
+        ? junk()
+        : {
+            nodes: chance(0.5)
+              ? list(() => (chance(0.1) ? junk() : { name: text(), color: color() }))
+              : undefined,
+            links: list(() => (chance(0.1) ? junk() : { from: text(), to: text(), value: num() })),
+          },
+  ],
   [
     'pie',
     pie as ChartType<object>,
@@ -365,4 +380,8 @@ test('numeric options that are not finite count as left out', () => {
   expect(failures).toEqual([])
   // A start angle beyond what a quarter turn changes used to loop for ever.
   expect(chartToString({ type: gauge, data: 30, startAngle: 1e300 }, size)).toContain('<svg')
+})
+
+test('covers every built-in chart type', () => {
+  expect(missingTypes(TYPES.map(([, type]) => type))).toEqual([])
 })
