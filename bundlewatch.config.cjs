@@ -10,6 +10,7 @@ module.exports = {
   files: [
     // Typical imports, bundled and minified by scripts/bundles.mjs.
     { path: '.size/core-line.js', maxSize: '11.75KB' },
+    { path: '.size/core-area.js', maxSize: '11.75KB' },
     { path: '.size/core-bar.js', maxSize: '11.75KB' },
     { path: '.size/core-pie.js', maxSize: '8.5KB' },
     { path: '.size/core-gauge.js', maxSize: '8.5KB' },
@@ -21,6 +22,8 @@ module.exports = {
     { path: '.size/core-funnel.js', maxSize: '7KB' },
     { path: '.size/core-heatmap.js', maxSize: '8.75KB' },
     { path: '.size/core-calendar.js', maxSize: '9.5KB' },
+    { path: '.size/core-scatter.js', maxSize: '9.25KB' },
+    { path: '.size/core-sparkline.js', maxSize: '8.25KB' },
     { path: '.size/core-candlestick.js', maxSize: '10.5KB' },
     { path: '.size/core-line-tooltip-legend.js', maxSize: '14KB' },
     { path: '.size/export-svg-image-download.js', maxSize: '2.5KB' },
