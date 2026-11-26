@@ -4,8 +4,6 @@
 
 ### Minor Changes
 
-- 67c0307: Added `title` to the `x` and `y` axis options. A title stands past the labels of its axis: turned 90° beside a vertical axis (on the right in `rtl`), level below the horizontal one. In horizontal bar charts `x.title` is the one beside the categories and `y.title` goes below the values.
-- 0f5373f: Added `calendar` chart type that shows one value per day as a grid of weeks.
 - f818a64: **Breaking for custom chart types and plugins that read hits.** Reworked the chart type API:
   
   - `render()` returns `{ content, interaction }` instead of calling `ctx.onHitTest(interaction)`; `onHitTest` is gone from `RenderContext`. A type without interaction can still return its content alone.
@@ -14,6 +12,8 @@
   - Added `sweep` to `ChartType`: the arc animation of `pie`, `donut` and `gauge`, installed by the chart instead of `render()`.
   
   To migrate a custom type, replace `ctx.onHitTest(interaction); return content` with `return { content, interaction }`, and `mark: { d, x, y }` with `highlight: { kind: 'halo', d, x, y }` (`band` becomes `{ kind: 'band', … }`, `guide` becomes `{ kind: 'spoke', … }`).
+- 67c0307: Added `title` to the `x` and `y` axis options. A title stands past the labels of its axis: turned 90° beside a vertical axis (on the right in `rtl`), level below the horizontal one. In horizontal bar charts `x.title` is the one beside the categories and `y.title` goes below the values.
+- 0f5373f: Added `calendar` chart type that shows one value per day as a grid of weeks.
 - 3c7ce79: Added `funnel` chart type that shows how many get from each stage of a process to the next.
 - 9437acd: Added `legend.position` `'left'`, `'right'` and `'auto'`: the legend sits beside the chart with its entries stacked, and the chart takes the remaining width (sides swap in `rtl`). `'auto'` puts it on the right when the chart keeps two thirds of the container, and below it otherwise. Exports draw it where the page shows it, and `data-tc-legend` takes the new positions.
 - ca83f3e: Added `map` chart type that shades the regions of a map by value, with markers, lines, zoom and region selection, and the `world` map in `@tabler/charts/maps/world`.
