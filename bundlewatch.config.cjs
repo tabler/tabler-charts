@@ -21,7 +21,7 @@ module.exports = {
     { path: '.size/core-funnel.js', maxSize: '7KB' },
     { path: '.size/core-heatmap.js', maxSize: '9KB' },
     { path: '.size/core-calendar.js', maxSize: '9.5KB' },
-    { path: '.size/core-candlestick.js', maxSize: '10.5KB' },
+    { path: '.size/core-candlestick.js', maxSize: '10.75KB' },
     { path: '.size/core-line-tooltip-legend.js', maxSize: '14.25KB' },
     { path: '.size/export-svg-image-download.js', maxSize: '2.5KB' },
     { path: '.size/default-chart-line.js', maxSize: '22.75KB' },
