@@ -1,6 +1,5 @@
 import type { DataTable } from '../a11y.ts'
 import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
-import { features } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
@@ -287,11 +286,8 @@ export const gauge: ChartType<GaugeOptions> = {
       typeof data === 'number' ? [{ name: '', value: data }] : isRecord(data) ? [data] : data,
     ),
   ),
-  render: (options, ctx): RenderResult => {
-    // Set here, not as the module loads (see pie).
-    features.sweep = sweepArcs
-    return renderGauge(options, ctx)
-  },
+  render: renderGauge,
+  sweep: sweepArcs,
   legend: (options) => legendItems(ringsOf(options)),
   table: gaugeTable,
 }

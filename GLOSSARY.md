@@ -28,6 +28,10 @@ _Avoid_: tooltip position
 The one shape drawn to mark a hit — a crosshair, a band, a radar spoke or a halo around a slice.
 _Avoid_: hover mark, guide
 
+**Optional feature**:
+Code a chart type uses only when an option asks for it (a time axis, a log scale, annotations…), loaded by importing its entry point.
+_Avoid_: plugin, extension
+
 **Plot area**:
 The rectangle the data is drawn in, inside the axes and the padding.
 _Avoid_: inner rect, chart area
