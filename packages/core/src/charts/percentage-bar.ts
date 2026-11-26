@@ -6,7 +6,13 @@ import { type InsetsInput, innerRect, insets, round } from '../layout.ts'
 import { type ClassValue, h } from '../vnode.ts'
 import { cleanItems } from './clean.ts'
 import { groupAttrs, keyOf } from './named.ts'
-import { type Grouped, slicesLegend, type WithSlices, withSlices } from './others.ts'
+import {
+  type Grouped,
+  type SliceGrouping,
+  slicesLegend,
+  type WithSlices,
+  withSlices,
+} from './others.ts'
 
 /** One segment of a percentage bar. */
 export interface PercentageBarSegment {
@@ -26,24 +32,14 @@ export interface PercentageBarSegment {
   hidden?: boolean
 }
 
-export interface PercentageBarOptions {
+export interface PercentageBarOptions extends SliceGrouping {
   data: readonly PercentageBarSegment[]
   /**
    * Order of the segments along the bar: as in the data (`'data'`, the
    * default) or the largest first (`'size'`). Colors follow the data either
-   * way, and the segment of the rest always comes last.
+   * way, and Others always comes last.
    */
   order?: 'data' | 'size'
-  /**
-   * The most segments drawn, the one for the rest included: with more entries
-   * than that, the largest `maxSlices - 1` keep a segment of their own and
-   * the others share one, named by `othersLabel`, at the end of the bar.
-   * Defaults to `9` (the eight palette colors and the rest); `0` never
-   * groups.
-   */
-  maxSlices?: number
-  /** Name of the segment that groups the rest. Defaults to `'Others'`. */
-  othersLabel?: string
   /** Space between segments in pixels, drawn as surface. Defaults to `2`. */
   gap?: number
   /** Corner radius of the segments. Defaults to `4`. */
@@ -70,15 +66,11 @@ function segmentsOf(
   options: PercentageBarModel,
   hidden: ReadonlySet<string>,
 ): { segments: Segment[]; total: number } {
-  const count = options.data.length
   const segments = options.slices.filter((segment) => !hidden.has(keyOf(segment.data)))
   if (options.order === 'size') {
-    // (The rest stays last, whatever its size.)
+    // (Others stays last, whatever its size.)
     segments.sort(
-      (a, b) =>
-        Number(a.index >= count) - Number(b.index >= count) ||
-        b.value - a.value ||
-        a.index - b.index,
+      (a, b) => Number(!!a.others) - Number(!!b.others) || b.value - a.value || a.index - b.index,
     )
   }
   return { segments, total: segments.reduce((sum, segment) => sum + segment.value, 0) }

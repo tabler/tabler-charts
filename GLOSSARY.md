@@ -28,6 +28,10 @@ _Avoid_: tooltip position
 The one shape drawn to mark a hit — a crosshair, a band, a radar spoke or a halo around a slice.
 _Avoid_: hover mark, guide
 
+**Others**:
+The one slice or segment that groups the smallest parts past `maxSlices`, last and in the "other" color.
+_Avoid_: rest, remainder
+
 **Optional feature**:
 Code a chart type uses only when an option asks for it (a time axis, a log scale, annotations…), loaded by importing its entry point.
 _Avoid_: plugin, extension

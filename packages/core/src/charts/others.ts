@@ -4,11 +4,26 @@ import { keyOf, type Named } from './named.ts'
 /** Legend key of the slice that groups the rest. */
 const OTHERS = '__others__'
 
-/** A slice or segment with its size, in color slot `index` (past the data for the rest). */
+/** A slice or segment with its size, in color slot `index` (past the palette for Others). */
 export interface Grouped<T> {
   data: T
   index: number
   value: number
+  /** Set on the one slice that groups the rest: Others. */
+  others?: true
+}
+
+/** How a chart of parts of a whole groups its smallest parts into one: Others. */
+export interface SliceGrouping {
+  /**
+   * The most slices (or segments) drawn, Others included: with more entries
+   * than that, the largest `maxSlices - 1` keep one of their own and the rest
+   * share Others, the last one. Defaults to `9` (the eight palette colors
+   * and Others); `0` never groups.
+   */
+  maxSlices?: number
+  /** Name of Others, the slice that groups the rest. Defaults to `'Others'`. */
+  othersLabel?: string
 }
 
 /**
@@ -38,7 +53,12 @@ export function groupSlices<T extends Named & { value: number }>(
   const value = all.reduce((sum, slice) => (kept.has(slice) ? sum : sum + slice.value), 0)
   return [
     ...all.filter((slice) => kept.has(slice)),
-    { data: { name: label, id: OTHERS, value } as T, index: Math.max(8, all.length), value },
+    {
+      data: { name: label, id: OTHERS, value } as T,
+      index: Math.max(8, all.length),
+      value,
+      others: true,
+    },
   ]
 }
 
@@ -53,10 +73,8 @@ export function groupLegend<T extends Named>(slices: readonly Grouped<T>[]): Leg
 }
 
 /** What the options of a chart with grouped slices hold. */
-interface Sliced<T> {
+interface Sliced<T> extends SliceGrouping {
   data: readonly T[]
-  maxSlices?: number
-  othersLabel?: string
 }
 
 /** A chart model of grouped slices: the options, with their slices as drawn. */
