@@ -8,7 +8,7 @@ import { barPath } from '../shapes/bar.ts'
 import { circlePath } from '../shapes/circle.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { h } from '../vnode.ts'
-import { domainOf, type Label, labelKey } from './cartesian.ts'
+import { domainOf, type Label, labelKey, markerShape, pointMark } from './cartesian.ts'
 import { cleanData, label, numbers } from './clean.ts'
 
 export interface SparklineOptions {
@@ -180,17 +180,20 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
     marks.push(h('path', { class: 'tc-line', d: linePath(points, { curve }) }))
   }
 
+  const shape = markerShape(options)
   const dotAt = (i: number, cls: string) => {
     const v = values[i]
     return v == null
       ? null
-      : h('circle', {
-          key: `${cls}-${i}`,
-          class: ['tc-point', cls],
-          cx: round(xAt(i)),
-          cy: round(y(v)),
-          r: pointRadius,
-        })
+      : pointMark(
+          shape,
+          0,
+          `${cls}-${i}`,
+          ['tc-point', cls],
+          round(xAt(i)),
+          round(y(v)),
+          pointRadius,
+        )
   }
   const extremes = []
   if (markers === 'minmax') {

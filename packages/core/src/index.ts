@@ -11,7 +11,7 @@ import { annotationLayers, annotationValues } from './charts/annotations.ts'
 import { dateLabels } from './charts/dates.ts'
 import { logDomain, logTicks } from './charts/log-axis.ts'
 import { patternFills } from './charts/patterns.ts'
-import { markerClip, markerPath, shapesStep } from './charts/point-shapes.ts'
+import { markerClip, markerPath } from './charts/point-shapes.ts'
 import { timeAxis } from './charts/time-axis.ts'
 import { labelsStep } from './charts/value-labels.ts'
 import { addPost, register } from './features.ts'
@@ -37,8 +37,7 @@ register({
   morph,
 })
 
-// Steps that finish the content: shapes first, then the labels over them.
-addPost(shapesStep)
+// The step that finishes the content: value labels over the marks.
 addPost(labelsStep)
 
 export { Chart } from './chart-default.ts'

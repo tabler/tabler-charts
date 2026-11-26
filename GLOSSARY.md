@@ -31,3 +31,7 @@ _Avoid_: hover mark, guide
 **Optional feature**:
 Code a chart type uses only when an option asks for it (a time axis, a log scale, annotations…), loaded by importing its entry point.
 _Avoid_: plugin, extension
+
+**Marker**:
+The shape a series' point is drawn as, by its color slot, when point shapes are on (`shapes`, or `patterns: true`).
+_Avoid_: symbol, point shape (for the drawn thing)

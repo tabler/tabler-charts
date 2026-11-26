@@ -60,6 +60,12 @@ export interface Series {
   class?: ClassValue
   /** Start hidden (toggle it back from the legend). */
   hidden?: boolean
+  /**
+   * Write values on this series' marks, whatever the chart's `valueLabels`
+   * says: `true` labels it even when the chart option is off, `false` leaves
+   * it out. Needs `@tabler/charts/value-labels` on the core.
+   */
+  valueLabels?: boolean
 }
 
 export interface CartesianData {
@@ -237,6 +243,24 @@ export const markerShape = (options: object): NonNullable<Features['point-shapes
   const { shapes, patterns } = options as { shapes?: boolean; patterns?: unknown }
   // On the core, the shapes come with their module (like the points of line charts).
   return (shapes ?? patterns === true) ? features['point-shapes'] : undefined
+}
+
+/**
+ * A point of the series in color slot `slot`: a circle, or the slot's marker
+ * when the chart has point shapes (see `markerShape`).
+ */
+export function pointMark(
+  shape: ReturnType<typeof markerShape>,
+  slot: number,
+  key: string | number,
+  cls: ClassValue,
+  cx: number,
+  cy: number,
+  r: number,
+): VNode {
+  return shape
+    ? h('path', { key, class: [cls, 'tc-marker'], d: shape(slot, cx, cy, r) })
+    : h('circle', { key, class: cls, cx, cy, r })
 }
 
 /** The tick count asked for on an axis (a number up to 100), or `auto`. */

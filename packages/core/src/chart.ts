@@ -171,8 +171,10 @@ export interface BaseOptions {
    * Write the values on the marks: bars at their end, stacked segments,
    * cells and slices inside (slices show their share), lines and points
    * above their last point (`points: 'all'` for every one). Labels that do
-   * not fit are left out. Needs `@tabler/charts/value-labels` on the core
-   * (`@tabler/charts` includes it).
+   * not fit are left out. A series' own `valueLabels` overrides this for
+   * that series, and each label carries its series classes
+   * (`tc-series tc-series-{n}`). Needs `@tabler/charts/value-labels` on the
+   * core (`@tabler/charts` includes it).
    */
   valueLabels?: boolean | ValueLabelOptions
   /**
