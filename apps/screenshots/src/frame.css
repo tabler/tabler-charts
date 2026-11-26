@@ -208,11 +208,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
+/* A neutral gray mark and text, as Tabler's own screenshots have: a watermark,
+   not the live brand color. */
 .screenshot-logo img {
   height: 24px;
+  filter: grayscale(1);
 }
 
 .screenshot-error {
