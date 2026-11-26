@@ -31,3 +31,7 @@ _Avoid_: hover mark, guide
 **Others**:
 The one slice or segment that groups the smallest parts past `maxSlices`, last and in the "other" color.
 _Avoid_: rest, remainder
+
+**Marker**:
+The shape a series' point is drawn as, by its color slot, when point shapes are on (`shapes`, or `patterns: true`).
+_Avoid_: symbol, point shape (for the drawn thing)

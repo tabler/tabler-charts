@@ -8,7 +8,9 @@ import {
   type CartesianOptions,
   cartesianLayout,
   categoryInteraction,
+  markerShape,
   plottable,
+  pointMark,
   resolveLabels,
   type Series,
   seriesAttrs,
@@ -164,6 +166,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
       ),
     )
 
+  const shape = markerShape(options)
   const lines = options.data.series.map((s, index) => {
     if (!visible(s)) return null
     const pts = drawn(index)
@@ -178,13 +181,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
           'g',
           { class: 'tc-points' },
           dots.map(([cx, cy]) =>
-            h('circle', {
-              key: cx,
-              class: 'tc-point',
-              cx: round(cx),
-              cy: round(cy),
-              r: pointRadius,
-            }),
+            pointMark(shape, index, cx, 'tc-point', round(cx), round(cy), pointRadius),
           ),
         ),
     )
