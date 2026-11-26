@@ -26,11 +26,11 @@ const COLORS: Record<string, string> = {
 }
 
 /** A copy of `value` with every playground color replaced by the palette's. */
-function recolor<T>(value: T): T {
-  if (typeof value === 'string') return (COLORS[value.toLowerCase()] ?? value) as T
-  if (Array.isArray(value)) return value.map(recolor) as T
+function recolor<T>(value: T, colors: Record<string, string>): T {
+  if (typeof value === 'string') return (colors[value.toLowerCase()] ?? value) as T
+  if (Array.isArray(value)) return value.map((entry) => recolor(entry, colors)) as T
   if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, recolor(v)])) as T
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, recolor(v, colors)])) as T
   }
   return value
 }
@@ -45,6 +45,8 @@ export interface ShowcasePage {
   /** CSS variables laid over the example's. */
   style?: Record<string, string>
   hover?: ScreenshotPage['hover']
+  /** More colors of the example to replace, on top of the playground's named ones. */
+  colors?: Record<string, string>
 }
 
 /** The chart example titled `example` in `group`, as a screenshot page. */
@@ -57,13 +59,14 @@ export function fromShowcase(
   if (!item || item.kind === 'tiles') {
     throw new Error(`No chart example titled "${example}" in the "${group.id}" group`)
   }
+  const colors = { ...COLORS, ...page.colors }
   return {
     title: page.title ?? item.title,
     subtitle: page.subtitle,
     source: item.source,
     width: page.width,
-    config: { ...recolor(item.config), aspectRatio: 2, ...page.config } as AnyConfig,
-    style: { ...recolor(item.style ?? {}), ...page.style },
+    config: { ...recolor(item.config, colors), aspectRatio: 2, ...page.config } as AnyConfig,
+    style: { ...recolor(item.style ?? {}, colors), ...page.style },
     hover: page.hover,
   }
 }
