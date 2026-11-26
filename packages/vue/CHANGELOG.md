@@ -1,5 +1,31 @@
 # @tabler/charts-vue
 
+## 0.3.0
+
+### Minor Changes
+
+- 0f5373f: Added `calendar` chart type that shows one value per day as a grid of weeks.
+- 3c7ce79: Added `funnel` chart type that shows how many get from each stage of a process to the next.
+- ca83f3e: Added `map` chart type that shades the regions of a map by value, with markers, lines, zoom and region selection, and the `world` map in `@tabler/charts/maps/world`.
+
+### Patch Changes
+
+- 47d6eb4: Updated `Chart` and `useChart()` to take an `HTMLElement` target, so `chart.element` is typed as `HTMLElement`.
+- Updated dependencies [67c0307]
+- Updated dependencies [0f5373f]
+- Updated dependencies [f818a64]
+- Updated dependencies [f6a94b1]
+- Updated dependencies [3c7ce79]
+- Updated dependencies [47d6eb4]
+- Updated dependencies [9437acd]
+- Updated dependencies [ca83f3e]
+- Updated dependencies [a07f7dd]
+- Updated dependencies [48178cb]
+- Updated dependencies [5f117d0]
+- Updated dependencies [60448d5]
+- Updated dependencies [2d57d21]
+  - @tabler/charts@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
