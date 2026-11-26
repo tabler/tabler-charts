@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
+import { buildChart, type ChartConfig, chartToString, resolveSize } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf, renderOf, tableOf } from '../test-utils.ts'
 import { h } from '../vnode.ts'
 import { type CalendarOptions, calendar } from './calendar.ts'
 
@@ -37,14 +37,8 @@ const base: ChartConfig<CalendarOptions> = {
 const render = (config: Partial<ChartConfig<CalendarOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'c')
 
-function interactionOf(config: Partial<ChartConfig<CalendarOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'c', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<CalendarOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'c')
 
 const cells = (node: ReturnType<typeof render>) =>
   findByClass(findByClass(node, 'tc-calendar-cells')[0] ?? node, 'tc-cell')
@@ -73,10 +67,9 @@ describe('calendar', () => {
   })
 
   test('hides a series from the legend and leaves its values out of the shade', () => {
-    let found: Interaction | undefined
-    const ctx = renderContext(base, size, 'c', (i) => (found = i), new Set(['Reviews']))
-    const node = h('g', null, calendar.render(base, ctx))
-    const hit = found?.hitIndex(1)
+    const { content, interaction } = renderOf(base, size, { hidden: new Set(['Reviews']) })
+    const node = h('g', null, content)
+    const hit = interaction?.hitIndex(1)
     expect(hit?.items.map((i) => i.name)).toEqual(['Commits'])
     // 5 of 10 → level 2 of 4; with Reviews shown it was 8 of 10 → level 4.
     expect(findByClass(node, 'tc-cell')[1]?.attrs.style).toBe('--tc-heat:50%')
@@ -139,7 +132,7 @@ describe('calendar', () => {
     expect(hit?.label).toBe('2026-10-06')
     expect(hit?.title).toBe('Oct 6, 2026')
     expect(hit?.items.map((i) => i.text)).toEqual(['5', '3'])
-    expect(hit?.mark?.d).toMatch(/^M.*Z$/)
+    expect(highlightOf(hit, 'halo')?.d).toMatch(/^M.*Z$/)
     // Keyboard: a day with a series picked; a day without data lists dashes.
     expect(interaction.hitIndex(8, 1)?.seriesIndex).toBe(1)
     expect(interaction.hitIndex(8)?.items.map((i) => i.text)).toEqual(['–', '–'])
@@ -148,11 +141,7 @@ describe('calendar', () => {
   })
 
   test('lists the days with data as a table', () => {
-    const table = calendar.table?.(
-      base,
-      renderContext(base, size, 'c', () => {}, new Set()),
-      100,
-    )
+    const table = tableOf(base, 100)
     expect(table?.columns).toEqual(['', 'Commits', 'Reviews'])
     expect(table?.rows).toEqual([
       ['Oct 5, 2026', '0', '–'],
@@ -160,13 +149,7 @@ describe('calendar', () => {
       ['Oct 7, 2026', '10', '–'],
       ['Oct 18, 2026', '–', '–'],
     ])
-    expect(
-      calendar.table?.(
-        base,
-        renderContext(base, size, 'c', () => {}, new Set()),
-        1,
-      )?.total,
-    ).toBe(4)
+    expect(tableOf(base, 1)?.total).toBe(4)
   })
 
   test('takes a plain list of days, with no legend', () => {
@@ -229,6 +212,23 @@ describe('calendar', () => {
     expect(clean({ aspectRatio: 3 }).aspectRatio).toBe(3)
     expect(clean({ ...year, data: base.data, from: undefined, to: undefined }).aspectRatio).toBe(2)
     expect(clean({ data: [] }).aspectRatio).toBeUndefined()
+  })
+
+  test('a year on a phone keeps room for its days', () => {
+    const year = { data: [], from: '2026-01-01', to: '2026-12-31' }
+    const cleaned = (config: object) =>
+      calendar.clean?.({ ...base, ...year, ...config } as never) as ChartConfig<CalendarOptions>
+    // Wide, the height follows the ratio.
+    expect(resolveSize(cleaned({}), { width: 1074 }).height).toBe(200)
+    // Narrow, the names and the scale keep their size: taller than the ratio's 54.
+    const phone = resolveSize(cleaned({}), { width: 290 })
+    expect(phone.height).toBeGreaterThan(70)
+    const days = cells(buildChart(cleaned({}), phone, 'c'))
+    expect(days).toHaveLength(365)
+    expect(days[0]?.attrs.width).toBeGreaterThan(3)
+    // Your own proportions and height are kept.
+    expect(resolveSize(cleaned({ aspectRatio: 5 }), { width: 290 }).height).toBe(58)
+    expect(resolveSize(cleaned({ height: 60 }), { width: 290 }).height).toBe(60)
   })
 
   test('the keyboard walks the grid by weeks and days', () => {

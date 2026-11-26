@@ -349,6 +349,38 @@
   font-weight: 400;
 }
 
+/* Funnel stages in one color (--tc-funnel-color), paler where the funnel is
+   wide by --tc-funnel-shade, the share of the color set per stage. */
+.tc-funnel-stage {
+  fill: var(--tc-funnel-color, var(--tc-color-1));
+  transition: d var(--tc-duration) var(--tc-easing);
+}
+
+@supports (color: color-mix(in oklab, red 50%, blue)) {
+  .tc-funnel-stage {
+    fill: color-mix(
+      in oklab,
+      var(--tc-funnel-color, var(--tc-color-1)) var(--tc-funnel-shade, 100%),
+      var(--tc-surface)
+    );
+  }
+}
+
+.tc-funnel-name,
+.tc-funnel-share {
+  fill: var(--tc-text-muted);
+}
+
+.tc-funnel-value {
+  fill: var(--tc-text-color);
+  font-weight: 600;
+}
+
+.tc-funnel-value,
+.tc-funnel-share {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Sankey: nodes in their color, flows as translucent ribbons of their source's. */
 .tc-sankey-node {
   fill: var(--tc-series-color);
@@ -607,8 +639,10 @@
 .tc-series-list .tc-point,
 .tc-heatmap-cells,
 .tc-calendar-cells,
+.tc-map-regions,
 .tc-treemap-tiles,
 .tc-percentage-bar,
+.tc-funnel-stages,
 .tc-candles,
 .tc-tick,
 .tc-grid-line {
@@ -656,6 +690,94 @@
 .tc-cell-empty {
   fill: var(--tc-heat-empty, var(--tc-grid-color));
   opacity: 0.5;
+}
+
+/* Map regions: shaded like heatmap cells (--tc-heat, --tc-cell-fill), with a
+   border in the surface color that keeps its width however large the map is. */
+.tc-region {
+  stroke: var(--tc-surface);
+  stroke-width: 0.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+.tc-region-empty {
+  fill: var(--tc-heat-empty, var(--tc-grid-color));
+}
+
+/* A country too small for a shape, and a marker: a dot with a ring that sets
+   it apart from the land. */
+.tc-region-point,
+.tc-map-marker {
+  stroke-width: 2px;
+}
+
+.tc-map-marker {
+  fill: var(--tc-map-marker-color, var(--tc-color-1));
+  stroke: var(--tc-surface);
+}
+
+/* A selected region gets an outline, and keeps the color of its value. */
+.tc-region-selected {
+  stroke: var(--tc-text-color);
+  stroke-width: 1.5px;
+}
+
+.tc-map-selectable .tc-region {
+  cursor: pointer;
+}
+
+/* A map that can be magnified takes the drags and pinches for itself, so the
+   page does not scroll or zoom under the finger. */
+.tc-chart-map[data-zoom] {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.tc-chart-map[data-zoom="drag"] {
+  cursor: grabbing;
+}
+
+/* The zoom buttons, in the corner of the map (below the download menu). */
+.tc-map-zoom {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--tc-surface);
+  border: 1px solid var(--tc-grid-color);
+  border-radius: 6px;
+}
+
+.tc-download ~ .tc-map-zoom {
+  top: 28px;
+}
+
+.tc-map-zoom svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.tc-map-zoom :disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Dashes that move from the start of a line to its end. */
+.tc-map-line {
+  fill: none;
+  stroke: var(--tc-map-line-color, var(--tc-color-1));
+  stroke-width: 1.5px;
+  stroke-dasharray: 4;
+  animation: tc-map-line calc(var(--tc-duration) * 3) linear infinite;
+}
+
+@keyframes tc-map-line {
+  to {
+    stroke-dashoffset: -8;
+  }
 }
 
 /* Candlesticks: green when the period closed higher, red when lower. */
@@ -769,6 +891,7 @@
 /* The hovered cell, tile or segment gets a ring in the text color, visible on any shade. */
 .tc-chart-heatmap .tc-hover-mark,
 .tc-chart-calendar .tc-hover-mark,
+.tc-chart-map .tc-hover-mark,
 .tc-chart-treemap .tc-hover-mark,
 .tc-chart-percentage-bar .tc-hover-mark {
   fill: none;
@@ -1075,7 +1198,8 @@
     stroke: Canvas;
   }
   .tc-tick-label,
-  .tc-axis-title {
+  .tc-axis-title,
+  .tc-funnel-labels {
     fill: CanvasText;
   }
   .tc-grid-line,
@@ -1095,6 +1219,7 @@
     fill: GrayText;
   }
   .tc-bar,
+  .tc-funnel-stage,
   .tc-point {
     fill: CanvasText;
     stroke: Canvas;

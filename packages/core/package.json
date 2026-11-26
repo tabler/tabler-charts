@@ -101,6 +101,10 @@
       "import": "./dist/export.js",
       "require": "./dist/export.cjs"
     },
+    "./funnel": {
+      "import": "./dist/funnel.js",
+      "require": "./dist/funnel.cjs"
+    },
     "./gauge": {
       "import": "./dist/gauge.js",
       "require": "./dist/gauge.cjs"
@@ -120,6 +124,14 @@
     "./log": {
       "import": "./dist/log.js",
       "require": "./dist/log.cjs"
+    },
+    "./map": {
+      "import": "./dist/map.js",
+      "require": "./dist/map.cjs"
+    },
+    "./maps/world": {
+      "import": "./dist/maps/world.js",
+      "require": "./dist/maps/world.cjs"
     },
     "./morph": {
       "import": "./dist/morph.js",

@@ -159,60 +159,58 @@ export const bar: ChartType<BarOptions> = {
       return { up, down }
     })
 
-    ctx.onHitTest(
-      categoryInteraction(
-        layout,
-        options,
-        ctx,
-        (seriesIndex, i, v) => {
-          const y = scaleOf(seriesIndex)
-          if (isLine(seriesIndex)) {
-            const across = x.at(i) + x.bandwidth / 2
-            return horizontal ? { x: y(v), y: across } : { x: across, y: y(v) }
-          }
-          const left = barLeft(seriesIndex, i)
-          const seg = segment(seriesIndex, i)
-          const end = y(seg?.y1 ?? 0)
-          const base = y(seg?.y0 ?? 0)
-          // The bar's box, for value labels inside it.
-          const lo = Math.min(end, base)
-          const length = Math.abs(end - base)
-          return horizontal
-            ? {
-                x: end,
-                y: left + barWidth / 2,
-                box: { x: lo, y: left, width: length, height: barWidth },
-              }
-            : {
-                x: left + barWidth / 2,
-                y: end,
-                box: { x: left, y: lo, width: barWidth, height: length },
-              }
-        },
-        (px, py, i) => {
-          // Pointer position across the categories and along the values.
-          const across = horizontal ? py : px
-          const along = horizontal ? px : py
-          // The column under the pointer, gaps included, so thin bars are easy to hit.
-          const column = slotAt(
-            Math.floor((across - (x.at(i) + offset) + gap / 2) / (barWidth + gap)),
-          )
-          if (column === stackColumn) {
-            // The segment under the pointer, within the stack (gaps included).
-            return order.find((index) => {
-              if (!inStack(index)) return false
-              const seg = segment(index, i)
-              if (!seg) return false
-              const y = scaleOf(index)
-              const a = y(seg.y0)
-              const b = y(seg.y1)
-              return along >= Math.min(a, b) - gap / 2 && along <= Math.max(a, b) + gap / 2
-            })
-          }
-          const seriesIndex = order.find((index) => slots.get(index) === column)
-          return seriesIndex !== undefined && segment(seriesIndex, i) ? seriesIndex : undefined
-        },
-      ),
+    const interaction = categoryInteraction(
+      layout,
+      options,
+      ctx,
+      (seriesIndex, i, v) => {
+        const y = scaleOf(seriesIndex)
+        if (isLine(seriesIndex)) {
+          const across = x.at(i) + x.bandwidth / 2
+          return horizontal ? { x: y(v), y: across } : { x: across, y: y(v) }
+        }
+        const left = barLeft(seriesIndex, i)
+        const seg = segment(seriesIndex, i)
+        const end = y(seg?.y1 ?? 0)
+        const base = y(seg?.y0 ?? 0)
+        // The bar's box, for value labels inside it.
+        const lo = Math.min(end, base)
+        const length = Math.abs(end - base)
+        return horizontal
+          ? {
+              x: end,
+              y: left + barWidth / 2,
+              box: { x: lo, y: left, width: length, height: barWidth },
+            }
+          : {
+              x: left + barWidth / 2,
+              y: end,
+              box: { x: left, y: lo, width: barWidth, height: length },
+            }
+      },
+      (px, py, i) => {
+        // Pointer position across the categories and along the values.
+        const across = horizontal ? py : px
+        const along = horizontal ? px : py
+        // The column under the pointer, gaps included, so thin bars are easy to hit.
+        const column = slotAt(
+          Math.floor((across - (x.at(i) + offset) + gap / 2) / (barWidth + gap)),
+        )
+        if (column === stackColumn) {
+          // The segment under the pointer, within the stack (gaps included).
+          return order.find((index) => {
+            if (!inStack(index)) return false
+            const seg = segment(index, i)
+            if (!seg) return false
+            const y = scaleOf(index)
+            const a = y(seg.y0)
+            const b = y(seg.y1)
+            return along >= Math.min(a, b) - gap / 2 && along <= Math.max(a, b) + gap / 2
+          })
+        }
+        const seriesIndex = order.find((index) => slots.get(index) === column)
+        return seriesIndex !== undefined && segment(seriesIndex, i) ? seriesIndex : undefined
+      },
     )
 
     const groups = series.map(
@@ -272,7 +270,7 @@ export const bar: ChartType<BarOptions> = {
       )
     })
 
-    return [
+    const content = [
       h('defs', { key: 'defs' }, layout.clip.def),
       layout.background,
       // Layers are keyed: an annotation band or a grid that comes and goes must not
@@ -285,6 +283,7 @@ export const bar: ChartType<BarOptions> = {
       ),
       layout.foreground,
     ]
+    return { content, interaction }
   },
   legend: (options) => seriesLegend(options.data),
   table: (options, ctx, limit) => seriesTable(options, ctx, limit),

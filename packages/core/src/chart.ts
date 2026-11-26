@@ -1,6 +1,6 @@
 import type { DataTable } from './a11y.ts'
 import type { ValueLabelOptions } from './charts/value-labels.ts'
-import { feature, features } from './features.ts'
+import { type Features, feature, features } from './features.ts'
 import type { Locale, NumberFormat } from './format.ts'
 import { type Hit, hitKey, type Interaction } from './interaction.ts'
 import { defaultHidden, type LegendItem, type LegendOptions } from './legend.ts'
@@ -22,19 +22,38 @@ export interface RenderContext {
   locale: Locale
   /** Unique, stable prefix for ids inside this chart. */
   id: string
-  /** Register how pointer and keyboard map to data (ignored in SSR). */
-  onHitTest(interaction: Interaction): void
   /** Keys of legend entries (series) currently hidden. */
   hidden: ReadonlySet<string>
   /** Lay the chart out right to left (the `rtl` option, resolved). */
   rtl?: boolean
 }
 
+/** What a chart type's `table()` sees: no size, since a table has none. */
+export type TableContext = Pick<RenderContext, 'locale' | 'hidden' | 'rtl'>
+
 /**
- * A chart type plugin (`line`, `bar`, …). Receives the chart options and
- * returns the content of the root `<svg>`.
+ * What a chart type renders for one size: the content of the root `<svg>`,
+ * and how pointer and keyboard map to its data (none, when left out).
  */
-export interface ChartType<O extends object = object> {
+export interface RenderResult {
+  content: ChildInput
+  interaction?: Interaction
+}
+
+/**
+ * A chart type plugin (`line`, `bar`, …). Works out its model from the chart
+ * options and renders it into the content of the root `<svg>`.
+ *
+ * `M` is the chart model, what `prepare()` works out from the options alone
+ * (the options themselves for a type without `prepare()`): `render()`,
+ * `legend()`, `table()` and `height()` all read it, so a type groups or sorts
+ * its data once per config, not once for each of them. `ChartType<never>`
+ * stands for any chart type.
+ */
+export interface ChartType<
+  O extends object = object,
+  M extends object = [O] extends [never] ? object : O,
+> {
   readonly name: string
   /**
    * Clean options that may come from outside (data, annotations, axis
@@ -42,14 +61,27 @@ export interface ChartType<O extends object = object> {
    * as the config comes in, before anything reads it.
    */
   clean?(options: O): unknown
-  render(options: O, context: RenderContext): ChildInput
+  /**
+   * The chart model of the (cleaned) options: whatever the legend, the table
+   * and every render share. It knows neither the size nor the hidden series
+   * (the legend that hides them reads it). Called once per config.
+   */
+  prepare?(options: O): M
+  /** The chart content for a size: bare content, or with its interaction. */
+  render(model: M, context: RenderContext): ChildInput | RenderResult
+  /**
+   * Height in pixels at a width, for a type whose proportions are not one
+   * ratio (parts of it keep their size as it narrows). Asked when `height`
+   * is not set; `undefined` leaves it to `aspectRatio`.
+   */
+  height?(model: M, width: number): number | undefined
   /** Entries for the legend (series, slices); charts without it get no legend. */
-  legend?(options: O): LegendItem[]
+  legend?(model: M): LegendItem[]
   /**
    * The data as a text table, for screen readers and the visible table
    * option. `limit` is the most rows wanted; report the real count in `total`.
    */
-  table?(options: O, context: RenderContext, limit: number): DataTable
+  table?(model: M, context: TableContext, limit: number): DataTable
   /**
    * Whether the chart should be focusable and keyboard-navigable by default
    * (`keyboard` in the config overrides it). Decorative types such as
@@ -63,10 +95,22 @@ export interface ChartType<O extends object = object> {
    * names the number format of the values in the options (by default a label
    * shows the text of the tooltip).
    */
+  /**
+   * How the chart's marks turn to new data in the DOM, where CSS cannot
+   * animate them (arcs sweeping to their new angles). A chart in the page
+   * installs it; it is part of the type, not of a module that loads, so it
+   * ships only with the types that use it.
+   */
+  readonly sweep?: Features['sweep']
   readonly valueLabels?: {
     marks?: 'slice' | 'cell'
-    format?(options: O): NumberFormat | undefined
+    format?(model: M): NumberFormat | undefined
   }
+  /**
+   * Plugins the chart type brings along (the zoom of a map), installed after
+   * the default ones when a chart is created with this type.
+   */
+  readonly plugins?: readonly ChartPlugin[]
 }
 
 export type { DataTable, LegendItem }
@@ -132,8 +176,10 @@ export interface BaseOptions {
    * Write the values on the marks: bars at their end, stacked segments,
    * cells and slices inside (slices show their share), lines and points
    * above their last point (`points: 'all'` for every one). Labels that do
-   * not fit are left out. Needs `@tabler/charts/value-labels` on the core
-   * (`@tabler/charts` includes it).
+   * not fit are left out. A series' own `valueLabels` overrides this for
+   * that series, and each label carries its series classes
+   * (`tc-series tc-series-{n}`). Needs `@tabler/charts/value-labels` on the
+   * core (`@tabler/charts` includes it).
    */
   valueLabels?: boolean | ValueLabelOptions
   /**
@@ -175,7 +221,8 @@ export interface BaseOptions {
 }
 
 /** Full chart configuration: base options, the chart type and its options. */
-export type ChartConfig<O extends object = object> = BaseOptions & O & { type: ChartType<O> }
+export type ChartConfig<O extends object = object> = BaseOptions &
+  O & { type: ChartType<O, object> }
 
 export interface Size {
   width: number
@@ -209,56 +256,65 @@ export function resolveSize(options: BaseOptions, measured?: Partial<Size>): Siz
     ? (options.height as number)
     : options.height === 'container' && (measured?.height ?? 0) > 0
       ? (measured?.height as number)
-      : width / ratio
+      : ((options as Partial<ChartConfig>).type?.height?.(
+          chartModel(options as ChartConfig),
+          width,
+        ) ?? width / ratio)
   return { width, height: Math.max(0, Math.round(height)) }
 }
 
-/** Run the chart type's `render()` for a config and size. */
-function renderContent<O extends object>(
-  config: ChartConfig<O>,
-  size: Size,
-  id: string,
-  onHitTest: (interaction: Interaction) => void,
-  hidden: ReadonlySet<string>,
-  fontSize?: number,
-  rtl?: boolean,
-): ChildInput {
-  let found: Interaction | undefined
-  const ctx = renderContext(
-    config,
-    size,
-    id,
-    (interaction) => {
-      found = interaction
-      onHitTest(interaction)
-    },
-    hidden,
-    fontSize,
-    rtl,
-  )
-  const content = config.type.render(config, ctx)
-  // Optional features finish the content (point shapes, value labels).
-  return features.post ? features.post(config, content, found, ctx) : content
+/** Chart models by the config they were worked out from. */
+const models = /* @__PURE__ */ new WeakMap<object, object>()
+
+/**
+ * The chart model of a config: what its type's `prepare()` works out from
+ * it, once per config object, or the config itself for a type without one.
+ */
+export function chartModel(config: ChartConfig<object>): object {
+  const { prepare } = config.type
+  if (!prepare) return config
+  const model = models.get(config) ?? prepare(config)
+  models.set(config, model)
+  return model
 }
 
-/** Render context for a config and size (also used by plugins such as the data table). */
+/** Run the chart type's `render()` for a config and context, and the optional steps after it. */
+function renderContent(config: ChartConfig<object>, ctx: RenderContext): RenderResult {
+  const out = config.type.render(chartModel(config), ctx)
+  // Bare content has no `content` of its own (nodes, lists and text do not).
+  const result =
+    (out as RenderResult | null)?.content !== undefined
+      ? (out as RenderResult)
+      : { content: out as ChildInput }
+  // Optional features finish the content (point shapes, value labels).
+  if (features.post) result.content = features.post(config, result.content, result.interaction, ctx)
+  return result
+}
+
+/** What a render context is made for, besides the config. */
+export interface ContextOptions {
+  size: Size
+  /** Id prefix of the chart. */
+  id: string
+  hidden: ReadonlySet<string>
+  /** Measured font size, used when the config sets none. */
+  fontSize?: number
+  /** The resolved `rtl` option; by default `rtl: true` in the config. */
+  rtl?: boolean
+}
+
+/** Render context for a config and size. */
 export function renderContext<O extends object>(
   config: ChartConfig<O>,
-  size: Size,
-  id: string,
-  onHitTest: (interaction: Interaction) => void,
-  hidden: ReadonlySet<string>,
-  measuredFontSize?: number,
-  rtl: boolean = config.rtl === true,
+  { size, id, hidden, fontSize, rtl = config.rtl === true }: ContextOptions,
 ): RenderContext {
   return {
     rtl,
     width: size.width,
     height: size.height,
-    fontSize: config.fontSize ?? measuredFontSize ?? DEFAULT_FONT_SIZE,
+    fontSize: config.fontSize ?? fontSize ?? DEFAULT_FONT_SIZE,
     locale: config.locale,
     id,
-    onHitTest,
     hidden,
   }
 }
@@ -293,7 +349,7 @@ export interface ResolvedLegend {
 
 /** Legend entries of a config, and whether the legend is shown. */
 export function resolveLegend<O extends object>(config: ChartConfig<O>): ResolvedLegend {
-  const items = config.type.legend?.(config) ?? []
+  const items = config.type.legend?.(chartModel(config)) ?? []
   const option = config.legend
   const show = option === undefined ? items.length >= 2 : option !== false && items.length > 0
   const position = typeof option === 'object' && option.position === 'bottom' ? 'bottom' : 'top'
@@ -308,7 +364,9 @@ export function resolveLegend<O extends object>(config: ChartConfig<O>): Resolve
  */
 export function chartLabel(config: ChartConfig<object>): string {
   if (config.title) return config.title
-  const names = (config.type.legend?.(config) ?? []).map((item) => item.name).filter(Boolean)
+  const names = resolveLegend(config)
+    .items.map((item) => item.name)
+    .filter(Boolean)
   const shown = names.slice(0, 6).join(', ')
   // Screen readers do not care for capitals; a long list of names is cut short.
   return `${config.type.name} chart${names.length ? `: ${shown}${names.length > 6 ? ', …' : ''}` : ''}`
@@ -380,22 +438,35 @@ function composeChart(
   )
 }
 
+/** A chart built without the DOM: its root `<svg>`, and how it answers interaction. */
+export interface BuiltChart {
+  svg: VNode
+  interaction?: Interaction
+}
+
 /**
- * Build the VNode tree of a chart: a pure function of the config and size,
- * shared by the DOM chart and server-side rendering.
+ * Build a chart for a size: a pure function of the config and size, shared
+ * by the DOM chart and server-side rendering. `buildChart()` keeps the svg.
  */
-export function buildChart<O extends object>(
+export function renderChart<O extends object>(
   config: ChartConfig<O>,
   size: Size,
   id: string = config.id ?? 'tc',
-  onHitTest: (interaction: Interaction) => void = () => {},
-): VNode {
+): BuiltChart {
   assertType(config)
-  config = cleanData(config)
-  const hidden = defaultHidden(resolveLegend(config).items)
-  const content = renderContent(config, size, id, onHitTest, hidden)
-  const base: ChartConfig<object> = config
-  return composeChart(base, size, id, isStatic(base, content), content)
+  const base: ChartConfig<object> = cleanData(config)
+  const hidden = defaultHidden(resolveLegend(base).items)
+  const { content, interaction } = renderContent(base, renderContext(base, { size, id, hidden }))
+  return { svg: composeChart(base, size, id, isStatic(base, content), content), interaction }
+}
+
+/** Build the VNode tree of a chart for a size (see `renderChart()`). */
+export function buildChart<O extends object>(
+  config: ChartConfig<O>,
+  size: Size,
+  id?: string,
+): VNode {
+  return renderChart(config, size, id).svg
 }
 
 /**
@@ -406,7 +477,7 @@ export function buildChart<O extends object>(
  * ```
  */
 export function chartToString<O extends object>(config: ChartConfig<O>, size: Size): string {
-  return renderToString(buildChart(config, size))
+  return renderToString(renderChart(config, size).svg)
 }
 
 export interface ChartEvents {
@@ -542,7 +613,11 @@ export class Chart<O extends object = object> {
     this.#measure()
     this.#unobserve = observeResize(element, this.#onResize)
     try {
-      for (const plugin of [...defaultPlugins, ...(config.plugins ?? [])]) {
+      for (const plugin of [
+        ...defaultPlugins,
+        ...(config.type.plugins ?? []),
+        ...(config.plugins ?? []),
+      ]) {
         this.#plugins.push(plugin.install(this))
       }
       this.render()
@@ -756,18 +831,12 @@ export class Chart<O extends object = object> {
       cache.fontSize !== fontSize ||
       cache.rtl !== rtl
     if (!cache || stale) {
-      this.#current = undefined
-      const content = renderContent(
+      if (cfg.type.sweep) features.sweep = cfg.type.sweep
+      const { content, interaction } = renderContent(
         cfg,
-        size,
-        this.id,
-        (interaction) => {
-          this.#current = interaction
-        },
-        hidden,
-        fontSize,
-        rtl,
+        renderContext(cfg, { size, id: this.id, hidden, fontSize, rtl }),
       )
+      this.#current = interaction
       cache = {
         cfg,
         width: size.width,

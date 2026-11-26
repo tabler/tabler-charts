@@ -6,13 +6,16 @@ import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
 import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
+import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
 import { parliament } from './charts/parliament.ts'
 import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
+import { sankey } from './charts/sankey.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
 import { treemap } from './charts/treemap.ts'
@@ -24,6 +27,8 @@ import './log.ts'
 import { flush } from './scheduler.ts'
 import './time.ts'
 import './value-labels.ts'
+import { world } from './maps/world.ts'
+import { missingTypes } from './test-utils.ts'
 
 /**
  * Bad input: data from users, APIs and JSON attributes is often not what the
@@ -110,6 +115,19 @@ const TYPES: [string, ChartType<object>, () => unknown][] = [
   ['calendar', calendar as ChartType<object>, calendarData],
   ['radar', radar as ChartType<object>, seriesData],
   [
+    'sankey',
+    sankey as ChartType<object>,
+    () =>
+      chance(0.08)
+        ? junk()
+        : {
+            nodes: chance(0.5)
+              ? list(() => (chance(0.1) ? junk() : { name: text(), color: color() }))
+              : undefined,
+            links: list(() => (chance(0.1) ? junk() : { from: text(), to: text(), value: num() })),
+          },
+  ],
+  [
     'pie',
     pie as ChartType<object>,
     () => list(() => (chance(0.1) ? junk() : { name: text(), value: num(), color: color() })),
@@ -150,6 +168,11 @@ const TYPES: [string, ChartType<object>, () => unknown][] = [
             }
       return list(() => node(0))
     },
+  ],
+  [
+    'funnel',
+    funnel as ChartType<object>,
+    () => list(() => (chance(0.1) ? junk() : { name: text(), value: num(), color: color() })),
   ],
   [
     'percentage bar',
@@ -194,6 +217,19 @@ const TYPES: [string, ChartType<object>, () => unknown][] = [
       ),
   ],
   ['sparkline', sparkline as ChartType<object>, () => list(num)],
+  [
+    'map',
+    map as ChartType<object>,
+    () =>
+      chance(0.08)
+        ? junk()
+        : Object.fromEntries(
+            ['PL', 'DE', 'US', 'SG', 'ZZ', '', 'toString'].map((code) => [
+              chance(0.1) ? text() : code,
+              num(),
+            ]),
+          ),
+  ],
 ]
 
 /** Options that change how data is read. */
@@ -220,6 +256,11 @@ const options = (name: string): Record<string, unknown> => {
     )
   }
   if (chance(0.15) && name !== 'candlestick') out.x = { type: 'time' }
+  if (name === 'map') {
+    out.map = world
+    if (chance(0.3))
+      out.markers = list(() => (chance(0.1) ? junk() : { name: text(), lat: num(), lng: num() }))
+  }
   return out
 }
 
@@ -331,6 +372,7 @@ test('numeric options that are not finite count as left out', () => {
     ],
     [treemap, slices, ['gap', 'radius']],
     [percentageBar, slices, ['gap', 'radius', 'maxSlices']],
+    [funnel, slices, ['radius']],
     [scatter, { series: [{ name: 'A', points: [{ x: 1, y: 2, size: 3 }] }] }, ['radius']],
     [sparkline, [1, 2, 3], ['pointRadius']],
     [
@@ -358,4 +400,8 @@ test('numeric options that are not finite count as left out', () => {
   expect(failures).toEqual([])
   // A start angle beyond what a quarter turn changes used to loop for ever.
   expect(chartToString({ type: gauge, data: 30, startAngle: 1e300 }, size)).toContain('<svg')
+})
+
+test('covers every built-in chart type', () => {
+  expect(missingTypes(TYPES.map(([, type]) => type))).toEqual([])
 })

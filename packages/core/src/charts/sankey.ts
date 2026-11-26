@@ -1,7 +1,7 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { formatDetail, type NumberFormat } from '../format.ts'
-import type { Hit, HitItem, Interaction } from '../interaction.ts'
+import type { Highlight, Hit, HitItem, Interaction } from '../interaction.ts'
 import {
   estimateTextWidth,
   type InsetsInput,
@@ -13,7 +13,7 @@ import {
   round,
 } from '../layout.ts'
 import type { LegendItem } from '../legend.ts'
-import { type ChildInput, h } from '../vnode.ts'
+import { h } from '../vnode.ts'
 import { cleanData, finite, isRecord, named, records, text } from './clean.ts'
 
 /** A node of the flow; nodes left out are made from the links. */
@@ -346,19 +346,24 @@ function inLink(link: Link, nodeWidth: number, px: number, py: number): boolean 
   return py >= top && py <= top + link.width
 }
 
-function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
+function renderSankey(options: SankeyOptions, ctx: RenderContext): RenderResult {
   const { nodes, links, plot, nodeWidth, labels } = layout(options, ctx)
   const drawn = links.filter((link) => link.data.value > 0)
   const formatValue = formatDetail(options.format, ctx.locale)
 
-  const nodeMark = (n: Node) => ({
+  const nodeMark = (n: Node): Highlight => ({
+    kind: 'halo',
     d: `M0,0h${round(nodeWidth)}v${round(n.height)}h${round(-nodeWidth)}Z`,
     x: n.x,
     y: n.y,
     under: true,
   })
   // Marks go under the chart: over it, a hovered flow would cover the labels on it.
-  const linkMark = (link: Link) => ({ d: linkPath(link, nodeWidth), x: 0, y: 0, under: true })
+  const linkMark = (link: Link): Highlight => ({
+    kind: 'halo',
+    d: linkPath(link, nodeWidth),
+    under: true,
+  })
   const linkItem = (link: Link): HitItem => ({
     name: `${link.source.data.name} ${ctx.rtl ? '←' : '→'} ${link.target.data.name}`,
     seriesIndex: link.index,
@@ -389,7 +394,7 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
       area: plot,
       items: [own, ...flows],
       seriesIndex: focused ? linkIndex : own.seriesIndex,
-      mark: link ? linkMark(link) : nodeMark(n),
+      highlight: link ? linkMark(link) : nodeMark(n),
     }
   }
   const hitLink = (link: Link): Hit => {
@@ -402,7 +407,7 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
       area: plot,
       items: [item],
       seriesIndex: link.index,
-      mark: linkMark(link),
+      highlight: linkMark(link),
     }
   }
 
@@ -425,9 +430,8 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
       return n ? hitNode(n, seriesIndex) : null
     },
   }
-  ctx.onHitTest(interaction)
 
-  return [
+  const content = [
     h(
       'g',
       { key: 'links', class: 'tc-sankey-links' },
@@ -503,6 +507,7 @@ function renderSankey(options: SankeyOptions, ctx: RenderContext): ChildInput {
       }),
     ),
   ]
+  return { content, interaction }
 }
 
 /** One legend entry per custom color, named after the first node wearing it. */

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig } from '../chart.ts'
+import { type ChartConfig, renderChart } from '../chart.ts'
 import type { Hit, Interaction } from '../interaction.ts'
 import { findByClass } from '../test-utils.ts'
 import '../line.ts'
@@ -19,10 +19,7 @@ const data = {
 }
 
 function render<O extends object>(config: ChartConfig<O>) {
-  let interaction: Interaction | undefined
-  const node = buildChart({ locale: 'en-US', ...config }, size, 'y', (i) => {
-    interaction = i
-  })
+  const { svg: node, interaction } = renderChart({ locale: 'en-US', ...config }, size, 'y')
   return { node, interaction: interaction as Interaction }
 }
 const bars = (config: Partial<ChartConfig<BarOptions>> = {}) =>
@@ -123,7 +120,12 @@ describe('second value axis (y2)', () => {
 
   test('keeps its scale when its series are hidden', () => {
     const shown = bars()
-    const hidden = bars({ data: { ...data, series: [sales, { ...data.series[1], hidden: true }] } })
+    const hidden = bars({
+      data: {
+        ...data,
+        series: [sales, { ...perPax, type: 'line' as const, axis: 'y2' as const, hidden: true }],
+      },
+    })
     expect(tickLabels(hidden.node, 'right')).toEqual(tickLabels(shown.node, 'right'))
   })
 
@@ -157,7 +159,7 @@ describe('second value axis (y2)', () => {
     const [a, b] = (interaction.hitIndex(0) as Hit).items
     expect(b?.x).toBeGreaterThan(a?.x as number)
     // Both bars grow from the bottom of the plot (zero on each axis).
-    expect(a?.box?.y + (a?.box?.height as number)).toBeCloseTo(
+    expect((a?.box?.y as number) + (a?.box?.height as number)).toBeCloseTo(
       (b?.box?.y as number) + (b?.box?.height as number),
       5,
     )

@@ -7,19 +7,25 @@ export type { DataTable } from './a11y.ts'
 export { describeHit, tableContent } from './a11y.ts'
 export type {
   BaseOptions,
+  BuiltChart,
   ChartConfig,
   ChartEvents,
   ChartType,
+  ContextOptions,
   RenderContext,
+  RenderResult,
   ResolvedLegend,
   Size,
+  TableContext,
 } from './chart.ts'
 export {
   buildChart,
   Chart,
   chartEvents,
   chartLabel,
+  chartModel,
   chartToString,
+  renderChart,
   renderContext,
   resolveLegend,
   resolveSize,
@@ -53,12 +59,25 @@ export {
   seriesLegend,
   seriesTable,
 } from './charts/cartesian.ts'
+export type { FunnelOptions, FunnelStage } from './charts/funnel.ts'
+export { funnel } from './charts/funnel.ts'
 export type { GaugeOptions, GaugeRing } from './charts/gauge.ts'
 export { gauge } from './charts/gauge.ts'
 export type { HeatmapOptions, HeatmapRange } from './charts/heatmap.ts'
 export { heatmap } from './charts/heatmap.ts'
 export type { LineOptions } from './charts/line.ts'
 export { line } from './charts/line.ts'
+export type {
+  MapData,
+  MapHit,
+  MapLayout,
+  MapLine,
+  MapMarker,
+  MapOptions,
+  MapRegion,
+  MapView,
+} from './charts/map.ts'
+export { addMap, map } from './charts/map.ts'
 export type { ParliamentOptions, ParliamentParty } from './charts/parliament.ts'
 export { parliament } from './charts/parliament.ts'
 export type { PercentageBarOptions, PercentageBarSegment } from './charts/percentage-bar.ts'
@@ -92,7 +111,7 @@ export {
   getNumberFormat,
   stepPrecision,
 } from './format.ts'
-export type { Hit, HitItem, HitTester, Interaction } from './interaction.ts'
+export type { Highlight, Hit, HitItem, HitTester, Interaction } from './interaction.ts'
 export type { Insets, InsetsInput, Rect } from './layout.ts'
 export { estimateTextWidth, innerRect, insets, LINE_HEIGHT } from './layout.ts'
 export type { LegendItem, LegendOptions } from './legend.ts'

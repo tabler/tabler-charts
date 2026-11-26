@@ -1,4 +1,4 @@
-import type { DataTable, LegendItem, RenderContext } from '../chart.ts'
+import type { DataTable, LegendItem, RenderContext, TableContext } from '../chart.ts'
 import {
   axis,
   axisSize,
@@ -16,10 +16,9 @@ import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import {
   estimateTextWidth,
   type InsetsInput,
-  innerRect,
-  insets,
   LINE_HEIGHT,
-  mirrorSides,
+  type PlotFrame,
+  plotFrame,
   type Rect,
 } from '../layout.ts'
 import { type BandKey, type BandScale, band, point } from '../scales/band.ts'
@@ -76,6 +75,12 @@ export interface Series {
   class?: ClassValue
   /** Start hidden (toggle it back from the legend). */
   hidden?: boolean
+  /**
+   * Write values on this series' marks, whatever the chart's `valueLabels`
+   * says: `true` labels it even when the chart option is off, `false` leaves
+   * it out. Needs `@tabler/charts/value-labels` on the core.
+   */
+  valueLabels?: boolean
 }
 
 export interface CartesianData {
@@ -261,7 +266,7 @@ export const isTimeAxis = (options: CartesianOptions): boolean =>
 /** Formatter for category labels in tooltips and tables. */
 export function labelFormatter(
   options: CartesianOptions,
-  ctx: RenderContext,
+  ctx: TableContext,
 ): (label: Label, index: number) => string {
   if (options.x?.format) return options.x.format
   if (!isTimeAxis(options)) return (label) => String(label)
@@ -299,6 +304,24 @@ export const markerShape = (options: object): NonNullable<Features['point-shapes
   const { shapes, patterns } = options as { shapes?: boolean; patterns?: unknown }
   // On the core, the shapes come with their module (like the points of line charts).
   return (shapes ?? patterns === true) ? features['point-shapes'] : undefined
+}
+
+/**
+ * A point of the series in color slot `slot`: a circle, or the slot's marker
+ * when the chart has point shapes (see `markerShape`).
+ */
+export function pointMark(
+  shape: ReturnType<typeof markerShape>,
+  slot: number,
+  key: string | number,
+  cls: ClassValue,
+  cx: number,
+  cy: number,
+  r: number,
+): VNode {
+  return shape
+    ? h('path', { key, class: [cls, 'tc-marker'], d: shape(slot, cx, cy, r) })
+    : h('circle', { key, class: cls, cx, cy, r })
 }
 
 /** The tick count asked for on an axis (a number up to 100), or `auto`. */
@@ -429,11 +452,13 @@ export function valueAxis(
  * Finish a layout that has its plot area, scales and ticks with what is
  * drawn around the marks: grid lines and annotation bands below them,
  * annotation lines and the axes above. Values run along y and categories
- * along x, or the other way round when `horizontal`.
+ * along x, or the other way round when `horizontal`. The value axis (the
+ * category axis when `horizontal`) sits on the start `side`.
  */
 export function finishLayout(
   options: CartesianOptions,
   ctx: RenderContext,
+  side: PlotFrame['side'],
   overhang: number,
   plot: Omit<CartesianLayout, 'background' | 'foreground' | 'clip'>,
   keys: readonly BandKey[],
@@ -441,10 +466,8 @@ export function finishLayout(
 ): CartesianLayout {
   const { area, x, y, xTicks, yTicks, y2Ticks, horizontal: flip } = plot
   const xOptions = options.x ?? {}
-  // The axis beside the plot: on the right in a right-to-left chart.
-  const side = ctx.rtl ? 'right' : 'left'
   // The second value axis stands on the other side.
-  const opposite = ctx.rtl ? 'left' : 'right'
+  const opposite = side === 'left' ? 'right' : 'left'
   // Annotations: bands under the series, lines above them (and below the axes).
   const notes = notesFeature(options)?.layers(options.annotations, {
     area,
@@ -506,10 +529,8 @@ export function cartesianLayout(
   const xOptions = options.x ?? {}
   const { fontSize, locale, width, height } = ctx
   const overhang = layout.overhang ?? 0
-  // Right to left, the sides are worked out as their mirror image, then swapped.
   const rtl = ctx.rtl === true
   const reverse = xOptions.reverse ?? rtl
-  const pad = mirrorSides(insets(options.padding), rtl)
   const labels = resolveLabels(data)
   const format = labelFormatter(options, ctx)
   const showY = yOptions.show !== false
@@ -557,39 +578,39 @@ export function cartesianLayout(
   // The step depends on the margins, so they are worked out twice.
   const valueWidth =
     (showY ? axisSize('left', probeY, fontSize) : 0) + axisTitleSize(yOptions.title, fontSize)
-  // The second axis takes the other side (measured as the right, then mirrored).
+  // The second axis takes the end side (measured as the right, then mirrored).
   const value2Width = value2
     ? (showY2 ? axisSize('right', value2.probe, fontSize) : 0) +
       axisTitleSize(y2Options.title, fontSize)
     : 0
-  const side = (halfStep: number) => {
-    const overflow = (label: number) =>
-      edgeX ? Math.ceil(label / 2) : Math.max(0, Math.ceil(label / 2 - halfStep))
-    return {
-      right: pad.right + Math.max(value2Width, overflow(lastLabel), overhang, EDGE),
-      left: pad.left + Math.max(valueWidth, overflow(firstLabel), overhang, showY ? 0 : EDGE),
+  const { area, side, range } = plotFrame(ctx, options.padding, (pad) => {
+    const sides = (halfStep: number) => {
+      const overflow = (label: number) =>
+        edgeX ? Math.ceil(label / 2) : Math.max(0, Math.ceil(label / 2 - halfStep))
+      return {
+        start: pad.start + Math.max(valueWidth, overflow(firstLabel), overhang, showY ? 0 : EDGE),
+        end: pad.end + Math.max(value2Width, overflow(lastLabel), overhang, EDGE),
+      }
     }
-  }
-  const steps = Math.max(1, labels.length) * 2
-  let sides = side((width - pad.left - pad.right - valueWidth - value2Width) / steps)
-  if (!edgeX) sides = side((width - sides.left - sides.right) / steps)
-  const margins = {
-    top: pad.top + Math.max(showY || showY2 ? halfLine : 0, overhang, EDGE / 2),
-    bottom:
-      pad.bottom +
-      Math.max(
-        // Without an x axis, the lowest value label still needs half a line.
-        (showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : showY ? halfLine : 0) +
-          axisTitleSize(xOptions.title, fontSize),
-        overhang,
-        EDGE / 2,
-      ),
-    ...mirrorSides(sides, rtl),
-  }
-  const area = innerRect(width, height, margins)
+    const steps = Math.max(1, labels.length) * 2
+    let both = sides((width - pad.start - pad.end - valueWidth - value2Width) / steps)
+    if (!edgeX) both = sides((width - both.start - both.end) / steps)
+    return {
+      top: pad.top + Math.max(showY || showY2 ? halfLine : 0, overhang, EDGE / 2),
+      bottom:
+        pad.bottom +
+        Math.max(
+          // Without an x axis, the lowest value label still needs half a line.
+          (showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : showY ? halfLine : 0) +
+            axisTitleSize(xOptions.title, fontSize),
+          overhang,
+          EDGE / 2,
+        ),
+      ...both,
+    }
+  })
 
-  const end = area.x + area.width
-  const x = xAxis.scale(reverse ? [end, area.x] : [area.x, end])
+  const x = xAxis.scale(range(reverse))
   const y = value.scale([area.y + area.height, area.y])
   const y2 = value2?.scale([area.y + area.height, area.y])
 
@@ -611,7 +632,7 @@ export function cartesianLayout(
     plot.y2Ticks = thinTicks(value2.ticks(y2), 'right', fontSize, 4)
   }
 
-  return finishLayout(options, ctx, overhang, plot, keys, xAxis.time)
+  return finishLayout(options, ctx, side, overhang, plot, keys, xAxis.time)
 }
 
 /** Clip path around the plot area, a little larger so strokes and dots are not cut. */
@@ -716,9 +737,9 @@ export function categoryInteraction(
       hit.axis = 'y'
     }
     if (x.bandwidth > 0) {
-      hit.band = horizontal
-        ? { x: area.x, y: start, width: area.width, height: x.bandwidth }
-        : { x: start, y: area.y, width: x.bandwidth, height: area.height }
+      hit.highlight = horizontal
+        ? { kind: 'band', x: area.x, y: start, width: area.width, height: x.bandwidth }
+        : { kind: 'band', x: start, y: area.y, width: x.bandwidth, height: area.height }
     }
     return hit
   }
@@ -756,7 +777,7 @@ export function categoryInteraction(
 /** Accessible table of series values: one row per category, one column per visible series. */
 export function seriesTable(
   options: CartesianOptions,
-  ctx: RenderContext,
+  ctx: TableContext,
   limit: number = Number.POSITIVE_INFINITY,
 ): DataTable {
   const all = resolveLabels(options.data)

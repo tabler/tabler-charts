@@ -24,12 +24,16 @@ import {
   calendar,
   candlestick,
   donut,
+  type FunnelOptions,
+  funnel,
   type GaugeOptions,
   gauge,
   type HeatmapOptions,
   heatmap,
   type LineOptions,
   line,
+  type MapOptions,
+  map,
   type ParliamentOptions,
   type PercentageBarOptions,
   type PieOptions,
@@ -87,6 +91,7 @@ export const CalendarChart: ChartComponent<CalendarOptions> = /* @__PURE__ */ ch
   calendar,
   'CalendarChart',
 )
+export const MapChart: ChartComponent<MapOptions> = /* @__PURE__ */ chartComponent(map, 'MapChart')
 export const CandlestickChart: ChartComponent<CandlestickOptions> = /* @__PURE__ */ chartComponent(
   candlestick,
   'CandlestickChart',
@@ -109,3 +114,7 @@ export const TreemapChart: ChartComponent<TreemapOptions> = /* @__PURE__ */ char
 )
 export const PercentageBarChart: ChartComponent<PercentageBarOptions> =
   /* @__PURE__ */ chartComponent(percentageBar, 'PercentageBarChart')
+export const FunnelChart: ChartComponent<FunnelOptions> = /* @__PURE__ */ chartComponent(
+  funnel,
+  'FunnelChart',
+)

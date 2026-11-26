@@ -10,10 +10,12 @@ import { customType } from './demos/custom-type.ts'
 import { decimateDemo } from './demos/decimate.ts'
 import { elementDemo } from './demos/element.ts'
 import { exportDemo } from './demos/export.ts'
+import { funnelDemo } from './demos/funnel.ts'
 import { galleryDemo } from './demos/gallery.ts'
 import { gaugeDemo } from './demos/gauge.ts'
 import { heatmapDemo } from './demos/heatmap.ts'
 import { lineDemo } from './demos/line.ts'
+import { mapDemo } from './demos/map.ts'
 import { numberFormatDemo } from './demos/number-format.ts'
 import { parliamentDemo } from './demos/parliament.ts'
 import { patternsDemo } from './demos/patterns.ts'
@@ -45,10 +47,12 @@ const demos: Demo[] = [
   parliamentDemo,
   percentageBarDemo,
   treemapDemo,
+  funnelDemo,
   radarDemo,
   sankeyDemo,
   heatmapDemo,
   calendarDemo,
+  mapDemo,
   candlestickDemo,
   scatterDemo,
   patternsDemo,

@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig } from '../chart.ts'
+import { type ChartConfig, renderChart } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { timePointScale } from '../scales/time.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass } from '../test-utils.ts'
 import '../time.ts'
 import '../value-labels.ts'
 import type { VNode } from '../vnode.ts'
@@ -19,11 +19,12 @@ const data = {
 }
 
 const lines = (config: Partial<ChartConfig<LineOptions>> = {}) => {
-  let interaction: Interaction | undefined
-  const node = buildChart({ type: line, locale: 'en-US', data, ...config }, size, 'r', (i) => {
-    interaction = i
-  })
-  return { node, interaction: interaction as Interaction }
+  const { svg, interaction } = renderChart(
+    { type: line, locale: 'en-US', data, ...config },
+    size,
+    'r',
+  )
+  return { node: svg, interaction: interaction as Interaction }
 }
 
 /** The x of every tick of an axis, in tick order. */
@@ -93,16 +94,13 @@ describe('rtl', () => {
   })
 
   test('grouped bars keep the first series first: on the right', () => {
-    let interaction: Interaction | undefined
     const config: ChartConfig<BarOptions> = { type: bar, locale: 'en-US', data, rtl: true }
-    buildChart(config, size, 'r', (i) => {
-      interaction = i
-    })
-    const hit = (interaction as Interaction).hitIndex(0)
+    const interaction = chartInteraction(config, size, 'r')
+    const hit = interaction.hitIndex(0)
     const [first, second] = hit?.items ?? []
     expect(first?.x).toBeGreaterThan(second?.x as number)
     // The bar under the pointer is the one drawn there.
-    const at = (interaction as Interaction).hitTest(first?.x as number, 150)
+    const at = interaction.hitTest(first?.x as number, 150)
     expect(at?.seriesIndex).toBe(0)
   })
 
@@ -121,16 +119,12 @@ describe('rtl', () => {
 
 describe('rtl, horizontal bars', () => {
   const bars = (config: Partial<ChartConfig<BarOptions>> = {}) => {
-    let interaction: Interaction | undefined
-    const node = buildChart(
+    const { svg, interaction } = renderChart(
       { type: bar, locale: 'en-US', orientation: 'horizontal', data, ...config },
       size,
       'r',
-      (i) => {
-        interaction = i
-      },
     )
-    return { node, interaction: interaction as Interaction }
+    return { node: svg, interaction: interaction as Interaction }
   }
 
   test('categories on the right, values growing to the left', () => {
@@ -259,7 +253,7 @@ describe('axis titles', () => {
       y: { title: 'Revenue' },
       x: { title: 'Quarter' },
     }
-    const node = buildChart(config, size, 'r', () => {})
+    const node = renderChart(config, size, 'r').svg
     expect(place(titleOf(node, 'tc-axis-bottom')).angle).toBe(0)
     expect(titleOf(node, 'tc-axis-bottom').children.join('')).toBe('Revenue')
     expect(place(titleOf(node, 'tc-axis-left')).angle).toBe(-90)

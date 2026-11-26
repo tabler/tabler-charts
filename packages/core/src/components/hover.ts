@@ -1,4 +1,4 @@
-import type { Hit } from '../interaction.ts'
+import type { Highlight, Hit } from '../interaction.ts'
 import { round } from '../layout.ts'
 import { h, type VNode } from '../vnode.ts'
 
@@ -15,8 +15,8 @@ function seriesGroup(seriesIndex: number, color: string | undefined, child: VNod
   )
 }
 
-/** The hit's own mark, in the color of its series. */
-function hoverMark(hit: Hit, mark: NonNullable<Hit['mark']>): VNode | undefined {
+/** A halo around the hit, in the color of its series. */
+function halo(hit: Hit, mark: Extract<Highlight, { kind: 'halo' }>): VNode | undefined {
   const item = hit.items.find((i) => i.seriesIndex === hit.seriesIndex) ?? hit.items[0]
   return (
     item &&
@@ -26,89 +26,75 @@ function hoverMark(hit: Hit, mark: NonNullable<Hit['mark']>): VNode | undefined 
       h('path', {
         class: 'tc-hover-mark',
         d: mark.d,
-        style: `transform:translate(${round(mark.x)}px,${round(mark.y)}px)`,
+        style: `transform:translate(${round(mark.x ?? 0)}px,${round(mark.y ?? 0)}px)`,
       }),
     )
   )
 }
 
 /**
- * Hover marks drawn below the series: a band behind the hovered category of
- * band charts (bars), a vertical crosshair for point charts (lines), or the
- * hit's own mark when it asks to stay `under` the chart (sankey flows).
+ * Hover marks drawn below the series: the band behind the hovered category
+ * (bars), a crosshair through it (point charts; a spoke in radars), or a
+ * halo that asks to stay `under` the chart (sankey flows).
  */
 export function hoverUnderlay(hit: Hit, crosshair = true): VNode {
-  const { area } = hit
+  const { area, highlight: mark = { kind: 'crosshair' } } = hit
+  const line = (x1: number, y1: number, x2: number, y2: number) =>
+    crosshair &&
+    h('line', { class: 'tc-crosshair', x1: round(x1), x2: round(x2), y1: round(y1), y2: round(y2) })
   return h(
     'g',
     { class: 'tc-hover', 'aria-hidden': 'true' },
-    hit.mark
-      ? hit.mark.under && hoverMark(hit, hit.mark)
-      : hit.band
+    mark.kind === 'halo'
+      ? mark.under && halo(hit, mark)
+      : mark.kind === 'band'
         ? h('rect', {
             class: 'tc-hover-band',
-            x: round(hit.band.x),
-            y: round(hit.band.y),
-            width: round(hit.band.width),
-            height: round(hit.band.height),
+            x: round(mark.x),
+            y: round(mark.y),
+            width: round(mark.width),
+            height: round(mark.height),
           })
-        : crosshair &&
-          h(
-            'line',
-            hit.guide
-              ? {
-                  class: 'tc-crosshair',
-                  x1: round(hit.guide.x1),
-                  x2: round(hit.guide.x2),
-                  y1: round(hit.guide.y1),
-                  y2: round(hit.guide.y2),
-                }
-              : {
-                  class: 'tc-crosshair',
-                  x1: round(hit.x),
-                  x2: round(hit.x),
-                  y1: round(area.y),
-                  y2: round(area.y + area.height),
-                },
-          ),
+        : mark.kind === 'spoke'
+          ? line(mark.x1, mark.y1, mark.x2, mark.y2)
+          : line(hit.x, area.y, hit.x, area.y + area.height),
   )
 }
 
 /**
- * Hover marks drawn above the series: the hit's own mark (pie slices), or
- * an active dot on every point of point charts (of the series' `shape`, if given).
+ * Hover marks drawn above the series: a halo (pie slices), or an active dot
+ * on every value of point charts (of the series' `shape`, if given).
  */
 export function hoverOverlay(
   hit: Hit,
   radius = 4,
   shape?: (slot: number, x: number, y: number, r: number) => string,
 ): VNode {
-  const { mark } = hit
-  if (mark) {
-    return h('g', { class: 'tc-hover', 'aria-hidden': 'true' }, !mark.under && hoverMark(hit, mark))
-  }
+  const mark = hit.highlight
   return h(
     'g',
     { class: 'tc-hover', 'aria-hidden': 'true' },
-    !hit.band &&
-      hit.items.map(
-        (item) =>
-          item.y !== null &&
-          seriesGroup(
-            item.seriesIndex,
-            item.color,
-            shape
-              ? h('path', {
-                  class: 'tc-point tc-point-active tc-marker',
-                  d: shape(item.seriesIndex, item.x, item.y, radius),
-                })
-              : h('circle', {
-                  class: 'tc-point tc-point-active',
-                  cx: round(item.x),
-                  cy: round(item.y),
-                  r: radius,
-                }),
+    mark?.kind === 'halo'
+      ? !mark.under && halo(hit, mark)
+      : mark?.kind !== 'band' &&
+          hit.items.map(
+            (item) =>
+              item.y !== null &&
+              seriesGroup(
+                item.seriesIndex,
+                item.color,
+                shape
+                  ? h('path', {
+                      class: 'tc-point tc-point-active tc-marker',
+                      d: shape(item.seriesIndex, item.x, item.y, radius),
+                    })
+                  : h('circle', {
+                      class: 'tc-point tc-point-active',
+                      cx: round(item.x),
+                      cy: round(item.y),
+                      r: radius,
+                    }),
+              ),
           ),
-      ),
   )
 }

@@ -19,6 +19,7 @@ const vue = [/^vue($|\/)/, /^@vue\//]
 /** [name (the file is its slug), entry source, externals]. */
 const CASES = [
   ['core + line', `export { Chart } from '${DIST}core.js'; export { line } from '${DIST}line.js'`],
+  ['core + area', `export { Chart } from '${DIST}core.js'; export { area } from '${DIST}area.js'`],
   ['core + bar', `export { Chart } from '${DIST}core.js'; export { bar } from '${DIST}bar.js'`],
   ['core + pie', `export { Chart } from '${DIST}core.js'; export { pie } from '${DIST}pie.js'`],
   [
@@ -42,6 +43,10 @@ const CASES = [
     `export { Chart } from '${DIST}core.js'; export { treemap } from '${DIST}treemap.js'`,
   ],
   [
+    'core + funnel',
+    `export { Chart } from '${DIST}core.js'; export { funnel } from '${DIST}funnel.js'`,
+  ],
+  [
     'core + percentage bar',
     `export { Chart } from '${DIST}core.js'; export { percentageBar } from '${DIST}percentage-bar.js'`,
   ],
@@ -49,9 +54,18 @@ const CASES = [
     'core + calendar',
     `export { Chart } from '${DIST}core.js'; export { calendar } from '${DIST}calendar.js'`,
   ],
+  ['core + map', `export { Chart } from '${DIST}core.js'; export { map } from '${DIST}map.js'`],
   [
     'core + heatmap',
     `export { Chart } from '${DIST}core.js'; export { heatmap } from '${DIST}heatmap.js'`,
+  ],
+  [
+    'core + scatter',
+    `export { Chart } from '${DIST}core.js'; export { scatter } from '${DIST}scatter.js'`,
+  ],
+  [
+    'core + sparkline',
+    `export { Chart } from '${DIST}core.js'; export { sparkline } from '${DIST}sparkline.js'`,
   ],
   [
     'core + candlestick',

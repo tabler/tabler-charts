@@ -8,17 +8,24 @@ import { afterEach, describe, expect, test } from 'vitest'
 import { type ChartConfig, chartToString } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import './annotations.ts'
+import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
 import { calendar } from './charts/calendar.ts'
+import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
 import { parliament } from './charts/parliament.ts'
 import { percentageBar } from './charts/percentage-bar.ts'
-import { pie } from './charts/pie.ts'
+import { donut, pie } from './charts/pie.ts'
+import { radar } from './charts/radar.ts'
+import { sankey } from './charts/sankey.ts'
 import { scatter } from './charts/scatter.ts'
 import { treemap } from './charts/treemap.ts'
+import { world } from './maps/world.ts'
 import { flush } from './scheduler.ts'
+import { missingTypes } from './test-utils.ts'
 import { normalizeStyle } from './vnode.ts'
 
 const EVIL = 'red;position:fixed;inset:0;background:url(https://attacker.example/x)'
@@ -31,6 +38,22 @@ const cases: [string, Record<string, unknown>][] = [
   [
     'series color',
     { type: line, data: { labels, series: [{ name: 'A', color: EVIL, values: [1, 2] }] } },
+  ],
+  [
+    'area series',
+    { type: area, data: { labels, series: [{ name: 'A', color: EVIL, values: [1, 2] }] } },
+  ],
+  [
+    'radar series',
+    { type: radar, data: { labels, series: [{ name: 'A', color: EVIL, values: [1, 2] }] } },
+  ],
+  ['donut slice', { type: donut, data: [{ name: 'A', value: 1, color: EVIL }] }],
+  [
+    'sankey node',
+    {
+      type: sankey,
+      data: { nodes: [{ name: 'A', color: EVIL }], links: [{ from: 'A', to: 'B', value: 1 }] },
+    },
   ],
   [
     'series dash',
@@ -64,6 +87,7 @@ const cases: [string, Record<string, unknown>][] = [
       ],
     },
   ],
+  ['funnel stage', { type: funnel, data: [{ name: 'A', value: 4, color: EVIL }] }],
   [
     'scatter series',
     { type: scatter, data: { series: [{ name: 'A', color: EVIL, points: [{ x: 1, y: 2 }] }] } },
@@ -82,6 +106,10 @@ const cases: [string, Record<string, unknown>][] = [
       data: [{ date: '2026-01-05', value: 1 }],
       colors: [EVIL, 'blue'],
     },
+  ],
+  [
+    'map scale',
+    { type: map, map: world, data: { PL: 1, DE: 2, SG: 3 }, colors: [EVIL, 'red', EVIL] },
   ],
   [
     'heatmap ranges',
@@ -163,4 +191,14 @@ describe('style injection', () => {
       expect(normalizeStyle({ fill: bad }), bad).toBe('')
     }
   })
+})
+
+test('covers every built-in chart type', () => {
+  const covered = cases.map(([, config]) => config.type as { name: string })
+  expect(
+    missingTypes(covered, {
+      sparkline: 'takes no color from its config',
+      candlestick: 'takes no color from its config',
+    }),
+  ).toEqual([])
 })

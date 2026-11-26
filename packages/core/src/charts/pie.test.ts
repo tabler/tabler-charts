@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
+import { buildChart, type ChartConfig, chartToString, resolveLegend } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf, tableOf } from '../test-utils.ts'
 import { donut, type PieOptions, pie } from './pie.ts'
 
 const size = { width: 300, height: 200 }
@@ -15,14 +15,8 @@ const base: ChartConfig<PieOptions> = { type: pie, data, id: 'p', locale: 'en-US
 const render = (config: Partial<ChartConfig<PieOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'p')
 
-function interactionOf(config: Partial<ChartConfig<PieOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'p', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<PieOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'p')
 
 describe('pie', () => {
   test('renders one keyed slice group per entry in palette slots', () => {
@@ -64,7 +58,7 @@ describe('pie', () => {
     expect(hit?.items).toHaveLength(1)
     expect(hit?.items[0]?.text).toBe('50 (50%)')
     expect(hit?.seriesIndex).toBe(0)
-    expect(hit?.mark?.d).toMatch(/^M/)
+    expect(highlightOf(hit, 'halo')?.d).toMatch(/^M/)
   })
 
   test('ignores the center of a donut and points outside', () => {
@@ -142,11 +136,7 @@ describe('pie', () => {
   })
 
   test('describes the data as a table with shares', () => {
-    const table = pie.table?.(
-      base,
-      renderContext(base, size, 'p', () => {}, new Set()),
-      100,
-    )
+    const table = tableOf(base, 100)
     expect(table).toEqual({
       columns: ['', 'Value', 'Share'],
       rows: [
@@ -158,7 +148,7 @@ describe('pie', () => {
   })
 
   test('lists slices in the legend', () => {
-    expect(pie.legend?.(base)?.map((i) => [i.key, i.index])).toEqual([
+    expect(resolveLegend(base).items.map((i) => [i.key, i.index])).toEqual([
       ['Direct', 0],
       ['Search', 1],
       ['Social', 2],
@@ -231,17 +221,13 @@ describe('maxSlices', () => {
   })
 
   test('the legend and the table have the rest as one entry', () => {
-    expect(donut.legend?.(options)).toEqual([
+    expect(resolveLegend({ type: donut, ...options }).items).toEqual([
       { key: 'n1', name: 'n1', index: 1 },
       { key: 'n3', name: 'n3', index: 3 },
       { key: 'n5', name: 'n5', index: 5 },
       { key: '__others__', name: 'Others', index: 8 },
     ])
-    const table = pie.table?.(
-      options,
-      renderContext({ ...base, ...options }, size, 'p', () => {}, new Set()),
-      100,
-    )
+    const table = tableOf({ ...base, ...options }, 100)
     expect(table?.rows).toEqual([
       ['n1', '30', '30%'],
       ['n3', '20', '20%'],

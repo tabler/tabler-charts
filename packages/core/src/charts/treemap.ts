@@ -1,11 +1,12 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult, TableContext } from '../chart.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { estimateTextWidth, type InsetsInput, innerRect, insets, round } from '../layout.ts'
 import { rectPath } from '../shapes/rect.ts'
-import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { type ClassValue, h } from '../vnode.ts'
 import { cleanData, finite, isRecord, list, named } from './clean.ts'
+import { fit } from './fit.ts'
 import { groupAttrs, keyOf, legendItems } from './named.ts'
 
 /** A tile of a treemap, or a group of them. */
@@ -51,7 +52,7 @@ const MAX_NODES = 5000
 const INSET = 6
 
 /** A node with its size worked out. */
-interface Sized {
+export interface Sized {
   node: TreemapNode
   value: number
   children?: Sized[]
@@ -81,9 +82,12 @@ function sized(nodes: readonly TreemapNode[]): Sized[] {
   })
 }
 
+/** The chart model of a treemap: its options, with every node's size worked out. */
+export type TreemapModel = TreemapOptions & { sized: Sized[] }
+
 /** The top-level entries with their sizes and color slots, without the hidden ones. */
-function visible(options: TreemapOptions, hidden: ReadonlySet<string>) {
-  return sized(options.data)
+function visible(model: TreemapModel, hidden: ReadonlySet<string>) {
+  return model.sized
     .map((entry, index) => ({ entry, index }))
     .filter(({ entry }) => !hidden.has(keyOf(entry.node)))
 }
@@ -198,19 +202,7 @@ function layout(
   })
 }
 
-/** `text` cut to `width` pixels with an ellipsis, or `''` when not even a few letters fit. */
-function fit(text: string, width: number, fontSize: number): string {
-  if (estimateTextWidth(text, fontSize) <= width) return text
-  const chars = [...text]
-  while (chars.length > 2) {
-    chars.pop()
-    const cut = `${chars.join('').trimEnd()}…`
-    if (estimateTextWidth(cut, fontSize) <= width) return cut
-  }
-  return ''
-}
-
-function renderTreemap(options: TreemapOptions, ctx: RenderContext): ChildInput {
+function renderTreemap(options: TreemapModel, ctx: RenderContext): RenderResult {
   const { width, height, fontSize, locale } = ctx
   const gap = Math.max(0, options.gap ?? 2)
   const radius = Math.max(0, options.radius ?? 3)
@@ -255,10 +247,9 @@ function renderTreemap(options: TreemapOptions, ctx: RenderContext): ChildInput 
       items: [item],
       seriesIndex: tile.top,
       // A ring just inside the hovered tile.
-      mark: {
+      highlight: {
+        kind: 'halo',
         d: rectPath(tile.x + 1, tile.y + 1, tile.width - 2, tile.height - 2, radius - 1),
-        x: 0,
-        y: 0,
       },
     }
   }
@@ -280,7 +271,6 @@ function renderTreemap(options: TreemapOptions, ctx: RenderContext): ChildInput 
       return index < 0 ? null : hitFor(tiles[index] as Tile, index)
     },
   }
-  ctx.onHitTest(interaction)
 
   const groups = entries.map(({ entry, index }) =>
     h(
@@ -332,13 +322,14 @@ function renderTreemap(options: TreemapOptions, ctx: RenderContext): ChildInput 
       ]
     })
 
-  return [
+  const content = [
     h('g', { class: 'tc-treemap-tiles' }, groups),
     labels && h('g', { class: 'tc-treemap-labels', 'aria-hidden': 'true' }, labels),
   ]
+  return { content, interaction }
 }
 
-function treemapTable(options: TreemapOptions, ctx: RenderContext, limit: number): DataTable {
+function treemapTable(options: TreemapModel, ctx: TableContext, limit: number): DataTable {
   const entries = visible(options, ctx.hidden)
   const total = entries.reduce((sum, { entry }) => sum + entry.value, 0)
   const value = formatNumber(options.format, ctx.locale)
@@ -400,9 +391,10 @@ function cleanNodes(data: unknown, depth = 0, budget = { left: MAX_NODES }): Tre
  * })
  * ```
  */
-export const treemap: ChartType<TreemapOptions> = {
+export const treemap: ChartType<TreemapOptions, TreemapModel> = {
   name: 'treemap',
   clean: cleanData((data) => cleanNodes(data)),
+  prepare: (options) => ({ ...options, sized: sized(options.data) }),
   render: renderTreemap,
   legend: (options) => legendItems(options.data),
   table: treemapTable,
