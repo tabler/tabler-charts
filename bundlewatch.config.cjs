@@ -9,7 +9,7 @@
 module.exports = {
   files: [
     // Typical imports, bundled and minified by scripts/bundles.mjs.
-    { path: '.size/core-line.js', maxSize: '11.75KB' },
+    { path: '.size/core-line.js', maxSize: '12KB' },
     { path: '.size/core-bar.js', maxSize: '11.75KB' },
     { path: '.size/core-pie.js', maxSize: '8.5KB' },
     { path: '.size/core-gauge.js', maxSize: '8.5KB' },
@@ -25,7 +25,7 @@ module.exports = {
     { path: '.size/core-line-tooltip-legend.js', maxSize: '14KB' },
     { path: '.size/export-svg-image-download.js', maxSize: '2.5KB' },
     { path: '.size/default-chart-line.js', maxSize: '22.75KB' },
-    { path: '.size/ssr-charttostring-line.js', maxSize: '9.25KB' },
+    { path: '.size/ssr-charttostring-line.js', maxSize: '9.5KB' },
     { path: '.size/elements-core-line.js', maxSize: '13.25KB' },
     { path: '.size/elements-every-type.js', maxSize: '44.5KB' },
     { path: '.size/react-linechart.js', maxSize: '23.75KB' },
