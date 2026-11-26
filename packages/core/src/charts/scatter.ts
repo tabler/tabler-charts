@@ -1,6 +1,13 @@
 import type { DataTable } from '../a11y.ts'
 import type { ChartType, RenderContext } from '../chart.ts'
-import { axis, axisSize, type Tick, thinTicks } from '../components/axis.ts'
+import {
+  axis,
+  axisSize,
+  axisTitle,
+  axisTitleSize,
+  type Tick,
+  thinTicks,
+} from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { formatDetail, formatNumber } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
@@ -137,10 +144,20 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
     top:
       pad.top + Math.max(showY ? Math.ceil((fontSize * LINE_HEIGHT) / 2) : 0, overhang, EDGE / 2),
     bottom:
-      pad.bottom + Math.max(showX ? axisSize('bottom', probeX, fontSize) : 0, overhang, EDGE / 2),
+      pad.bottom +
+      Math.max(
+        (showX ? axisSize('bottom', probeX, fontSize) : 0) +
+          axisTitleSize(xOptions.title, fontSize),
+        overhang,
+        EDGE / 2,
+      ),
     start:
       pad.start +
-      Math.max(showY ? axisSize('left', probeY, fontSize) : 0, half(probeX[near]), overhang),
+      Math.max(
+        (showY ? axisSize('left', probeY, fontSize) : 0) + axisTitleSize(yOptions.title, fontSize),
+        half(probeX[near]),
+        overhang,
+      ),
     end: pad.end + Math.max(half(probeX[probeX.length - 1 - near]), overhang, EDGE),
   }))
   const x = valueScale(xDomain, range(reverse), xOptions)
@@ -282,6 +299,8 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
     h('g', { key: 'series', class: 'tc-series-list', 'clip-path': clip.url }, groups),
     showY && axis({ position: side, ticks: yTicks, area }),
     showX && axis({ position: 'bottom', ticks: xTicks, area }),
+    !!yOptions.title && axisTitle(side, showY ? yTicks : [], area, yOptions.title, fontSize),
+    !!xOptions.title && axisTitle('bottom', showX ? xTicks : [], area, xOptions.title, fontSize),
   ]
   return { content, interaction }
 }

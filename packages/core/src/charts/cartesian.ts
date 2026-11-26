@@ -1,5 +1,14 @@
 import type { DataTable, LegendItem, RenderContext, TableContext } from '../chart.ts'
-import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
+import {
+  axis,
+  axisSize,
+  axisTitle,
+  axisTitleSize,
+  bandTicks,
+  linearTicks,
+  type Tick,
+  thinTicks,
+} from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { type Features, feature, features } from '../features.ts'
 import { formatDetail, type NumberFormat } from '../format.ts'
@@ -77,6 +86,11 @@ export interface CartesianData {
 export interface ValueAxisOptions {
   /** Render the axis labels. Defaults to `true`. */
   show?: boolean
+  /**
+   * Title of the axis (e.g. a unit), beside its labels: turned 90° on the
+   * left of the plot, or on the right in a right-to-left chart.
+   */
+  title?: string
   /** Render horizontal grid lines. Defaults to `true`. */
   grid?: boolean
   /** Fixed lower bound; overrides data and `zero`. */
@@ -98,6 +112,8 @@ export interface ValueAxisOptions {
 export interface CategoryAxisOptions {
   /** Render the axis labels. Defaults to `true`. */
   show?: boolean
+  /** Title of the axis, below its labels. */
+  title?: string
   /** Render vertical grid lines. Defaults to `false`. */
   grid?: boolean
   /** Draw the axis line along the bottom edge. Defaults to `false`. */
@@ -404,6 +420,13 @@ export function finishLayout(
   const categories = ((xOptions.show !== false && plot.labels.length > 0) || xOptions.line) && [
     axis({ position: flip ? side : 'bottom', ticks: xTicks, area, line: xOptions.line === true }),
   ]
+  // Titles stand past the labels of their axis, or at the plot's edge when it is hidden.
+  const title = (text: string | undefined, beside: boolean, ticks: readonly Tick[] | false) =>
+    !!text && axisTitle(beside ? side : 'bottom', ticks || [], area, text, ctx.fontSize)
+  const titles = [
+    title(options.y?.title, !flip, !!values && yTicks),
+    title(xOptions.title, flip, xTicks),
+  ]
   const present = (parts: (VNode | VNode[] | null | false | undefined)[]): VNode[] =>
     parts.flatMap((part) => part || [])
   return {
@@ -414,7 +437,12 @@ export function finishLayout(
       notes?.under,
     ]),
     // The axis on the left first, then the one at the bottom.
-    foreground: present([notes?.over, flip ? categories : values, flip ? values : categories]),
+    foreground: present([
+      notes?.over,
+      flip ? categories : values,
+      flip ? values : categories,
+      ...titles,
+    ]),
     clip: plotClip(ctx, area, overhang),
   }
 }
@@ -472,7 +500,8 @@ export function cartesianLayout(
   // On bands a label is centered half a step from the edge: only what is wider
   // than that needs margin (long labels on narrow bands, e.g. dates on candles).
   // The step depends on the margins, so they are worked out twice.
-  const valueWidth = showY ? axisSize('left', probeY, fontSize) : 0
+  const valueWidth =
+    (showY ? axisSize('left', probeY, fontSize) : 0) + axisTitleSize(yOptions.title, fontSize)
   const { area, side, range } = plotFrame(ctx, options.padding, (pad) => {
     const sides = (halfStep: number) => {
       const overflow = (label: number) =>
@@ -491,7 +520,8 @@ export function cartesianLayout(
         pad.bottom +
         Math.max(
           // Without an x axis, the lowest value label still needs half a line.
-          showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : showY ? halfLine : 0,
+          (showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : showY ? halfLine : 0) +
+            axisTitleSize(xOptions.title, fontSize),
           overhang,
           EDGE / 2,
         ),

@@ -1,5 +1,5 @@
 import type { RenderContext } from '../chart.ts'
-import { axisSize, bandTicks, type Tick, thinTicks } from '../components/axis.ts'
+import { axisSize, axisTitleSize, bandTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { estimateTextWidth, plotFrame } from '../layout.ts'
 import { type BandKey, band } from '../scales/band.ts'
 import {
@@ -49,11 +49,17 @@ export function horizontalLayout(
     top: pad.top + Math.max(overhang, EDGE / 2),
     bottom:
       pad.bottom +
-      Math.max(showValues ? axisSize('bottom', probeValues, fontSize) : 0, overhang, EDGE / 2),
+      Math.max(
+        (showValues ? axisSize('bottom', probeValues, fontSize) : 0) +
+          axisTitleSize(yOptions.title, fontSize),
+        overhang,
+        EDGE / 2,
+      ),
     start:
       pad.start +
       Math.max(
-        showCategories ? axisSize('left', probeCategories, fontSize) : 0,
+        (showCategories ? axisSize('left', probeCategories, fontSize) : 0) +
+          axisTitleSize(xOptions.title, fontSize),
         edgeLabel(probeValues[0]),
         overhang,
         EDGE,

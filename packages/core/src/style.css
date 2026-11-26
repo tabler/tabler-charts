@@ -223,6 +223,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+.tc-axis-title {
+  fill: var(--tc-text-muted);
+}
+
 /* Hairlines: grid, zero line, axes, crosshair, sparkline middle line. */
 .tc-grid-line,
 .tc-grid-line-zero,
@@ -1194,6 +1198,7 @@
     stroke: Canvas;
   }
   .tc-tick-label,
+  .tc-axis-title,
   .tc-funnel-labels {
     fill: CanvasText;
   }

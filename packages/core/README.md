@@ -101,8 +101,10 @@ A feature you use but did not import throws an error that names the import.
 Series take `name`, `values`, and optionally `id` (stable identity), `color`, `dash`, `width`, `class` and `hidden`.
 
 Cartesian charts share two axes:
-- `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`.
-- `y`: `min`, `max`, `zero`, `nice`, `ticks`, `format`, `scale: 'log'`, `grid`, `show`.
+- `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`, `title`.
+- `y`: `min`, `max`, `zero`, `nice`, `ticks`, `format`, `scale: 'log'`, `grid`, `show`, `title`.
+
+An axis `title` names the axis (a unit, for example): `y.title` is turned 90° beside the value axis — on the right in an `rtl` chart — and `x.title` sits below the categories. Style both with `.tc-axis-title`.
 
 A number `format` is `Intl.NumberFormat` options or a function. `notation: 'compact'` shortens long numbers in the locale's words ("1.1M", "1,1 mln" in Polish); `compactSymbols` writes suffixes of your own in the locale's separators instead:
 
