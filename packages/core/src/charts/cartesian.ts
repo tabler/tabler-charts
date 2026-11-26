@@ -64,6 +64,13 @@ export interface Series {
    * (`@tabler/charts/line`, or `@tabler/charts`). Defaults to `'bar'`.
    */
   type?: 'bar' | 'line' | 'area'
+  /**
+   * Value axis of the series: `'y2'` draws it against the second axis
+   * (options in `y2`), on the right of the plot (on the left in a
+   * right-to-left chart), and leaves it out of stacks. Line, area and
+   * vertical bar charts. Defaults to `'y'`.
+   */
+  axis?: 'y' | 'y2'
   /** Extra classes on the series group. */
   class?: ClassValue
   /** Start hidden (toggle it back from the legend). */
@@ -136,6 +143,12 @@ export interface CategoryAxisOptions {
 export interface CartesianOptions {
   data: CartesianData
   y?: ValueAxisOptions
+  /**
+   * The second value axis, for series with `axis: 'y2'` (it is drawn only
+   * when a series uses it). Its labels and title stand on the other side of
+   * the plot; the grid lines follow `y`.
+   */
+  y2?: ValueAxisOptions
   x?: CategoryAxisOptions
   /** Reference lines and bands: targets, normal ranges, events and periods. */
   annotations?: readonly Annotation[]
@@ -152,6 +165,8 @@ export interface CartesianLayoutOptions {
   tickFormat?: NumberFormat
   /** Default for `y.zero`. */
   zero: boolean
+  /** Default for `y2.zero`. Defaults to `zero`. */
+  zero2?: boolean
   /** Space marks need beyond the plot edge (point radius, stroke). */
   overhang?: number
   /** Band padding for `scale: 'band'`. */
@@ -166,10 +181,14 @@ export interface CartesianLayout {
   x: BandScale
   /** Value scale (along y, or along x when `horizontal`). */
   y: LinearScale
+  /** Scale of the second value axis, when a series uses it. */
+  y2?: LinearScale
   /** Whether categories run along y. */
   horizontal: boolean
   xTicks: Tick[]
   yTicks: Tick[]
+  /** Ticks of the second value axis (with `y2`). */
+  y2Ticks?: Tick[]
   /** Grid lines, drawn below the marks. */
   background: VNode[]
   /** Axes, drawn above the marks. */
@@ -186,6 +205,33 @@ export const EDGE = 8
 
 /** Stable key of a series: its `id`, or its name. */
 export const seriesKey: (series: Series) => string = keyOf
+
+/**
+ * Whether the chart draws a second value axis: a series asks for it with
+ * `axis: 'y2'`, and the values run along y (not in horizontal bars).
+ */
+export const hasY2 = (options: CartesianOptions): boolean =>
+  (options as { orientation?: unknown }).orientation !== 'horizontal' &&
+  options.data.series.some((s) => s.axis === 'y2')
+
+/**
+ * The value axis a series is read on: a function giving each series'
+ * axis options, and whether it is the second one.
+ */
+export function seriesAxes(
+  options: CartesianOptions,
+): (series: Series | undefined) => { second: boolean; axis: ValueAxisOptions } {
+  const second = hasY2(options)
+  const y = { second: false, axis: options.y ?? {} }
+  const y2 = { second: true, axis: options.y2 ?? {} }
+  return (series) => (second && series?.axis === 'y2' ? y2 : y)
+}
+
+/** The scale of a series: the second one for series on `y2`. */
+export const seriesScale = (
+  layout: Pick<CartesianLayout, 'y' | 'y2'>,
+  series: Series | undefined,
+): LinearScale => (layout.y2 && series?.axis === 'y2' ? layout.y2 : layout.y)
 
 /** Legend entries for series-based charts. */
 export const seriesLegend = (data: CartesianData): LegendItem[] => legendItems(data.series)
@@ -364,23 +410,39 @@ export function valueAxis(
   ctx: RenderContext,
   layout: CartesianLayoutOptions,
   auto: number,
+  /** Only the series of this axis (`y` or `y2`); every series when not set. */
+  which?: 'y' | 'y2',
 ): {
   scale(range: [number, number]): LinearScale
   ticks(scale: LinearScale): Tick[]
   probe: Tick[]
 } {
-  const axis = options.y ?? {}
+  const second = which === 'y2'
+  const axis = (second ? options.y2 : options.y) ?? {}
   const count = tickCount(axis, Math.max(2, auto))
-  const domain = valueDomain(
-    options.data,
-    axis,
-    layout.zero,
-    count,
-    ctx.hidden,
-    layout.values,
-    notesFeature(options)?.values(options.annotations),
-  )
-  const format = layout.tickFormat ?? axis.format
+  let domain: [number, number]
+  if (second) {
+    const own = options.data.series.filter((s) => s.axis === 'y2')
+    const shown = own.filter((s) => !ctx.hidden.has(seriesKey(s)))
+    // With all its series hidden, the axis keeps its scale instead of jumping to 0…1.
+    const values = (shown.length ? shown : own).flatMap((s) => s.values)
+    domain = domainOf(values, axis, layout.zero2 ?? layout.zero, count)
+  } else {
+    const data =
+      which === 'y'
+        ? { ...options.data, series: options.data.series.filter((s) => s.axis !== 'y2') }
+        : options.data
+    domain = valueDomain(
+      data,
+      axis,
+      layout.zero,
+      count,
+      ctx.hidden,
+      layout.values,
+      notesFeature(options)?.values(options.annotations),
+    )
+  }
+  const format = second ? axis.format : (layout.tickFormat ?? axis.format)
   const scale = (range: [number, number]) => valueScale(domain, range, axis)
   const ticks = (of: LinearScale) => valueTicks(of, axis, count, format, ctx.locale)
   return { scale, ticks, probe: ticks(scale([0, 1])) }
@@ -402,8 +464,10 @@ export function finishLayout(
   keys: readonly BandKey[],
   time?: (date: Date) => number,
 ): CartesianLayout {
-  const { area, x, y, xTicks, yTicks, horizontal: flip } = plot
+  const { area, x, y, xTicks, yTicks, y2Ticks, horizontal: flip } = plot
   const xOptions = options.x ?? {}
+  // The second value axis stands on the other side.
+  const opposite = side === 'left' ? 'right' : 'left'
   // Annotations: bands under the series, lines above them (and below the axes).
   const notes = notesFeature(options)?.layers(options.annotations, {
     area,
@@ -421,11 +485,17 @@ export function finishLayout(
     axis({ position: flip ? side : 'bottom', ticks: xTicks, area, line: xOptions.line === true }),
   ]
   // Titles stand past the labels of their axis, or at the plot's edge when it is hidden.
-  const title = (text: string | undefined, beside: boolean, ticks: readonly Tick[] | false) =>
-    !!text && axisTitle(beside ? side : 'bottom', ticks || [], area, text, ctx.fontSize)
+  const seconds = !!y2Ticks &&
+    options.y2?.show !== false && [axis({ position: opposite, ticks: y2Ticks, area })]
+  const title = (
+    text: string | undefined,
+    position: 'left' | 'right' | 'bottom',
+    ticks: readonly Tick[] | false,
+  ) => !!text && axisTitle(position, ticks || [], area, text, ctx.fontSize)
   const titles = [
-    title(options.y?.title, !flip, !!values && yTicks),
-    title(xOptions.title, flip, xTicks),
+    title(options.y?.title, flip ? 'bottom' : side, !!values && yTicks),
+    title(xOptions.title, flip ? side : 'bottom', xTicks),
+    !!y2Ticks && title(options.y2?.title, opposite, !!seconds && y2Ticks),
   ]
   const present = (parts: (VNode | VNode[] | null | false | undefined)[]): VNode[] =>
     parts.flatMap((part) => part || [])
@@ -441,6 +511,7 @@ export function finishLayout(
       notes?.over,
       flip ? categories : values,
       flip ? values : categories,
+      seconds,
       ...titles,
     ]),
     clip: plotClip(ctx, area, overhang),
@@ -466,8 +537,13 @@ export function cartesianLayout(
   const showX = xOptions.show !== false && labels.length > 0
   const timed = isTimeAxis(options) && layout.scale === 'point'
 
-  const value = valueAxis(options, ctx, layout, Math.round(height / TICK_SPACING))
+  const auto = Math.round(height / TICK_SPACING)
+  const second = hasY2(options)
+  const value = valueAxis(options, ctx, layout, auto, second ? 'y' : undefined)
   const probeY = value.probe
+  const y2Options = options.y2 ?? {}
+  const value2 = second ? valueAxis(options, ctx, layout, auto, 'y2') : null
+  const showY2 = !!value2 && y2Options.show !== false
   const countX = Math.max(2, Math.round(width / TICK_SPACING_X))
   const keys = labels.map(labelKey)
   const labelAt = (i: number) => format(labels[i] as Label, i)
@@ -502,20 +578,25 @@ export function cartesianLayout(
   // The step depends on the margins, so they are worked out twice.
   const valueWidth =
     (showY ? axisSize('left', probeY, fontSize) : 0) + axisTitleSize(yOptions.title, fontSize)
+  // The second axis takes the end side (measured as the right, then mirrored).
+  const value2Width = value2
+    ? (showY2 ? axisSize('right', value2.probe, fontSize) : 0) +
+      axisTitleSize(y2Options.title, fontSize)
+    : 0
   const { area, side, range } = plotFrame(ctx, options.padding, (pad) => {
     const sides = (halfStep: number) => {
       const overflow = (label: number) =>
         edgeX ? Math.ceil(label / 2) : Math.max(0, Math.ceil(label / 2 - halfStep))
       return {
         start: pad.start + Math.max(valueWidth, overflow(firstLabel), overhang, showY ? 0 : EDGE),
-        end: pad.end + Math.max(overflow(lastLabel), overhang, EDGE),
+        end: pad.end + Math.max(value2Width, overflow(lastLabel), overhang, EDGE),
       }
     }
     const steps = Math.max(1, labels.length) * 2
-    let both = sides((width - pad.start - pad.end - valueWidth) / steps)
+    let both = sides((width - pad.start - pad.end - valueWidth - value2Width) / steps)
     if (!edgeX) both = sides((width - both.start - both.end) / steps)
     return {
-      top: pad.top + Math.max(showY ? halfLine : 0, overhang, EDGE / 2),
+      top: pad.top + Math.max(showY || showY2 ? halfLine : 0, overhang, EDGE / 2),
       bottom:
         pad.bottom +
         Math.max(
@@ -531,21 +612,27 @@ export function cartesianLayout(
 
   const x = xAxis.scale(range(reverse))
   const y = value.scale([area.y + area.height, area.y])
+  const y2 = value2?.scale([area.y + area.height, area.y])
 
   // Nice ticks can outnumber the count asked for: on a short plot, thin them
   // like category labels so none overlap (the grid follows the ticks kept).
   const yTicks = thinTicks(value.ticks(y), 'left', fontSize, 4)
   const xTicks = showX ? thinTicks(xAxis.ticks(x), 'bottom', fontSize) : []
+  const plot: Omit<CartesianLayout, 'background' | 'foreground' | 'clip'> = {
+    area,
+    labels,
+    x,
+    y,
+    horizontal: false,
+    xTicks,
+    yTicks,
+  }
+  if (value2 && y2) {
+    plot.y2 = y2
+    plot.y2Ticks = thinTicks(value2.ticks(y2), 'right', fontSize, 4)
+  }
 
-  return finishLayout(
-    options,
-    ctx,
-    side,
-    overhang,
-    { area, labels, x, y, horizontal: false, xTicks, yTicks },
-    keys,
-    xAxis.time,
-  )
+  return finishLayout(options, ctx, side, overhang, plot, keys, xAxis.time)
 }
 
 /** Clip path around the plot area, a little larger so strokes and dots are not cut. */
@@ -609,7 +696,10 @@ export function categoryInteraction(
   const { area, x, labels, horizontal } = layout
   const { data } = options
   const formatLabel = labelFormatter(options, ctx)
-  const formatValue = formatDetail(options.y?.format, ctx.locale)
+  const axisOf = seriesAxes(options)
+  // Each series reads its values like its axis: bounds (log) and format.
+  const axes = data.series.map((s) => axisOf(s).axis)
+  const formats = axes.map((axis) => formatDetail(axis.format, ctx.locale))
 
   const hitAt = (index: number): Hit => {
     const start = x.at(index)
@@ -621,13 +711,13 @@ export function categoryInteraction(
     data.series.forEach((series, seriesIndex) => {
       if (ctx.hidden.has(seriesKey(series))) return
       const raw = series.values[index]
-      const value = plottable(raw, options.y) ? raw : null
+      const value = plottable(raw, axes[seriesIndex]) ? raw : null
       const point = value === null ? empty : anchor(seriesIndex, index, value)
       const item: HitItem = {
         name: series.name,
         seriesIndex,
         value,
-        text: value === null ? '–' : formatValue(value),
+        text: value === null ? '–' : (formats[seriesIndex] as (v: number) => string)(value),
         ...point,
       }
       if (series.color) item.color = series.color
@@ -693,16 +783,17 @@ export function seriesTable(
   const all = resolveLabels(options.data)
   const labels = all.length > limit ? all.slice(0, limit) : all
   const formatLabel = labelFormatter(options, ctx)
-  const formatValue = formatDetail(options.y?.format, ctx.locale)
+  const axisOf = seriesAxes(options)
   const series = options.data.series.filter((s) => !ctx.hidden.has(seriesKey(s)))
+  const formats = series.map((s) => formatDetail(axisOf(s).axis.format, ctx.locale))
   return {
     columns: ['', ...series.map((s) => s.name)],
     total: all.length,
     rows: labels.map((label, i) => [
       formatLabel(label, i),
-      ...series.map((s) => {
+      ...series.map((s, n) => {
         const v = s.values[i]
-        return v == null || !Number.isFinite(v) ? '–' : formatValue(v)
+        return v == null || !Number.isFinite(v) ? '–' : (formats[n] as (v: number) => string)(v)
       }),
     ]),
   }
