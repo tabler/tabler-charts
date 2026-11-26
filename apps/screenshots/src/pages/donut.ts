@@ -20,8 +20,8 @@ export default definePage({
     ],
     format: (v: number) => `${v}%`,
     center: { value: '39%', label: 'clean' },
-    gap: 2,
-    cornerRadius: 3,
+    gap: 3,
+    cornerRadius: 6,
     aspectRatio: 1.7,
   },
 })

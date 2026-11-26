@@ -7,8 +7,8 @@ export default fromShowcase(politics, 'Polish presidential election, 2025', {
   width: 520,
   config: {
     aspectRatio: 1.7,
-    gap: 2,
-    cornerRadius: 3,
+    gap: 3,
+    cornerRadius: 6,
     locale: 'en-US',
     center: { value: '1.78 pp', label: 'margin' },
     data: [

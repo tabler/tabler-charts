@@ -5,5 +5,5 @@ export default fromShowcase(science, "Earth's atmosphere", {
   title: 'What the air is made of',
   subtitle: 'Dry air by volume',
   width: 560,
-  config: { aspectRatio: 1.7, gap: 2, cornerRadius: 3 },
+  config: { aspectRatio: 1.7, gap: 3, cornerRadius: 6 },
 })

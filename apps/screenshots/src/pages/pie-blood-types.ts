@@ -5,5 +5,5 @@ export default fromShowcase(health, 'Blood types', {
   title: 'Blood types',
   subtitle: 'ABO and Rh types in the US population',
   width: 560,
-  config: { aspectRatio: 1.7, gap: 2 },
+  config: { aspectRatio: 1.7, gap: 3, cornerRadius: 6 },
 })

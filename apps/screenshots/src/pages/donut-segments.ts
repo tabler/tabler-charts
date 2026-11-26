@@ -5,5 +5,5 @@ export default fromShowcase(business, 'Apple revenue by segment', {
   title: 'Where Apple’s revenue comes from',
   subtitle: 'Net sales by product line, fiscal 2024',
   width: 560,
-  config: { aspectRatio: 1.7, gap: 2, cornerRadius: 3 },
+  config: { aspectRatio: 1.7, gap: 3, cornerRadius: 6 },
 })

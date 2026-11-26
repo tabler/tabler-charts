@@ -16,7 +16,8 @@ export default definePage({
     ],
     format: (v: number) => `${v}%`,
     valueLabels: true,
-    gap: 2,
+    gap: 3,
+    cornerRadius: 6,
     aspectRatio: 1.7,
   },
 })
