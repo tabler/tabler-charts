@@ -80,7 +80,7 @@ await init() // every [data-tc-chart] on the page
 - **Data:** it comes from `data-tc-src` (a JSON URL), an inline `<script type="application/json">`, or `data-tc-data`.
 - **Options:** every other `data-tc-*` attribute is an option in camelCase (`data-tc-aspect-ratio="3"` becomes `aspectRatio: 3`).
   - Values are parsed: `true` and `false`, numbers, and JSON objects or arrays.
-  - `data-tc-legend="bottom"` moves the legend.
+  - `data-tc-legend="bottom"` moves the legend (also `left`, `right`, `auto`).
   - `data-tc-download="true"` adds a download menu (PNG and SVG); `data-tc-download="svg png"` picks the formats.
   - `data-tc-options` takes a JSON object for the rest.
 - **Loading:** while `data-tc-src` loads, the element has `aria-busy="true"`. A failed load or broken markup is reported without stopping the other charts.

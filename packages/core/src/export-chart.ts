@@ -121,9 +121,7 @@ function inline(live: Element, copy: Element): boolean {
  * The legend as the page lays it out: every entry at its place relative to
  * the legend box, with a swatch (hollow when hidden) and its name.
  */
-function legendLayer(
-  container: Element,
-): { svg: Element; height: number; margin: number; bottom: boolean } | undefined {
+function legendLayer(container: Element): { svg: Element; box: DOMRect } | undefined {
   const legend = container.querySelector(':scope > .tc-legend')
   const items = legend ? Array.from(legend.querySelectorAll('.tc-legend-item')) : []
   if (!legend || !items.length) return undefined
@@ -166,10 +164,7 @@ function legendLayer(
     label.textContent = name.textContent
     g.append(dot, label)
   }
-  const bottom = legend.getAttribute('data-position') === 'bottom'
-  const margin =
-    Number.parseFloat(getComputedStyle(legend)[bottom ? 'marginTop' : 'marginBottom']) || 0
-  return { svg: g, height: round(box.height + margin), margin, bottom }
+  return { svg: g, box }
 }
 
 /**
@@ -199,22 +194,29 @@ export function exportSVG(target: ExportTarget, options: ExportOptions = {}): st
   const chartStyle = getComputedStyle(svg)
   const container = svg.parentElement
   const legend = options.legend !== false && container ? legendLayer(container) : undefined
+  let totalWidth = width
   let total = height
   if (legend) {
-    // The chart moves down below a top legend; a bottom one goes under it.
+    // Chart and legend where the page shows them (above, below or beside),
+    // with the gap between them, in one image as large as both.
+    const { box } = legend
+    const at = svg.getBoundingClientRect()
+    const left = Math.min(at.left, box.left)
+    const top = Math.min(at.top, box.top)
     const wrap = doc.createElementNS(SVG_NS, 'g')
     wrap.append(...Array.from(copy.childNodes))
-    if (legend.bottom) {
-      legend.svg.setAttribute('transform', `translate(0 ${height + legend.margin})`)
-    } else {
-      wrap.setAttribute('transform', `translate(0 ${legend.height})`)
+    const move = (el: Element, x: number, y: number) => {
+      if (x || y) el.setAttribute('transform', `translate(${round(x)} ${round(y)})`)
     }
+    move(wrap, at.left - left, at.top - top)
+    move(legend.svg, box.left - left, box.top - top)
     copy.append(wrap, legend.svg)
-    total = height + legend.height
+    totalWidth = round(Math.max(at.left + width, box.right) - left)
+    total = round(Math.max(at.top + height, box.bottom) - top)
   }
-  copy.setAttribute('width', String(width))
+  copy.setAttribute('width', String(totalWidth))
   copy.setAttribute('height', String(total))
-  copy.setAttribute('viewBox', `0 0 ${width} ${total}`)
+  copy.setAttribute('viewBox', `0 0 ${totalWidth} ${total}`)
 
   // A name for the file itself, besides the aria-label.
   const name = svg.getAttribute('aria-label')

@@ -24,6 +24,8 @@ export interface PluginInstance {
   beforeRender?(state: BeforeRenderState): void
   /** Vertical space the plugin takes from the container in `height: 'container'` mode. */
   reservedHeight?(): number
+  /** Horizontal space the plugin takes from the container, e.g. a legend beside the chart. */
+  reservedWidth?(): number
   /** Extra attributes for the root `<svg>`. */
   svgAttrs?(config: ChartConfig<object>): Props | undefined
   /** SVG drawn below (`under`) and above (`over`) the chart content for the active hit. */

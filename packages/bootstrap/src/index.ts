@@ -76,8 +76,8 @@ function optionsOf(element: HTMLElement): Record<string, unknown> {
     const name = key.charAt(2).toLowerCase() + key.slice(3)
     if (RESERVED.has(name)) continue
     out[name] =
-      name === 'legend' && value === 'bottom'
-        ? { position: 'bottom' }
+      name === 'legend' && /^(top|bottom|left|right|auto)$/.test(value)
+        ? { position: value }
         : name === 'tooltip' && value === 'light'
           ? { theme: 'light' }
           : name === 'download' && /^[a-z]/i.test(value) && !/^(true|false)$/.test(value)
