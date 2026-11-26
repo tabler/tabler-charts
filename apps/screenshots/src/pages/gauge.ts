@@ -1,16 +1,21 @@
 import { gauge } from '@tabler/charts'
-import { definePage } from '../page.ts'
+import { C, definePage } from '../page.ts'
 
 export default definePage({
-  title: 'Storage',
-  subtitle: 'Used of the 2.4 TB plan',
-  width: 360,
+  title: 'Electric cars in Norway',
+  subtitle: 'Battery-electric share of new registrations',
+  source: 'Norwegian Road Federation (OFV), 2024',
+  width: 400,
   config: {
     type: gauge,
-    data: { name: 'GB used', value: 1392, max: 2400 },
+    data: { name: 'battery electric', value: 88.9 },
     startAngle: -135,
     angle: 270,
-    thickness: 12,
-    cornerRadius: 6,
+    thickness: 14,
+    cornerRadius: 7,
+    center: { value: '88.9%', label: 'of new cars' },
+    format: (v: number) => `${v}%`,
+    aspectRatio: 1.5,
   },
+  style: { '--tc-color-1': C.teal },
 })

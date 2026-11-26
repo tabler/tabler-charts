@@ -2,12 +2,39 @@
 
 :root {
   color-scheme: light;
-  --bg: #f6f8fb;
+  --bg: #f4f6fa;
   --card: #ffffff;
-  --border: #e3e7ed;
-  --fg: #182433;
-  --muted: #5f6b7a;
+  --border: #e6e9ef;
+  --fg: #1c2634;
+  --muted: #6b7686;
+
+  /* The pictures' palette: softer than the library's defaults, in a fixed
+     order checked for color-vision deficiency between neighbours. Pages name
+     these (C.blue in page.ts) so a series keeps its color in dark mode too. */
+  --c-blue: #4c82d9;
+  --c-coral: #e5785a;
+  --c-teal: #2fa394;
+  --c-amber: #d99a2b;
+  --c-violet: #8b7fd6;
+  --c-green: #5d9e4e;
+  --c-rose: #de7ea1;
+  --c-slate: #9aa4b2;
+  --c-ink: #56606e;
+
+  --tc-color-1: var(--c-blue);
+  --tc-color-2: var(--c-coral);
+  --tc-color-3: var(--c-teal);
+  --tc-color-4: var(--c-amber);
+  --tc-color-5: var(--c-violet);
+  --tc-color-6: var(--c-green);
+  --tc-color-7: var(--c-rose);
+  --tc-color-8: var(--c-coral);
+  --tc-color-other: var(--c-slate);
   --tc-surface: var(--card);
+  --tc-text-color: var(--fg);
+  --tc-text-muted: var(--muted);
+  --tc-grid-color: #edf0f4;
+  --tc-baseline-color: #d5dae2;
   font:
     14px / 1.5 "Inter",
     system-ui,
@@ -15,15 +42,29 @@
     "Segoe UI",
     Roboto,
     sans-serif;
+  font-feature-settings: "cv11";
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #111820;
+  --bg: #10161d;
   --card: #1a222c;
-  --border: #2a3441;
+  --border: #283240;
   --fg: #e6ebf1;
-  --muted: #9aa6b5;
+  --muted: #94a0af;
+
+  --c-blue: #5a8de0;
+  --c-coral: #dd7250;
+  --c-teal: #33a595;
+  --c-amber: #b58126;
+  --c-violet: #8579d4;
+  --c-green: #5a994a;
+  --c-rose: #cf6f94;
+  --c-slate: #6f7b8b;
+  --c-ink: #aab4c1;
+
+  --tc-grid-color: #252f3b;
+  --tc-baseline-color: #3a4655;
 }
 
 /* Deterministic pictures: no frame caught in the middle of a transition. */
@@ -72,7 +113,7 @@ body {
   max-width: 100%;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow:
     0 1px 1px 0 rgb(0 0 0 / 0.02),
     0 8px 24px -4px rgb(0 0 0 / 0.04),
@@ -101,6 +142,61 @@ body {
 
 .screenshot-body {
   padding: 16px 20px 20px;
+}
+
+.screenshot-source {
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.screenshot-source:empty {
+  display: none;
+}
+
+/* Labels that sit on a fill: white on the fill, where the library's default is
+   text color with a surface halo that reads over any mark. */
+.tc-chart .tc-treemap-label,
+.tc-chart-pie .tc-value-label {
+  fill: #ffffff;
+  stroke: none;
+}
+
+.tc-chart .tc-treemap-value {
+  fill-opacity: 0.8;
+  font-weight: 400;
+}
+
+/* A row of stat tiles, each with a number and a sparkline. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.tile {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.tile-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tile-value {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-change {
+  margin: -4px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .screenshot-logo {

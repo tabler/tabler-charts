@@ -1,25 +1,49 @@
 import { sankey } from '@tabler/charts'
-import { definePage } from '../page.ts'
+import { C, definePage } from '../page.ts'
+
+const LINKS: [string, string, number][] = [
+  ['Google Search', 'Revenue', 198.1],
+  ['YouTube ads', 'Revenue', 36.1],
+  ['Google Network', 'Revenue', 30.4],
+  ['Subscriptions & devices', 'Revenue', 40.3],
+  ['Google Cloud', 'Revenue', 43.2],
+  ['Other Bets', 'Revenue', 1.6],
+  ['Revenue', 'Cost of revenue', 146.3],
+  ['Revenue', 'R&D', 49.3],
+  ['Revenue', 'Sales & marketing', 27.8],
+  ['Revenue', 'General & admin', 14.2],
+  ['Revenue', 'Operating income', 112.4],
+]
 
 export default definePage({
-  title: 'Budget flow',
-  subtitle: 'From sources of income to the budget, in millions',
-  width: 720,
+  title: 'How Alphabet makes its money',
+  subtitle: 'Revenue by source, and where it goes',
+  source: 'Alphabet Form 10-K, 2024',
+  width: 800,
   config: {
     type: sankey,
     data: {
-      links: [
-        { from: 'Income tax', to: 'Own income', value: 53.7 },
-        { from: 'Local taxes', to: 'Own income', value: 13.4 },
-        { from: 'Grants', to: 'Transfers', value: 23 },
-        { from: 'Own income', to: 'Current income', value: 67.1 },
-        { from: 'Transfers', to: 'Current income', value: 20 },
-        { from: 'Transfers', to: 'Capital income', value: 3 },
+      nodes: [
+        { name: 'Google Search', color: C.blue },
+        { name: 'YouTube ads', color: C.coral },
+        { name: 'Google Network', color: C.violet },
+        { name: 'Subscriptions & devices', color: C.rose },
+        { name: 'Google Cloud', color: C.teal },
+        { name: 'Other Bets', color: C.slate },
+        { name: 'Revenue', color: C.slate },
+        { name: 'Cost of revenue', color: C.coral },
+        { name: 'R&D', color: C.amber },
+        { name: 'Sales & marketing', color: C.amber },
+        { name: 'General & admin', color: C.amber },
+        { name: 'Operating income', color: C.green },
       ],
+      links: LINKS.map(([from, to, value]) => ({ from, to, value: value * 1e9 })),
     },
-    format: { style: 'currency', currency: 'USD', notation: 'compact' },
-    nodeWidth: 12,
-    nodePadding: 16,
-    aspectRatio: 2,
+    format: { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 },
+    legend: false,
+    nodeWidth: 10,
+    nodePadding: 14,
+    padding: { top: 8, right: 8, bottom: 8, left: 8 },
+    aspectRatio: 1.9,
   },
 })

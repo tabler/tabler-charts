@@ -42,6 +42,7 @@ async function mount(): Promise<void> {
   document.title = `${page.title} - Tabler Charts screenshots`
   element('title').textContent = page.title
   element('subtitle').textContent = page.subtitle ?? ''
+  element('source').textContent = page.source ? `Source: ${page.source}` : ''
   if (page.width) card.style.width = `${page.width}px`
 
   if (page.logo !== false) {
