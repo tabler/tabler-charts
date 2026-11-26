@@ -261,6 +261,23 @@ describe('legend beside the chart', () => {
     expect(legendOf()?.nextElementSibling).toBe(svgOf())
   })
 
+  test('marks its container while beside the chart, and only then', () => {
+    const marks = () => [...el.classList].filter((name) => name.startsWith('tc-legend-'))
+    chart = new Chart(el, { ...base, legend: { position: 'right' } })
+    expect(marks()).toEqual(['tc-legend-beside'])
+    chart.update({ legend: { position: 'left' } })
+    flush()
+    expect(marks()).toEqual(['tc-legend-beside', 'tc-legend-start'])
+    chart.update({ legend: { position: 'top' } })
+    flush()
+    expect(marks()).toEqual([])
+    chart.update({ legend: { position: 'right' } })
+    flush()
+    chart.destroy()
+    chart = undefined
+    expect(marks()).toEqual([])
+  })
+
   test('sides swap in a right-to-left chart', () => {
     chart = new Chart(el, { ...base, rtl: true, legend: { position: 'left' } })
     expect(legendOf()?.dataset.position).toBe('right')

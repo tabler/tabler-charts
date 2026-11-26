@@ -7,6 +7,16 @@ import { render } from '../render/dom.ts'
 const MIRROR: Record<string, string | undefined> = { left: 'right', right: 'left' }
 
 /**
+ * Classes on the container of a legend beside the chart, and of one before
+ * it. A class rather than `:has()` in the stylesheet: a selector such as
+ * `:where(:has(> .tc-legend…))` matches any element, so the browser checks it
+ * again on every change to the page (a hover, a tooltip), which stalls a page
+ * of charts.
+ */
+const BESIDE = 'tc-legend-beside'
+const START = 'tc-legend-start'
+
+/**
  * An HTML legend (`.tc-legend`) with toggle buttons, above, below or beside the SVG.
  * Shown for two or more entries unless the `legend` option says otherwise.
  */
@@ -32,6 +42,7 @@ export function legend(): ChartPlugin {
         bound = false
         el.remove()
         el = undefined
+        host.classList.remove(BESIDE, START)
       }
 
       /** Whether the legend follows the SVG in the container (below it, or beside it at the end). */
@@ -64,6 +75,9 @@ export function legend(): ChartPlugin {
           position === 'bottom' ||
           (side() && (position === 'right') !== (getComputedStyle(host).direction === 'rtl'))
         place()
+        // The container lays a legend beside the chart out in two columns (style.css).
+        host.classList.toggle(BESIDE, side())
+        host.classList.toggle(START, side() && !after)
       }
 
       /** Space between the chart and a legend beside it. */
