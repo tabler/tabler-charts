@@ -53,6 +53,7 @@ const CASES = [
     'core + calendar',
     `export { Chart } from '${DIST}core.js'; export { calendar } from '${DIST}calendar.js'`,
   ],
+  ['core + map', `export { Chart } from '${DIST}core.js'; export { map } from '${DIST}map.js'`],
   [
     'core + heatmap',
     `export { Chart } from '${DIST}core.js'; export { heatmap } from '${DIST}heatmap.js'`,

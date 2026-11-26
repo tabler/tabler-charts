@@ -106,6 +106,11 @@ export interface ChartType<
     marks?: 'slice' | 'cell'
     format?(model: M): NumberFormat | undefined
   }
+  /**
+   * Plugins the chart type brings along (the zoom of a map), installed after
+   * the default ones when a chart is created with this type.
+   */
+  readonly plugins?: readonly ChartPlugin[]
 }
 
 export type { DataTable, LegendItem }
@@ -608,7 +613,11 @@ export class Chart<O extends object = object> {
     this.#measure()
     this.#unobserve = observeResize(element, this.#onResize)
     try {
-      for (const plugin of [...defaultPlugins, ...(config.plugins ?? [])]) {
+      for (const plugin of [
+        ...defaultPlugins,
+        ...(config.type.plugins ?? []),
+        ...(config.plugins ?? []),
+      ]) {
         this.#plugins.push(plugin.install(this))
       }
       this.render()
