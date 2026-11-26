@@ -27,3 +27,7 @@ _Avoid_: tooltip position
 **Highlight**:
 The one shape drawn to mark a hit — a crosshair, a band, a radar spoke or a halo around a slice.
 _Avoid_: hover mark, guide
+
+**Marker**:
+The shape a series' point is drawn as, by its color slot, when point shapes are on (`shapes`, or `patterns: true`).
+_Avoid_: symbol, point shape (for the drawn thing)
