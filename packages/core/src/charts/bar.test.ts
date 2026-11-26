@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
-import type { Interaction } from '../interaction.ts'
-import { findByClass, gridLineOffset } from '../test-utils.ts'
+import { buildChart, type ChartConfig, chartToString, renderChart } from '../chart.ts'
+import { findByClass, gridLineOffset, highlightOf } from '../test-utils.ts'
 import '../line.ts'
 import { type BarOptions, bar } from './bar.ts'
 
@@ -192,10 +191,11 @@ describe('bar', () => {
     })
 
     test('reports the segment under the pointer and raw values', () => {
-      let interaction: Interaction | undefined
-      buildChart({ ...base, data: stackedData, stacked: true }, size, 's', (i) => {
-        interaction = i
-      })
+      const interaction = renderChart(
+        { ...base, data: stackedData, stacked: true },
+        size,
+        's',
+      ).interaction
       const [a, b] = q(stackedNode(), 'Q1')
       if (!interaction || !a || !b) throw new Error('missing')
       const cx = (a.left + a.right) / 2
@@ -262,10 +262,11 @@ describe('bar', () => {
     })
 
     test('hit tests along y and anchors at the bar end', () => {
-      let interaction: Interaction | undefined
-      buildChart({ ...base, data: hData, orientation: 'horizontal' }, size, 'h', (i) => {
-        interaction = i
-      })
+      const interaction = renderChart(
+        { ...base, data: hData, orientation: 'horizontal' },
+        size,
+        'h',
+      ).interaction
       const [a] = barsOf(hNode(), 'West').map((bar) => bounds(bar.attrs.d))
       if (!interaction || !a) throw new Error('missing')
       const hit = interaction.hitTest((a.left + a.right) / 2, (a.top + a.bottom) / 2)
@@ -273,8 +274,9 @@ describe('bar', () => {
       expect(hit?.axis).toBe('y')
       expect(hit?.seriesIndex).toBe(0)
       expect(hit?.items[0]?.x).toBeCloseTo(a.right)
-      expect(hit?.band?.height).toBeGreaterThan(0)
-      expect(hit?.band?.width).toBe(hit?.area.width)
+      const band = highlightOf(hit, 'band')
+      expect(band?.height).toBeGreaterThan(0)
+      expect(band?.width).toBe(hit?.area.width)
     })
   })
 

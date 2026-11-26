@@ -17,6 +17,7 @@ import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
 import { parliament } from './charts/parliament.ts'
 import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
@@ -31,6 +32,7 @@ import './line.ts'
 import './log.ts'
 import { missingTypes } from './test-utils.ts'
 import './time.ts'
+import { world } from './maps/world.ts'
 
 let seed = Number(process.env.FUZZ_SEED ?? 20261001)
 const rnd = () => {
@@ -59,6 +61,7 @@ const KINDS = [
   'gauge',
   'heatmap',
   'calendar',
+  'map',
   'candlestick',
   'radar',
   'sankey',
@@ -151,6 +154,21 @@ function config(): ChartConfig<object> {
           })),
         },
         weeks: rnd() < 0.3 ? 8 : undefined,
+      } as never
+    case 'map':
+      return {
+        type: map,
+        ...common,
+        map: world,
+        data: Object.fromEntries(
+          ['PL', 'DE', 'US', 'SG', 'BR'].slice(0, len).map((code) => [code, val() ?? 0]),
+        ),
+        colors: rnd() < 0.3 ? ['red', 'white', 'green'] : undefined,
+        markers: [
+          { name: 'A', lat: 52, lng: 21 },
+          { name: 'B', lat: -33, lng: 151 },
+        ],
+        lines: rnd() < 0.5 ? [{ from: 'A', to: 'B' }] : undefined,
       } as never
     case 'heatmap':
       return {

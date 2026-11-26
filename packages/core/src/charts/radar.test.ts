@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig } from '../chart.ts'
+import { buildChart, type ChartConfig, renderChart } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { estimateTextWidth } from '../layout.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { type RadarOptions, radar } from './radar.ts'
 
@@ -19,14 +19,8 @@ const base: ChartConfig<RadarOptions> = { type: radar, data, id: 'r', locale: 'e
 const render = (config: Partial<ChartConfig<RadarOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'r')
 
-function interactionOf(config: Partial<ChartConfig<RadarOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'r', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<RadarOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'r')
 
 /** Vertices of a closed polygon path. */
 const vertices = (d: unknown) =>
@@ -188,10 +182,7 @@ describe('radar', () => {
     const w = estimateTextWidth(side?.children.join('') ?? '', 12)
     expect(Number(side?.attrs.x) + w).toBeLessThanOrEqual(size.width)
     // Tooltips keep the name.
-    let hit: Interaction | undefined
-    buildChart({ ...base, data: { ...data, labels } }, size, 'r', (i) => {
-      hit = i
-    })
+    const hit = renderChart({ ...base, data: { ...data, labels } }, size, 'r').interaction
     expect(hit?.hitIndex(1)?.title).toBe(labels[1])
   })
 
@@ -213,8 +204,8 @@ describe('radar', () => {
     expect(up?.index).toBe(0)
     expect(up?.title).toBe('Speed')
     expect(up?.items.map((i) => i.text)).toEqual(['80', '50'])
-    expect(up?.guide?.x1).toBeCloseTo(cx)
-    expect(up?.guide?.y2).toBeLessThan(cy)
+    expect(highlightOf(up, 'spoke')?.x1).toBeCloseTo(cx)
+    expect(highlightOf(up, 'spoke')?.y2).toBeLessThan(cy)
     expect(interaction.hitTest(cx - 30, cy + 40)?.index).toBe(3)
     // Outside the outer ring: nothing.
     expect(interaction.hitTest(2, 2)).toBeNull()

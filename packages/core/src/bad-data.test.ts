@@ -10,6 +10,7 @@ import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
 import { parliament } from './charts/parliament.ts'
 import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
@@ -26,6 +27,7 @@ import './log.ts'
 import { flush } from './scheduler.ts'
 import './time.ts'
 import './value-labels.ts'
+import { world } from './maps/world.ts'
 import { missingTypes } from './test-utils.ts'
 
 /**
@@ -215,6 +217,19 @@ const TYPES: [string, ChartType<object>, () => unknown][] = [
       ),
   ],
   ['sparkline', sparkline as ChartType<object>, () => list(num)],
+  [
+    'map',
+    map as ChartType<object>,
+    () =>
+      chance(0.08)
+        ? junk()
+        : Object.fromEntries(
+            ['PL', 'DE', 'US', 'SG', 'ZZ', '', 'toString'].map((code) => [
+              chance(0.1) ? text() : code,
+              num(),
+            ]),
+          ),
+  ],
 ]
 
 /** Options that change how data is read. */
@@ -241,6 +256,11 @@ const options = (name: string): Record<string, unknown> => {
     )
   }
   if (chance(0.15) && name !== 'candlestick') out.x = { type: 'time' }
+  if (name === 'map') {
+    out.map = world
+    if (chance(0.3))
+      out.markers = list(() => (chance(0.1) ? junk() : { name: text(), lat: num(), lng: num() }))
+  }
   return out
 }
 

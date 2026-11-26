@@ -10,6 +10,7 @@ import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
 import { parliament } from './charts/parliament.ts'
 import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
@@ -19,6 +20,7 @@ import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
 import { treemap } from './charts/treemap.ts'
 import './line.ts'
+import { world } from './maps/world.ts'
 import { flush } from './scheduler.ts'
 import { missingTypes } from './test-utils.ts'
 
@@ -206,6 +208,15 @@ const FLOW_STATES: Record<string, unknown> = {
   },
 }
 
+const MAP_STATES: Record<string, unknown> = {
+  empty: {},
+  one: { PL: 80 },
+  zeros: { PL: 0, DE: 0 },
+  regular: { PL: 80, DE: 45, US: 100, BR: 20 },
+  shifted: { PL: 10, DE: 90, US: 30, BR: 70 },
+  gaps: { PL: null, DE: 45, SG: 10 },
+}
+
 type Family = {
   types: ChartType<object>[]
   states: Record<string, unknown>
@@ -229,6 +240,7 @@ const FAMILIES: Family[] = [
   { types: [treemap] as ChartType<object>[], states: TREE_STATES },
   { types: [parliament] as ChartType<object>[], states: SEAT_STATES },
   { types: [sankey] as ChartType<object>[], states: FLOW_STATES },
+  { types: [map] as ChartType<object>[], states: MAP_STATES, options: { world: { map: world } } },
 ]
 
 test('covers every built-in chart type', () => {

@@ -43,6 +43,57 @@ export function innerRect(width: number, height: number, margins: Insets): Rect 
   }
 }
 
+/**
+ * Space around a box by reading direction: `start` is the side the chart is
+ * read from (the left, or the right in a right-to-left chart), `end` the other.
+ */
+export interface FrameInsets {
+  top: number
+  bottom: number
+  start: number
+  end: number
+}
+
+/** A plot area placed for the chart's reading direction. */
+export interface PlotFrame {
+  /** Where the data is drawn. */
+  area: Rect
+  /** The start side, where the axis beside the plot sits. */
+  side: 'left' | 'right'
+  /** The plot's horizontal range, from the end side when `reverse` (by default in a right-to-left chart). */
+  range(reverse?: boolean): [number, number]
+}
+
+/**
+ * Place the plot area of a chart with axes. `margins` gets the padding by
+ * reading direction and returns the space each side needs, so a chart type
+ * works its margins out once, whichever way the chart is read.
+ */
+export function plotFrame(
+  size: { width: number; height: number; rtl?: boolean },
+  padding: InsetsInput | undefined,
+  margins: (padding: FrameInsets) => FrameInsets,
+): PlotFrame {
+  const { width, height, rtl } = size
+  const pad = insets(padding)
+  const m = margins({
+    ...pad,
+    start: rtl ? pad.right : pad.left,
+    end: rtl ? pad.left : pad.right,
+  })
+  const area = innerRect(width, height, {
+    ...m,
+    left: rtl ? m.end : m.start,
+    right: rtl ? m.start : m.end,
+  })
+  const end = area.x + area.width
+  return {
+    area,
+    side: rtl ? 'right' : 'left',
+    range: (reverse = rtl) => (reverse ? [end, area.x] : [area.x, end]),
+  }
+}
+
 // Approximate advance widths in em for common UI sans-serif fonts
 // (system-ui / SF, Segoe UI, Roboto), measured in the browser.
 const THIN = " !'.,:;|ijlI`"

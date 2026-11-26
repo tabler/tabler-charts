@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig } from '../chart.ts'
+import { buildChart, type ChartConfig, resolveLegend } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass, findByTag } from '../test-utils.ts'
+import { chartInteraction, findByClass, findByTag, highlightOf, tableOf } from '../test-utils.ts'
 import { type TreemapOptions, treemap } from './treemap.ts'
 
 const size = { width: 400, height: 200 }
@@ -27,14 +27,8 @@ const base: ChartConfig<TreemapOptions> = { type: treemap, data: flat, id: 't', 
 const render = (config: Partial<ChartConfig<TreemapOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 't')
 
-function interactionOf(config: Partial<ChartConfig<TreemapOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 't', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<TreemapOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 't')
 
 const rectOf = (tile: { attrs: Record<string, unknown> }) => ({
   x: Number(tile.attrs.x),
@@ -45,16 +39,6 @@ const rectOf = (tile: { attrs: Record<string, unknown> }) => ({
 const tilesOf = (node: ReturnType<typeof render>) => findByClass(node, 'tc-tile').map(rectOf)
 const texts = (node: ReturnType<typeof render>) =>
   findByTag(node, 'text').map((t) => t.children.join(''))
-
-const ctx = () => ({
-  width: 400,
-  height: 200,
-  fontSize: 12,
-  locale: 'en-US',
-  id: 't',
-  onHitTest() {},
-  hidden: new Set<string>(),
-})
 
 describe('treemap', () => {
   test('draws one tile per entry, in palette slots, as large as its value', () => {
@@ -208,7 +192,7 @@ describe('treemap', () => {
     expect(hit?.title).toBe('Engineering')
     expect(hit?.seriesIndex).toBe(0)
     expect(hit?.items[0]).toMatchObject({ name: 'Salaries', value: 50, text: '50 (50%)' })
-    expect(hit?.mark?.d).toMatch(/^M/)
+    expect(highlightOf(hit, 'halo')?.d).toMatch(/^M/)
     expect(interaction.hitTest(-5, 10)).toBeNull()
     const cloud = interaction.hitIndex(1)
     expect(cloud?.items[0]).toMatchObject({ name: 'Cloud', color: '#f76707' })
@@ -216,7 +200,7 @@ describe('treemap', () => {
   })
 
   test('the table lists every tile with its path, value and share', () => {
-    const table = treemap.table?.({ data: nested }, ctx(), 100)
+    const table = tableOf({ type: treemap, data: nested }, 100)
     expect(table).toEqual({
       columns: ['', 'Value', 'Share'],
       rows: [
@@ -226,13 +210,13 @@ describe('treemap', () => {
         ['Office', '10', '10%'],
       ],
     })
-    const cut = treemap.table?.({ data: nested }, ctx(), 2)
+    const cut = tableOf({ type: treemap, data: nested }, 2)
     expect(cut?.rows.length).toBe(2)
     expect(cut?.total).toBe(4)
   })
 
   test('the legend has the top-level entries', () => {
-    expect(treemap.legend?.({ data: nested })).toEqual([
+    expect(resolveLegend({ type: treemap, data: nested }).items).toEqual([
       { key: 'Engineering', name: 'Engineering', index: 0 },
       { key: 'Marketing', name: 'Marketing', index: 1 },
       { key: 'Office', name: 'Office', index: 2 },
