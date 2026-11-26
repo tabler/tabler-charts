@@ -20,6 +20,15 @@
   --c-rose: #de7ea1;
   --c-slate: #9aa4b2;
   --c-ink: #56606e;
+  /* Softer takes on the rest of Tabler's named colors, for charts taken from
+     the playground's examples (showcase.ts), which name their series that way. */
+  --c-azure: #6aa7e0;
+  --c-indigo: #6878d6;
+  --c-orange: #e58f4e;
+  --c-yellow: #e0b84a;
+  --c-lime: #8fb551;
+  --c-cyan: #4aa9bd;
+  --c-red: #d9605f;
 
   --tc-color-1: var(--c-blue);
   --tc-color-2: var(--c-coral);
@@ -62,6 +71,13 @@
   --c-rose: #cf6f94;
   --c-slate: #6f7b8b;
   --c-ink: #aab4c1;
+  --c-azure: #5f9ad3;
+  --c-indigo: #6373cf;
+  --c-orange: #d5803f;
+  --c-yellow: #c9a23a;
+  --c-lime: #7fa446;
+  --c-cyan: #409cb0;
+  --c-red: #d15a59;
 
   --tc-grid-color: #252f3b;
   --tc-baseline-color: #3a4655;
@@ -216,6 +232,20 @@ body {
 .screenshot-logo img {
   height: 24px;
   filter: grayscale(1);
+}
+
+/* A drawn mouse pointer, its tip on the hovered point: above the chart, below
+   nothing, and never in the way of the real mouse. */
+.screenshot-pointer {
+  position: absolute;
+  z-index: 10;
+  width: 20px;
+  height: 24px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 24'%3E%3Cpath d='M2 1.5v17.2l4.6-4.1 2.9 6.9 2.9-1.2-2.9-6.8h6.1z' fill='%23111' stroke='%23fff' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.35));
+  transform: translate(-2px, -1px);
 }
 
 .screenshot-error {

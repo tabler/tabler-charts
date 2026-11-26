@@ -34,9 +34,32 @@ function fail(message: string): void {
   document.documentElement.dataset.screenshotError = message
 }
 
-async function mount(): Promise<void> {
+/**
+ * Where the page wants the chart hovered, in viewport pixels, with a drawn
+ * pointer on it: a screenshot has no mouse cursor of its own. The capture
+ * script reads the point and moves the real mouse there, which opens the tooltip.
+ */
+function placePointer(hover: { x: number; y: number }): void {
+  const chart = body.querySelector('svg.tc-chart')
+  if (!chart) return
+  const box = chart.getBoundingClientRect()
+  const x = Math.round(box.left + box.width * hover.x)
+  const y = Math.round(box.top + box.height * hover.y)
+  const frame = element('screenshot').getBoundingClientRect()
+  const pointer = document.createElement('div')
+  pointer.className = 'screenshot-pointer'
+  pointer.style.left = `${x - frame.left}px`
+  pointer.style.top = `${y - frame.top}px`
+  element('screenshot').append(pointer)
+  document.documentElement.dataset.screenshotHover = `${x},${y}`
+}
+
+async function mount(): Promise<ScreenshotPage | undefined> {
   const load = pages[`./pages/${name}.ts`]
-  if (!load) return fail(`No page named "${name}" in src/pages.`)
+  if (!load) {
+    fail(`No page named "${name}" in src/pages.`)
+    return undefined
+  }
   const page = (await load()).default
 
   document.title = `${page.title} - Tabler Charts screenshots`
@@ -67,15 +90,22 @@ async function mount(): Promise<void> {
       ...page.config,
     } as ChartConfig<object>)
   }
+  return page
 }
 
 const frames = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
 
 mount()
-  .catch((error) => fail(String((error as Error).stack ?? error)))
+  .catch((error) => {
+    fail(String((error as Error).stack ?? error))
+    return undefined
+  })
   // Fonts change label widths, and the resize observers lay the chart out again.
-  .then(() => document.fonts.ready)
-  .then(frames)
+  .then(async (page) => {
+    await document.fonts.ready
+    await frames()
+    if (page?.hover) placePointer(page.hover)
+  })
   .then(() => {
     document.documentElement.dataset.screenshotReady = 'true'
   })

@@ -53,6 +53,20 @@ async function captureOne(page: Page, baseUrl: string, slug: string, theme: Them
   const error = await page.evaluate(() => document.documentElement.dataset.screenshotError)
   if (error) throw new Error(`${slug}: ${error}`)
 
+  // A page that wants its tooltip in the picture says where to hover.
+  const hover = await page.evaluate(() => document.documentElement.dataset.screenshotHover)
+  if (hover) {
+    const [x, y] = hover.split(',').map(Number) as [number, number]
+    await page.mouse.move(x - 4, y - 4)
+    await page.mouse.move(x, y, { steps: 4 })
+    await page.evaluate(
+      () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+    )
+  } else {
+    // Nothing hovered: the mouse of the page before must not open a tooltip here.
+    await page.mouse.move(0, 0)
+  }
+
   const frame = page.locator('#screenshot')
   const box = await frame.boundingBox()
   if (!box) throw new Error(`${slug}: the #screenshot frame is not on the page`)

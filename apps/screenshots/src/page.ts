@@ -22,6 +22,12 @@ export interface ScreenshotPage {
   style?: Record<string, string>
   /** Build the card's body by hand instead of `config`: several charts, a stat row. */
   render?: (body: HTMLElement) => void
+  /**
+   * Hover the chart for the picture, to show its tooltip: a point of the chart
+   * as fractions of its width and height (`{ x: 0.5, y: 0.5 }` is the middle).
+   * The capture moves the mouse there and the frame draws a pointer on it.
+   */
+  hover?: { x: number; y: number }
   /** The Tabler Charts logo under the card. Defaults to `true`. */
   logo?: boolean
 }

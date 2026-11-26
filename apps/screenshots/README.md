@@ -40,4 +40,8 @@ A picture should show a chart doing a real job: real numbers with their `source`
 
 Colors come from the palette in `src/frame.css`, softer than the library's defaults and set for both color modes. A series with a conventional color names it through `C` from `src/page.ts` (`color: C.teal`), so it keeps that color in dark mode; a hex color stays the same in both.
 
+Many pages take their chart from the playground's examples (`apps/docs/src/showcase`) with `fromShowcase(group, 'Example title', { … })` from `src/showcase.ts`: the data and its source stay in one place, the colors are swapped for the palette's, and the page only gives the heading and what it changes for the picture.
+
+To show a tooltip, give the page `hover: { x, y }`, a point of the chart as fractions of its width and height. The capture moves the mouse there and the frame draws a pointer on it. The `tooltip-*` pages are existing pages with a hover added.
+
 A page with more than one chart, or with anything else next to the chart, builds its card by hand with `render(body)` instead of `config`.
