@@ -1,4 +1,4 @@
-import type { DataTable, LegendItem, RenderContext } from '../chart.ts'
+import type { DataTable, LegendItem, RenderContext, TableContext } from '../chart.ts'
 import { axis, axisSize, bandTicks, linearTicks, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { type Features, feature, features } from '../features.ts'
@@ -205,7 +205,7 @@ export const isTimeAxis = (options: CartesianOptions): boolean =>
 /** Formatter for category labels in tooltips and tables. */
 export function labelFormatter(
   options: CartesianOptions,
-  ctx: RenderContext,
+  ctx: TableContext,
 ): (label: Label, index: number) => string {
   if (options.x?.format) return options.x.format
   if (!isTimeAxis(options)) return (label) => String(label)
@@ -619,9 +619,9 @@ export function categoryInteraction(
       hit.axis = 'y'
     }
     if (x.bandwidth > 0) {
-      hit.band = horizontal
-        ? { x: area.x, y: start, width: area.width, height: x.bandwidth }
-        : { x: start, y: area.y, width: x.bandwidth, height: area.height }
+      hit.highlight = horizontal
+        ? { kind: 'band', x: area.x, y: start, width: area.width, height: x.bandwidth }
+        : { kind: 'band', x: start, y: area.y, width: x.bandwidth, height: area.height }
     }
     return hit
   }
@@ -659,7 +659,7 @@ export function categoryInteraction(
 /** Accessible table of series values: one row per category, one column per visible series. */
 export function seriesTable(
   options: CartesianOptions,
-  ctx: RenderContext,
+  ctx: TableContext,
   limit: number = Number.POSITIVE_INFINITY,
 ): DataTable {
   const all = resolveLabels(options.data)

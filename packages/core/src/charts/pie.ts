@@ -1,15 +1,15 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult, TableContext } from '../chart.ts'
 import { features } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
 import { arcNode, sweep } from '../render/sweep.ts'
 import { arcCentroid, arcPathStable, DEG, HALO, padAngleForGap } from '../shapes/arc.ts'
-import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems } from './clean.ts'
 import { groupAttrs, keyOf } from './named.ts'
-import { groupLegend, groupSlices } from './others.ts'
+import { slicesLegend, type WithSlices, withSlices } from './others.ts'
 
 /** One slice of a pie or donut. */
 export interface PieSlice {
@@ -59,6 +59,9 @@ export interface PieOptions {
   padding?: InsetsInput
 }
 
+/** The chart model of a pie: its options, with the slices as drawn (the rest grouped). */
+export type PieModel = WithSlices<PieOptions>
+
 interface Slice {
   data: PieSlice
   index: number
@@ -69,14 +72,12 @@ interface Slice {
 
 /** Angles of the visible slices, clockwise from `startAngle`. */
 function layoutSlices(
-  options: PieOptions,
+  model: PieModel,
   hidden: ReadonlySet<string>,
 ): { slices: Slice[]; total: number } {
-  const visible = groupSlices(options.data, options.maxSlices, options.othersLabel).filter(
-    (slice) => !hidden.has(keyOf(slice.data)),
-  )
+  const visible = model.slices.filter((slice) => !hidden.has(keyOf(slice.data)))
   const total = visible.reduce((sum, slice) => sum + slice.value, 0)
-  let angle = (options.startAngle ?? 0) * DEG
+  let angle = (model.startAngle ?? 0) * DEG
   const slices = visible.map((slice) => {
     const sweep = total > 0 ? (slice.value / total) * Math.PI * 2 : 0
     const out: Slice = { ...slice, startAngle: angle, endAngle: angle + sweep }
@@ -87,7 +88,7 @@ function layoutSlices(
 }
 
 function renderPie(
-  options: PieOptions,
+  options: PieModel,
   ctx: RenderContext,
   defaults: { inner: number; corner: number },
 ) {
@@ -140,7 +141,8 @@ function renderPie(
       items: [item],
       seriesIndex: slice.index,
       // A thin halo just outside the slice.
-      mark: {
+      highlight: {
+        kind: 'halo',
         d: arcPathStable({ ...geometry(slice, outer + 2, outer + 6), cornerRadius: 2 }),
         x: cx,
         y: cy,
@@ -168,7 +170,6 @@ function renderPie(
       return position === -1 ? null : hitFor(drawn[position] as Slice, position)
     },
   }
-  ctx.onHitTest(interaction)
 
   const groups = slices.map((slice) =>
     h(
@@ -186,7 +187,7 @@ function renderPie(
   const centerValue = showCenter ? (center?.value ?? value(total)) : ''
   const centerLabel = showCenter ? center?.label : undefined
 
-  return [
+  const content = [
     h(
       'g',
       { class: 'tc-pie', style: `transform:translate(${cx}px,${cy}px)` },
@@ -232,9 +233,10 @@ function renderPie(
           ),
       ),
   ]
+  return { content, interaction }
 }
 
-function pieTable(options: PieOptions, ctx: RenderContext): DataTable {
+function pieTable(options: PieModel, ctx: TableContext): DataTable {
   const { slices, total } = layoutSlices(options, ctx.hidden)
   const value = formatNumber(options.format, ctx.locale)
   const share = getNumberFormat(ctx.locale, { style: 'percent', maximumFractionDigits: 1 })
@@ -248,18 +250,21 @@ function pieTable(options: PieOptions, ctx: RenderContext): DataTable {
   }
 }
 
-function pieType(name: string, defaults: { inner: number; corner: number }): ChartType<PieOptions> {
+function pieType(
+  name: string,
+  defaults: { inner: number; corner: number },
+): ChartType<PieOptions, PieModel> {
   return {
     name,
     clean: cleanData(cleanItems),
-    render: (options, ctx): ChildInput => {
+    prepare: withSlices,
+    render: (options, ctx): RenderResult => {
       // Set here, not as the module loads: a module with side effects would
       // stay in every bundle that imports another chart type next to it.
       features.sweep = sweep
       return renderPie(options, ctx, defaults)
     },
-    legend: (options) =>
-      groupLegend(groupSlices(options.data, options.maxSlices, options.othersLabel)),
+    legend: slicesLegend,
     table: pieTable,
     valueLabels: { marks: 'slice' },
   }
@@ -272,7 +277,7 @@ function pieType(name: string, defaults: { inner: number; corner: number }): Cha
  * new Chart('#el', { type: pie, data: [{ name: 'Direct', value: 42 }, { name: 'Search', value: 31 }] })
  * ```
  */
-export const pie: ChartType<PieOptions> = pieType('pie', { inner: 0, corner: 0 })
+export const pie: ChartType<PieOptions, PieModel> = pieType('pie', { inner: 0, corner: 0 })
 
 /** Donut chart: a pie with a hole showing the total (or your own `center`). */
-export const donut: ChartType<PieOptions> = pieType('donut', { inner: 0.62, corner: 4 })
+export const donut: ChartType<PieOptions, PieModel> = pieType('donut', { inner: 0.62, corner: 4 })

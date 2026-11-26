@@ -34,24 +34,31 @@ export interface Hit {
   axis?: 'x' | 'y'
   /** Center of the category along y, when categories run along y. */
   y?: number
-  /** The category's band in chart pixels, for band scales (bars). */
-  band?: { x: number; y: number; width: number; height: number }
   /** Every series' value at this category. */
   items: HitItem[]
   /** Series of the mark directly under the pointer (e.g. a bar), if any. */
   seriesIndex?: number
-  /**
-   * The crosshair segment, when it is not vertical across the plot (a radar
-   * spoke). Tooltips from the keyboard then anchor on the value itself.
-   */
-  guide?: { x1: number; y1: number; x2: number; y2: number }
-  /**
-   * A shape to highlight instead of a crosshair or band (e.g. a halo around a
-   * pie slice): path data `d`, drawn translated by `x` / `y`. `under` draws
-   * it below the chart instead of above, so it never covers the labels.
-   */
-  mark?: { d: string; x: number; y: number; under?: boolean }
+  /** The shape that marks the hit; a crosshair when left out. */
+  highlight?: Highlight
 }
+
+/**
+ * The one shape drawn to mark a hit, in chart pixels:
+ *
+ * - `crosshair`: a vertical line through the category across the plot, and
+ *   a dot on every value (point charts);
+ * - `band`: the category's band behind the series (bars);
+ * - `spoke`: a line from `x1, y1` to `x2, y2` (a radar spoke), and a dot on
+ *   every value; keyboard tooltips anchor on the value itself;
+ * - `halo`: path data `d` drawn translated by `x` / `y` in the color of the
+ *   hit's series (a ring around a pie slice); `under` draws it below the
+ *   chart instead of above, so it never covers the labels.
+ */
+export type Highlight =
+  | { kind: 'crosshair' }
+  | { kind: 'band'; x: number; y: number; width: number; height: number }
+  | { kind: 'spoke'; x1: number; y1: number; x2: number; y2: number }
+  | { kind: 'halo'; d: string; x?: number; y?: number; under?: boolean }
 
 /** Maps a point in chart pixels to what lies there. */
 export type HitTester = (x: number, y: number) => Hit | null

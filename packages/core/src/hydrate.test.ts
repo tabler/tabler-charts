@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, test } from 'vitest'
 import { tableContent } from './a11y.ts'
-import { type ChartConfig, chartToString, renderContext, resolveLegend } from './chart.ts'
+import { type ChartConfig, chartToString, resolveLegend } from './chart.ts'
 import { Chart } from './chart-default.ts'
 import { line } from './charts/line.ts'
 import './hydrate.ts'
@@ -9,6 +9,7 @@ import { legendContent } from './legend.ts'
 import { render } from './render/dom.ts'
 import { renderToString } from './render/string.ts'
 import { flush } from './scheduler.ts'
+import { tableOf } from './test-utils.ts'
 import { h } from './vnode.ts'
 
 const size = { width: 300, height: 150 }
@@ -29,11 +30,7 @@ const config: ChartConfig<object> = {
 /** What a server-side adapter would output: legend, chart and table. */
 function serverMarkup(): string {
   const legend = resolveLegend(config)
-  const table = config.type.table?.(
-    config,
-    renderContext(config, size, 'ssr', () => {}, new Set()),
-    1000,
-  )
+  const table = tableOf(config, 1000)
   return (
     `<div class="tc-legend" data-position="top">${renderToString(legendContent(legend.items, new Set()))}</div>` +
     chartToString(config, size) +

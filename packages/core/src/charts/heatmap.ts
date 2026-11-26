@@ -248,10 +248,9 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
       items,
       seriesIndex: j,
       // A ring just outside the hovered cell.
-      mark: {
+      highlight: {
+        kind: 'halo',
         d: rectPath(cellX(i) - 2, cellY(j) - 2, cellW + 4, cellH + 4, radius + 2),
-        x: 0,
-        y: 0,
       },
     }
   }
@@ -270,7 +269,6 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
       return hitAt(i, j)
     },
   }
-  ctx.onHitTest(interaction)
 
   const cells = rows.map((s, j) =>
     h(
@@ -308,11 +306,12 @@ function renderHeatmap(options: HeatmapOptions, ctx: RenderContext) {
     : []
   const yTicks = showY ? bandTicks(y, (_, j) => rows[j]?.name ?? '') : []
 
-  return [
+  const content = [
     h('g', { class: 'tc-heatmap-cells' }, cells),
     showX && axis({ position: 'bottom', ticks: xTicks, area }),
     showY && axis({ position: rtl ? 'right' : 'left', ticks: yTicks, area }),
   ]
+  return { content, interaction }
 }
 
 /** Legend: the ranges, or the rows when colored by series; none for a single scale. */

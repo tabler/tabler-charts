@@ -8,6 +8,7 @@ import {
   type RenderContext,
   resolveSize,
 } from './chart.ts'
+import { dataTable } from './plugins/table.ts'
 import { flush } from './scheduler.ts'
 import { h } from './vnode.ts'
 
@@ -146,6 +147,60 @@ describe('buildChart()', () => {
       // @ts-expect-error missing type
       buildChart({ data: [] }, { width: 1, height: 1 }),
     ).toThrow(/`type` must be a chart type/)
+  })
+})
+
+describe('chart models', () => {
+  interface Totals {
+    data: number[]
+  }
+  let prepared = 0
+  /** A chart type whose legend, content and table all read the total of its model. */
+  const totals: ChartType<Totals, Totals & { total: number }> = {
+    name: 'totals',
+    prepare(options) {
+      prepared++
+      return { ...options, total: options.data.reduce((sum, v) => sum + v, 0) }
+    },
+    render: (model) => ({ content: h('text', null, `total ${model.total}`) }),
+    legend: (model) => [
+      { key: 'total', name: `Total ${model.total}`, index: 0 },
+      { key: 'other', name: 'Other', index: 1 },
+    ],
+    table: (model) => ({ columns: [''], rows: [[String(model.total)]] }),
+  }
+  beforeEach(() => {
+    prepared = 0
+  })
+
+  test('the legend, the content and the table read one model per config', () => {
+    const svg = chartToString({ type: totals, data: [1, 2] }, { width: 100, height: 50 })
+    expect(svg).toContain('total 3')
+    expect(svg).toContain('aria-label="totals chart: Total 3, Other"')
+    expect(prepared).toBe(1)
+
+    const chart = new Chart(el, {
+      type: totals,
+      data: [1, 2],
+      table: 'visible',
+      plugins: [dataTable()],
+    })
+    expect(el.querySelector('.tc-table-wrap tbody')?.textContent).toBe('3')
+    expect(prepared).toBe(2)
+    // Hiding a legend entry is not a new config: the model stays.
+    chart.toggleSeries('other')
+    flush()
+    expect(prepared).toBe(2)
+    chart.update({ data: [4, 5] })
+    flush()
+    expect(el.querySelector('svg text')?.textContent).toBe('total 9')
+    expect(prepared).toBe(3)
+  })
+
+  test('a type without prepare() reads its options', () => {
+    expect(chartToString({ type: dots, data: [5] }, { width: 100, height: 50 })).toContain(
+      '<circle',
+    )
   })
 })
 

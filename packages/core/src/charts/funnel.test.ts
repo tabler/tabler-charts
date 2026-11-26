@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { buildChart, type ChartConfig } from '../chart.ts'
 import { chartToString } from '../core.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass, findByTag } from '../test-utils.ts'
+import { chartInteraction, findByClass, findByTag, tableOf } from '../test-utils.ts'
 import { type FunnelOptions, funnel } from './funnel.ts'
 
 const size = { width: 400, height: 200 }
@@ -17,14 +17,8 @@ const base: ChartConfig<FunnelOptions> = { type: funnel, data, id: 't', locale: 
 const render = (config: Partial<ChartConfig<FunnelOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 't')
 
-function interactionOf(config: Partial<ChartConfig<FunnelOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 't', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<FunnelOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 't')
 
 /** The points of a stage's path: its commands' coordinates, in order. */
 const pointsOf = (stage: { attrs: Record<string, unknown> }) =>
@@ -34,16 +28,6 @@ const pointsOf = (stage: { attrs: Record<string, unknown> }) =>
   }))
 const texts = (node: ReturnType<typeof render>, cls: string) =>
   findByClass(node, cls).map((t) => t.children.join(''))
-
-const ctx = () => ({
-  width: 400,
-  height: 200,
-  fontSize: 12,
-  locale: 'en-US',
-  id: 't',
-  onHitTest() {},
-  hidden: new Set<string>(),
-})
 
 describe('funnel', () => {
   test('draws a column per stage, each stepping down to the height of the next', () => {
@@ -156,7 +140,7 @@ describe('funnel', () => {
     // Far above the low shape of the last stage.
     const hit = interaction.hitTest(350, 5)
     expect(hit?.index).toBe(3)
-    expect(hit?.band).toEqual({ x: 300, y: 0, width: 100, height: 200 })
+    expect(hit?.highlight).toEqual({ kind: 'band', x: 300, y: 0, width: 100, height: 200 })
     expect(hit?.items.map((item) => [item.name, item.text])).toEqual([
       ['Paid', '50'],
       ['of Visits', '5%'],
@@ -199,7 +183,7 @@ describe('funnel', () => {
 
   test('has no legend, and a table with both rates', () => {
     expect(funnel.legend).toBeUndefined()
-    expect(funnel.table?.(funnel.clean?.(base) as FunnelOptions, ctx(), 3)).toEqual({
+    expect(tableOf({ ...(funnel.clean?.(base) as FunnelOptions), type: funnel }, 3)).toEqual({
       columns: ['', 'Value', 'Of first', 'Of previous'],
       rows: [
         ['Visits', '1,000', '100%', '100%'],

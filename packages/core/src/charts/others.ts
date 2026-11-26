@@ -51,3 +51,26 @@ export function groupLegend<T extends Named>(slices: readonly Grouped<T>[]): Leg
     return item
   })
 }
+
+/** What the options of a chart with grouped slices hold. */
+interface Sliced<T> {
+  data: readonly T[]
+  maxSlices?: number
+  othersLabel?: string
+}
+
+/** A chart model of grouped slices: the options, with their slices as drawn. */
+export type WithSlices<O extends Sliced<unknown>> = O & { slices: Grouped<O['data'][number]>[] }
+
+/** The chart model of a chart with grouped slices: the options and their slices, worked out once. */
+export const withSlices = <T extends Named & { value: number }, O extends Sliced<T>>(
+  options: O,
+): WithSlices<O> => ({
+  ...options,
+  slices: groupSlices(options.data as readonly T[], options.maxSlices, options.othersLabel),
+})
+
+/** Legend entries of a chart model of grouped slices. */
+export const slicesLegend = <T extends Named>(model: {
+  slices: readonly Grouped<T>[]
+}): LegendItem[] => groupLegend(model.slices)

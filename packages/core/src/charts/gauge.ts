@@ -1,12 +1,12 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { features } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
 import { arcNode, sweep as sweepArcs } from '../render/sweep.ts'
 import { arcCentroid, arcPathStable, DEG, HALO } from '../shapes/arc.ts'
-import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems, isRecord } from './clean.ts'
 import { groupAttrs, keyOf, legendItems } from './named.ts'
 
@@ -131,7 +131,7 @@ function fitGauge(
   }
 }
 
-function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
+function renderGauge(options: GaugeOptions, ctx: RenderContext): RenderResult {
   const { width, height, locale } = ctx
   const thickness = Math.max(1, options.thickness ?? 12)
   const gap = Math.max(0, options.gap ?? 4)
@@ -192,7 +192,7 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
       items: [item],
       seriesIndex: ring.index,
       // The value arc, slightly enlarged.
-      mark: { d: arcPathStable(geometry(ring, 2)), x: cx, y: cy },
+      highlight: { kind: 'halo', d: arcPathStable(geometry(ring, 2)), x: cx, y: cy },
     }
   }
 
@@ -211,7 +211,6 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
       return ring ? hitFor(ring) : null
     },
   }
-  ctx.onHitTest(interaction)
 
   const groups = rings.map((ring) =>
     h(
@@ -226,7 +225,7 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
 
   const centerValue = showCenter ? (center?.value ?? share.format(fraction(first))) : ''
 
-  return [
+  const content = [
     // Rings sit in their own group: the entrance animation transforms it, not the translated parent.
     h(
       'g',
@@ -256,6 +255,7 @@ function renderGauge(options: GaugeOptions, ctx: RenderContext): ChildInput {
           ),
       ),
   ]
+  return { content, interaction }
 }
 
 function gaugeTable(options: GaugeOptions, ctx: RenderContext): DataTable {
@@ -287,7 +287,7 @@ export const gauge: ChartType<GaugeOptions> = {
       typeof data === 'number' ? [{ name: '', value: data }] : isRecord(data) ? [data] : data,
     ),
   ),
-  render: (options, ctx): ChildInput => {
+  render: (options, ctx): RenderResult => {
     // Set here, not as the module loads (see pie).
     features.sweep = sweepArcs
     return renderGauge(options, ctx)

@@ -1,4 +1,4 @@
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { linearTicks } from '../components/axis.ts'
 import { formatDetail, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
@@ -11,7 +11,7 @@ import {
   round,
 } from '../layout.ts'
 import { linear } from '../scales/linear.ts'
-import { type ChildInput, h } from '../vnode.ts'
+import { h } from '../vnode.ts'
 import {
   type CartesianData,
   domainOf,
@@ -145,7 +145,7 @@ function fitRadius(
 const blockHeight = (lines: number, fontSize: number) =>
   fontSize * (1 + Math.max(0, lines - 1) * LINE_HEIGHT)
 
-function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
+function renderRadar(options: RadarOptions, ctx: RenderContext): RenderResult {
   const { width, height, fontSize, locale } = ctx
   const axis = options.r ?? {}
   const { fill = true, points = false, pointRadius = 4 } = options
@@ -230,7 +230,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
       x: x2,
       area: { x: cx - radius, y: cy - radius, width: radius * 2, height: radius * 2 },
       items,
-      guide: { x1: cx, y1: cy, x2, y2 },
+      highlight: { kind: 'spoke', x1: cx, y1: cy, x2, y2 },
     }
   }
 
@@ -252,7 +252,6 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
       return hit
     },
   }
-  ctx.onHitTest(interaction)
 
   const grid = h(
     'g',
@@ -357,7 +356,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
         ),
     )
 
-  return [
+  const content = [
     grid,
     // Series grow from the center: the transform origin is set here, in pixels.
     h(
@@ -372,6 +371,7 @@ function renderRadar(options: RadarOptions, ctx: RenderContext): ChildInput {
     spokeLabels,
     valueLabels,
   ]
+  return { content, interaction }
 }
 
 /**

@@ -413,7 +413,10 @@ function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
       area: grid,
       items,
       seriesIndex,
-      mark: { d: rectPath(box.x - 2, box.y - 2, cell + 4, cell + 4, radius + 2), x: 0, y: 0 },
+      highlight: {
+        kind: 'halo',
+        d: rectPath(box.x - 2, box.y - 2, cell + 4, cell + 4, radius + 2),
+      },
     }
   }
 
@@ -435,7 +438,6 @@ function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
       return null
     },
   }
-  ctx.onHitTest(interaction)
 
   const cells: VNode[] = []
   for (let day = from; day < from + count; day++) {
@@ -505,7 +507,7 @@ function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
   const scaleWidth = lowWidth + 6 + swatches * (swatch + gap) + 6 + highWidth
   const scaleX = Math.max(area.x, area.x + grid.width - scaleWidth)
 
-  return [
+  const content = [
     h('g', { key: 'cells', class: 'tc-calendar-cells' }, cells),
     axes,
     scale &&
@@ -541,6 +543,7 @@ function renderCalendar(options: CalendarOptions, ctx: RenderContext) {
         ),
       ),
   ]
+  return { content, interaction }
 }
 
 /**

@@ -2,9 +2,8 @@ import '../decimate.ts'
 import '../log.ts'
 import '../time.ts'
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
-import type { Interaction } from '../interaction.ts'
-import { findByClass } from '../test-utils.ts'
+import { buildChart, type ChartConfig, chartToString, renderChart } from '../chart.ts'
+import { findByClass, tableOf } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { bar } from './bar.ts'
 import { type LineOptions, line } from './line.ts'
@@ -54,26 +53,16 @@ describe('time axis', () => {
       ...base,
       data: { ...base.data, labels: base.data.labels?.map((t) => new Date(t as number)) },
     }
-    let interaction: Interaction | undefined
-    buildChart(config, size, 't', (i) => {
-      interaction = i
-    })
+    const interaction = renderChart(config, size, 't').interaction
     const hit = interaction?.hitIndex(3)
     expect(hit?.title).toBe('Sep 10, 2026')
     expect(hit?.label).toBe(day(10))
-    const table = line.table?.(
-      config,
-      renderContext(config, size, 't', () => {}, new Set()),
-      100,
-    )
+    const table = tableOf(config, 100)
     expect(table?.rows[0]?.[0]).toBe('Sep 1, 2026')
   })
 
   test('snaps hovers to the nearest point in time', () => {
-    let interaction: Interaction | undefined
-    buildChart(base, size, 't', (i) => {
-      interaction = i
-    })
+    const interaction = renderChart(base, size, 't').interaction
     const third = interaction?.hitIndex(2)
     const last = interaction?.hitIndex(3)
     if (!third || !last) throw new Error('missing')
@@ -87,10 +76,7 @@ describe('time axis', () => {
       ...base,
       data: { labels: [day(1, 9), day(1, 12), day(1, 15)], series: base.data.series },
     }
-    let interaction: Interaction | undefined
-    buildChart(hours, size, 't', (i) => {
-      interaction = i
-    })
+    const interaction = renderChart(hours, size, 't').interaction
     expect(interaction?.hitIndex(1)?.title).toBe('Sep 1, 2026, 12:00 PM')
     const custom = chartToString(
       {
@@ -107,10 +93,7 @@ describe('time axis', () => {
       ...base,
       data: { ...base.data, labels: ['2026-09-01', '2026-09-02', '2026-09-10', '2026-09-11'] },
     }
-    let interaction: Interaction | undefined
-    buildChart(iso, size, 't', (i) => {
-      interaction = i
-    })
+    const interaction = renderChart(iso, size, 't').interaction
     expect(interaction?.hitIndex(2)?.title).toBe('Sep 10, 2026')
     const words = { ...base, data: { ...base.data, labels: ['Jan', 'Feb', 'Mar', 'Apr'] } }
     const node = buildChart(words, size, 'w')
