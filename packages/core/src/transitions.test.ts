@@ -6,15 +6,23 @@ import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
 import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
+import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
+import { parliament } from './charts/parliament.ts'
+import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
+import { sankey } from './charts/sankey.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
+import { treemap } from './charts/treemap.ts'
 import './line.ts'
+import { world } from './maps/world.ts'
 import { flush } from './scheduler.ts'
+import { missingTypes } from './test-utils.ts'
 
 /**
  * Updates between extreme states (empty, one point, all zeros, negative,
@@ -152,6 +160,63 @@ const SPARK_STATES: Record<string, unknown> = {
   many: values(400, (i) => wave(0, i)),
 }
 
+const SEAT_STATES: Record<string, unknown> = {
+  empty: [],
+  one: [{ name: 'A', seats: 1 }],
+  zeros: [
+    { name: 'A', seats: 0 },
+    { name: 'B', seats: 0 },
+  ],
+  regular: ['A', 'B', 'C'].map((name, i) => ({ name, seats: 40 + i * 25 })),
+  shifted: ['A', 'B', 'C'].map((name, i) => ({ name, seats: 70 - i * 10 })),
+  hidden: ['A', 'B'].map((name) => ({ name, seats: 5, hidden: true })),
+  many: Array.from({ length: 12 }, (_, i) => ({ name: `P${i}`, seats: 10 + i * 9 })),
+}
+
+const TREE_STATES: Record<string, unknown> = {
+  ...PIE_STATES,
+  nested: [
+    { name: 'A', value: 40 },
+    {
+      name: 'B',
+      children: [
+        { name: 'B1', value: 18 },
+        { name: 'B2', value: 9 },
+      ],
+    },
+    { name: 'C', value: 12 },
+  ],
+}
+
+const link = (from: string, to: string, value: number) => ({ from, to, value })
+const FLOW_STATES: Record<string, unknown> = {
+  empty: { links: [] },
+  one: { links: [link('A', 'B', 5)] },
+  zeros: { links: [link('A', 'B', 0), link('A', 'C', 0)] },
+  regular: {
+    links: [link('A', 'C', 30), link('B', 'C', 20), link('C', 'D', 35), link('C', 'E', 15)],
+  },
+  shifted: {
+    links: [link('A', 'C', 10), link('B', 'C', 40), link('C', 'D', 25), link('C', 'E', 25)],
+  },
+  hidden: {
+    nodes: [{ name: 'A', hidden: true }],
+    links: [link('A', 'C', 30), link('B', 'C', 20)],
+  },
+  deep: {
+    links: Array.from({ length: 8 }, (_, i) => link(`N${i}`, `N${i + 1}`, 10 + i)),
+  },
+}
+
+const MAP_STATES: Record<string, unknown> = {
+  empty: {},
+  one: { PL: 80 },
+  zeros: { PL: 0, DE: 0 },
+  regular: { PL: 80, DE: 45, US: 100, BR: 20 },
+  shifted: { PL: 10, DE: 90, US: 30, BR: 70 },
+  gaps: { PL: null, DE: 45, SG: 10 },
+}
+
 type Family = {
   types: ChartType<object>[]
   states: Record<string, unknown>
@@ -171,7 +236,16 @@ const FAMILIES: Family[] = [
   { types: [candlestick] as ChartType<object>[], states: CANDLE_STATES },
   { types: [calendar] as ChartType<object>[], states: CALENDAR_STATES },
   { types: [sparkline] as ChartType<object>[], states: SPARK_STATES },
+  { types: [percentageBar, funnel] as ChartType<object>[], states: PIE_STATES },
+  { types: [treemap] as ChartType<object>[], states: TREE_STATES },
+  { types: [parliament] as ChartType<object>[], states: SEAT_STATES },
+  { types: [sankey] as ChartType<object>[], states: FLOW_STATES },
+  { types: [map] as ChartType<object>[], states: MAP_STATES, options: { world: { map: world } } },
 ]
+
+test('covers every built-in chart type', () => {
+  expect(missingTypes(FAMILIES.flatMap((family) => family.types))).toEqual([])
+})
 
 const SIZE = { width: 400, height: 200 }
 

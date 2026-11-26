@@ -8,6 +8,7 @@ import {
   renderContext,
   type Size,
 } from './chart.ts'
+import { types } from './chart-types.ts'
 import type { Highlight, Hit, Interaction } from './interaction.ts'
 import { estimateTextWidth } from './layout.ts'
 import type { Child, ChildInput, VNode } from './vnode.ts'
@@ -93,6 +94,20 @@ export function tickLabelExtent(
     right = Math.max(right, x + half)
   }
   return [left, right]
+}
+
+/**
+ * The built-in chart types a cross-cutting test leaves out: every name in
+ * `types` that `covered` does not name. A test asserts it is empty, so a new
+ * chart type cannot be forgotten. `without` names the types the test does
+ * not apply to, each with the reason.
+ */
+export function missingTypes(
+  covered: Iterable<{ name: string } | string>,
+  without: Readonly<Record<string, string>> = {},
+): string[] {
+  const names = new Set([...covered].map((t) => (typeof t === 'string' ? t : t.name)))
+  return Object.keys(types).filter((name) => !names.has(name) && !(name in without))
 }
 
 /** The highlight of a hit when it is of `kind`. */

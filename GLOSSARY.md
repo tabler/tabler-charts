@@ -47,3 +47,7 @@ _Avoid_: mirror image, left/right when the reading direction matters
 **Marker**:
 The shape a series' point is drawn as, by its color slot, when point shapes are on (`shapes`, or `patterns: true`).
 _Avoid_: symbol, point shape (for the drawn thing)
+
+**Built-in chart type**:
+A chart type that ships with the library, with its own entry point, a component in each framework adapter and a size budget; the opposite of a chart type a user writes.
+_Avoid_: default type, core type
