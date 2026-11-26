@@ -8,7 +8,7 @@ export default definePage({
   title: 'The fifteen largest economies',
   subtitle: 'Nominal GDP, by region',
   source: 'IMF World Economic Outlook, 2023',
-  width: 720,
+  width: 800,
   config: {
     type: treemap,
     data: [
@@ -46,6 +46,6 @@ export default definePage({
     format: { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 },
     gap: 3,
     radius: 4,
-    aspectRatio: 2,
+    aspectRatio: 1.9,
   },
 })
