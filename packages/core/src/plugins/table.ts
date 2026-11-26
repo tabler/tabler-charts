@@ -1,5 +1,5 @@
 import { tableContent } from '../a11y.ts'
-import { type ChartConfig, renderContext, type Size } from '../chart.ts'
+import { type ChartConfig, chartModel } from '../chart.ts'
 import { getNumberFormat } from '../format.ts'
 import { cancelIdle, scheduleIdle } from '../idle.ts'
 import type { ChartPlugin } from '../plugin.ts'
@@ -32,15 +32,15 @@ export function dataTable(): ChartPlugin {
         el = undefined
       }
 
-      const update = (config: ChartConfig<object>, size: Size, hidden: ReadonlySet<string>) => {
+      const update = (config: ChartConfig<object>, hidden: ReadonlySet<string>) => {
         const option = config.table ?? true
         const maxRows =
           typeof option === 'object' && option.maxRows ? option.maxRows : DEFAULT_MAX_ROWS
         const table =
           option !== false && typeof document !== 'undefined'
             ? config.type.table?.(
-                config,
-                renderContext(config, size, chart.id, () => {}, hidden, chart.fontSize),
+                chartModel(config),
+                { locale: config.locale, hidden, rtl: chart.rtl },
                 maxRows,
               )
             : undefined
@@ -74,7 +74,7 @@ export function dataTable(): ChartPlugin {
       }
 
       return {
-        afterRender({ config, size, hidden, changed }) {
+        afterRender({ config, hidden, changed }) {
           // Resizing changes nothing in the table.
           if (!changed && el?.isConnected) return
           const option = config.table ?? true
@@ -85,10 +85,10 @@ export function dataTable(): ChartPlugin {
           // delaying the frame that animates the chart. The first table, visible
           // ones and changes of the table option itself are built right away.
           if (same && el?.isConnected && el.classList.contains('tc-sr-only')) {
-            scheduleIdle(key, () => update(config, size, hidden))
+            scheduleIdle(key, () => update(config, hidden))
           } else {
             cancelIdle(key)
-            update(config, size, hidden)
+            update(config, hidden)
           }
         },
         destroy: remove,

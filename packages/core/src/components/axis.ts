@@ -117,6 +117,46 @@ export function axisSize(
   return Math.ceil(labels + tickSize + tickPadding)
 }
 
+/** Space between the tick labels and the axis title. */
+const TITLE_GAP = 6
+
+/** Pixels an axis title adds to the axis (for margins): none without a title. */
+export const axisTitleSize = (title: string | undefined, fontSize: number): number =>
+  title ? Math.ceil(fontSize * LINE_HEIGHT) + TITLE_GAP : 0
+
+/**
+ * Render the title of an axis as `<text class="tc-axis-title tc-axis-title-{position}">`,
+ * past the labels of `ticks` and centered on the plot: along the axis at the
+ * bottom, turned 90° beside the plot to read away from it (bottom to top on
+ * the left, top to bottom on the right).
+ */
+export function axisTitle(
+  position: 'right' | 'bottom' | 'left',
+  ticks: readonly Tick[],
+  area: Rect,
+  title: string,
+  fontSize: number,
+): VNode {
+  const reach = axisSize(position, ticks, fontSize) + TITLE_GAP
+  const sign = position === 'left' ? -1 : 1
+  const side = reach + (fontSize * LINE_HEIGHT) / 2
+  return h(
+    'text',
+    {
+      key: `axis-title-${position}`,
+      class: `tc-axis-title tc-axis-title-${position}`,
+      transform:
+        position === 'bottom'
+          ? `translate(${round(area.x + area.width / 2)},${round(area.y + area.height + reach)})`
+          : `translate(${round(position === 'left' ? area.x - side : area.x + area.width + side)},${round(area.y + area.height / 2)}) rotate(${sign * 90})`,
+      dy: position === 'bottom' ? '0.71em' : '0.32em',
+      'text-anchor': 'middle',
+      'aria-hidden': 'true',
+    },
+    title,
+  )
+}
+
 /**
  * Render an axis as `<g class="tc-axis tc-axis-{x|y} tc-axis-{position}">`
  * with one `<g class="tc-tick">` per tick, keyed by value so ticks can

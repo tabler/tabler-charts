@@ -136,7 +136,6 @@ export const candlestick: ChartType<CandlestickOptions> = {
       hitIndex: (i, s) => paint(base.hitIndex(i, s)),
       hitTest: (px, py) => paint(base.hitTest(px, py)),
     }
-    ctx.onHitTest(interaction)
 
     const candles = options.data.map((c, i) => {
       if (!valid(c, options.y)) return null
@@ -164,7 +163,7 @@ export const candlestick: ChartType<CandlestickOptions> = {
       )
     })
 
-    return [
+    const content = [
       h('defs', { key: 'defs' }, layout.clip.def),
       layout.background,
       h(
@@ -174,6 +173,7 @@ export const candlestick: ChartType<CandlestickOptions> = {
       ),
       layout.foreground,
     ]
+    return { content, interaction }
   },
   table: (options, ctx, limit) => seriesTable(asCartesian(options), ctx, limit),
 }

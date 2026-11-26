@@ -13,18 +13,26 @@ import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
 import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
+import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
+import { parliament } from './charts/parliament.ts'
+import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
+import { sankey } from './charts/sankey.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
+import { treemap } from './charts/treemap.ts'
 import { Chart, type ChartConfig, chartToString } from './core.ts'
 import './decimate.ts'
 import './line.ts'
 import './log.ts'
+import { missingTypes } from './test-utils.ts'
 import './time.ts'
+import { world } from './maps/world.ts'
 
 let seed = Number(process.env.FUZZ_SEED ?? 20261001)
 const rnd = () => {
@@ -42,6 +50,31 @@ const series = (n: number, len: number) =>
     dash: rnd() < 0.1 ? 4 : undefined,
   }))
 
+const KINDS = [
+  'line',
+  'area',
+  'bar',
+  'pie',
+  'donut',
+  'scatter',
+  'sparkline',
+  'gauge',
+  'heatmap',
+  'calendar',
+  'map',
+  'candlestick',
+  'radar',
+  'sankey',
+  'parliament',
+  'treemap',
+  'percentage-bar',
+  'funnel',
+] as const
+
+/** Named parts of a whole, for the types that take a list of `{ name, value }`. */
+const parts = () =>
+  series(pick([0, 1, 3, 6]), 1).map((s) => ({ name: s.name, value: s.values[0] ?? 0 }))
+
 function config(): ChartConfig<object> {
   const len = pick([0, 1, 3, 12])
   const labels = Array.from({ length: len }, (_, i) =>
@@ -53,20 +86,7 @@ function config(): ChartConfig<object> {
     title: rnd() < 0.5 ? 'T & <t>' : undefined,
     description: rnd() < 0.3 ? 'D' : undefined,
   }
-  const kind = pick([
-    'line',
-    'area',
-    'bar',
-    'pie',
-    'donut',
-    'scatter',
-    'sparkline',
-    'gauge',
-    'heatmap',
-    'calendar',
-    'candlestick',
-    'radar',
-  ])
+  const kind = pick(KINDS)
   const cart = {
     data: { labels, series: series(pick([1, 2, 3]), len) },
     annotations: rnd() < 0.3 ? [{ y: val() ?? 0, label: 'Goal' }] : undefined,
@@ -135,6 +155,21 @@ function config(): ChartConfig<object> {
         },
         weeks: rnd() < 0.3 ? 8 : undefined,
       } as never
+    case 'map':
+      return {
+        type: map,
+        ...common,
+        map: world,
+        data: Object.fromEntries(
+          ['PL', 'DE', 'US', 'SG', 'BR'].slice(0, len).map((code) => [code, val() ?? 0]),
+        ),
+        colors: rnd() < 0.3 ? ['red', 'white', 'green'] : undefined,
+        markers: [
+          { name: 'A', lat: 52, lng: 21 },
+          { name: 'B', lat: -33, lng: 151 },
+        ],
+        lines: rnd() < 0.5 ? [{ from: 'A', to: 'B' }] : undefined,
+      } as never
     case 'heatmap':
       return {
         type: heatmap,
@@ -142,6 +177,39 @@ function config(): ChartConfig<object> {
         data: { labels: labels.map(String), series: series(3, len) },
         colorBy: rnd() < 0.3 ? 'series' : 'value',
       } as never
+    case 'sankey': {
+      const nodes = ['A & <a>', 'B', 'C', 'D']
+      return {
+        type: sankey,
+        ...common,
+        data: {
+          links: Array.from({ length: pick([0, 1, 3, 5]) }, (_, i) => ({
+            from: nodes[i % 2] as string,
+            to: nodes[2 + ((i + 1) % 2)] as string,
+            value: Math.abs(val() ?? 0),
+          })),
+        },
+      } as never
+    }
+    case 'parliament':
+      return {
+        type: parliament,
+        ...common,
+        data: parts().map(({ name, value }) => ({
+          name,
+          seats: Math.round(Math.abs(value)) % 200,
+        })),
+      } as never
+    case 'treemap':
+      return {
+        type: treemap,
+        ...common,
+        data: parts().map((p, i) => (i % 3 === 2 ? { name: p.name, children: parts() } : p)),
+      } as never
+    case 'percentage-bar':
+      return { type: percentageBar, ...common, data: parts() } as never
+    case 'funnel':
+      return { type: funnel, ...common, data: parts() } as never
     default:
       return {
         type: candlestick,
@@ -150,6 +218,10 @@ function config(): ChartConfig<object> {
       } as never
   }
 }
+
+test('covers every built-in chart type', () => {
+  expect(missingTypes(KINDS)).toEqual([])
+})
 
 test('the string and DOM renderers agree on random configs', () => {
   const n = Number(process.env.FUZZ_ITERATIONS ?? 150)

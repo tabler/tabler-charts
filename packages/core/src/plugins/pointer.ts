@@ -19,10 +19,10 @@ export function listenPointer(chart: Chart<object>): (() => void) | undefined {
     const { width, height } = chart.size
     return toChartPoint(svg, event.clientX, event.clientY, width, height)
   }
-  // Controls laid over the chart (the download menu) are not the chart:
-  // hovering them clears the highlight, so the tooltip never covers them.
+  // Controls laid over the chart (the download menu, the zoom of a map) are not
+  // the chart: hovering them clears the highlight, so the tooltip never covers them.
   const overControl = (event: Event) =>
-    !!(event.target as Element | null)?.closest?.('.tc-download')
+    !!(event.target as Element | null)?.closest?.('.tc-download,.tc-map-zoom')
   const onLeave = (event: PointerEvent) => {
     // On touch, keep the last highlight after the finger lifts.
     if (event.pointerType !== 'touch' && chart.highlightSource === 'pointer') {

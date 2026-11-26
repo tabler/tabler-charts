@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString } from '../chart.ts'
-import type { Interaction } from '../interaction.ts'
+import { buildChart, type ChartConfig, chartToString, renderChart } from '../chart.ts'
 import { findByClass, findByTag, gridLineOffset } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
 import { type AreaOptions, area } from './area.ts'
@@ -117,10 +116,7 @@ describe('area', () => {
     })
 
     test('anchors hits at the running total but reports raw values', () => {
-      let interaction: Interaction | undefined
-      buildChart({ ...base, stacked: true }, size, 's', (i) => {
-        interaction = i
-      })
+      const interaction = renderChart({ ...base, stacked: true }, size, 's').interaction
       const hit = interaction?.hitIndex(3)
       expect(hit?.items.map((i) => i.value)).toEqual([70, 30])
       expect(hit?.items[1]?.y).toBeLessThan(hit?.items[0]?.y ?? 0)

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig } from '../chart.ts'
+import { type ChartConfig, renderChart } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { findByClass } from '../test-utils.ts'
 import type { VNode } from '../vnode.ts'
@@ -14,11 +14,8 @@ const W = size.width
 /** Build a chart both ways: its tree and its interaction, left to right and right to left. */
 function both<O extends object>(config: ChartConfig<O>) {
   const build = (rtl: boolean) => {
-    let interaction: Interaction | undefined
-    const node = buildChart({ ...config, rtl }, size, 'r', (i) => {
-      interaction = i
-    })
-    return { node, interaction: interaction as Interaction }
+    const { svg, interaction } = renderChart({ ...config, rtl }, size, 'r')
+    return { node: svg, interaction: interaction as Interaction }
   }
   return { ltr: build(false), rtl: build(true) }
 }

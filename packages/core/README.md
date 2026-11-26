@@ -92,6 +92,7 @@ A feature you use but did not import throws an error that names the import.
 | `scatter` | `{ series: [{ name, points: [{ x, y, size? }] }] }` | `radius`, `size` (bubble radii); points with `size` are bubbles |
 | `heatmap` | `{ labels, series }` (rows) | `min`, `max`, `ranges`, `colors` + `mid` (scales), `colorBy: 'series'` |
 | `calendar` | `[{ date, value }]`, or `{ series }` of them (added up per day) | `weeks`, `from`, `to` (more than a year is split into bands of twelve months), `weekStart`, `levels`, `min`, `max`, `colors` + `mid` (a scale of colors, `'diverging'` around zero), `scale`, `dateFormat`; the height follows the range unless `aspectRatio` or `height` is set |
+| `map` | `{ PL: 80, DE: 45 }` (a value per region code) | `map` (a map file such as `world` from `@tabler/charts/maps/world`, or the name given with `addMap()`), `min`, `max`, `colors` + `mid`, `markers` (`{ name, lat, lng }`), `lines` (`{ from, to }`), `markerRadius`, `scale`, `zoom`, `view`, `select`, `selected`, `onSelect`; the proportions follow the map unless `aspectRatio` or `height` is set |
 | `candlestick` | `[{ x, open, high, low, close }]` | time axes, `maxCandleWidth` |
 | `sparkline` | `number[]` | `variant` (`'line'`, `'area'`, `'bar'`, `'tristate'`), `point`, `markers: 'minmax'` |
 
@@ -100,8 +101,30 @@ A feature you use but did not import throws an error that names the import.
 Series take `name`, `values`, and optionally `id` (stable identity), `color`, `dash`, `width`, `class` and `hidden`.
 
 Cartesian charts share two axes:
-- `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`.
-- `y`: `min`, `max`, `zero`, `nice`, `ticks`, `format`, `scale: 'log'`, `grid`, `show`.
+- `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`, `title`.
+- `y`: `min`, `max`, `zero`, `nice`, `ticks`, `format`, `scale: 'log'`, `grid`, `show`, `title`.
+- `y2`: the same as `y`, for series with `axis: 'y2'`.
+
+An axis `title` names the axis (a unit, for example): `y.title` is turned 90° beside the value axis — on the right in an `rtl` chart — and `x.title` sits below the categories. Style both with `.tc-axis-title`.
+
+A series with `axis: 'y2'` is drawn against a second value axis on the right (on the left in `rtl`), with its own scale; `y2` takes the same options as `y`. Use it for series in different units, such as daily sales as bars and the average price per person as a line:
+
+```ts
+new Chart('#chart', {
+  type: bar,
+  data: {
+    labels,
+    series: [
+      { name: 'Net revenue', values: revenue },
+      { name: 'Net revenue / PAX', values: perPax, type: 'line', axis: 'y2' },
+    ],
+  },
+  y: { title: 'Net revenue' },
+  y2: { title: 'Net revenue / PAX' },
+})
+```
+
+Series on `y2` stay out of stacks (their bars stand beside the stack), and the grid lines follow `y`. Line, area and vertical bar charts.
 
 A number `format` is `Intl.NumberFormat` options or a function. `notation: 'compact'` shortens long numbers in the locale's words ("1.1M", "1,1 mln" in Polish); `compactSymbols` writes suffixes of your own in the locale's separators instead:
 
@@ -120,12 +143,55 @@ annotations: [
 ]
 ```
 
+### Maps
+
+`map` draws the regions of a map file as SVG shapes and shades them by value. The shapes are projected when the map file is built, so no geo library ships to the browser, and the map file is an import of its own:
+
+```ts
+import { Chart, map } from '@tabler/charts'
+import { world } from '@tabler/charts/maps/world'
+
+new Chart('#visits', {
+  type: map,
+  map: world,
+  data: { US: 100, DE: 80, PL: 54 },          // by ISO 3166-1 alpha-2 code
+  markers: [
+    { name: 'Warsaw', lat: 52.23, lng: 21.01 },
+    { name: 'New York', lat: 40.71, lng: -74.01 },
+  ],
+  lines: [{ from: 'Warsaw', to: 'New York' }],
+})
+```
+
+Regions take one hue from the empty shade to the full color (`--tc-heat-color` and `--tc-heat-empty`, as heatmap cells do), or a scale through `colors`. Countries too small for a shape are drawn as a dot when they have a value. `--tc-map-marker-color` and `--tc-map-line-color` color the markers and the lines. The `click` event gives the region code in `hit.region` (or the marker's name in `hit.marker`).
+
+`zoom: true` lets the map be magnified with its buttons, the wheel, a double click, a pinch or the `+`, `-` and `0` keys, and dragged around; `zoom: { max: 16, wheel: false }` sets the limit and leaves the wheel to the page. The part in sight is the `view` option (`{ x, y, scale }` in the coordinates of the map file): zooming writes it, and you can set it to start on a part of the map, or `chart.update({ view: undefined })` to show all of it again.
+
+`select: 'single'` or `'multiple'` lets a click (or Enter on the region the keyboard is on) select regions; a click on a selected region takes it out. The codes are the `selected` option, and `onSelect(selected, code)` is called when they change. `.tc-region-selected` styles the outline.
+
+For charts declared in markup or JSON, register the map under a name and pass that name: `addMap('world', world)`, then `map: 'world'`.
+
+`world` is the countries of [Natural Earth](https://www.naturalearthdata.com/) (public domain) in the Miller projection, 27 kB gzipped. `pnpm generate:maps` rebuilds it.
+
 ### Value labels
 
 `valueLabels: true` writes the values on the marks: bars at their end (inside when there is no room outside), stacked segments and heatmap cells inside, slices their share, lines and scatters above their last point (`valueLabels: { points: 'all' }` for every point). Values take the axis format (`valueLabels: { format }` overrides it). A label that does not fit its mark or the chart, or would cover another label or mark, is left out: labels never overlap. On the core, `import '@tabler/charts/value-labels'` enables them.
 
 ```js
 new Chart('#el', { type: bar, data, valueLabels: true })
+```
+
+A series' own `valueLabels` overrides the chart's for that series: `true` labels it even when the chart option is off, `false` leaves it out. Each label carries the classes of its series (`tc-series tc-series-{n}`), for styling per series.
+
+```js
+const data = {
+  labels,
+  series: [
+    { name: 'Revenue', values: revenue },
+    { name: 'Per person', values: perPax, type: 'line', valueLabels: true },
+  ],
+}
+new Chart('#el', { type: bar, data }) // only the line is labelled
 ```
 
 A chart type of your own gets labels from its hits like the built-in ones. Its `valueLabels` says what its marks are, when not bars or points (`{ marks: 'slice' }` for shares inside slices, `{ marks: 'cell' }` for values in the middle of cells), and where its number format is (`{ format: (options) => options.format }`).

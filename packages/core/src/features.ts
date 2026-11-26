@@ -37,7 +37,7 @@ export interface Features {
   hydrate?: typeof hydrate
   /** Path morphing on data updates where CSS cannot transition `d` (Safari). */
   morph?: typeof morph
-  /** Arcs turning to their new angles on data updates (set by pie, donut and gauge). */
+  /** Arcs turning to their new angles on data updates (installed by a chart whose type has `sweep`). */
   sweep?: typeof sweep
   /** Line and area paths behind `series.type: 'line' | 'area'` in bar charts. */
   line?: { linePath: typeof linePath; areaPath: typeof areaPath }

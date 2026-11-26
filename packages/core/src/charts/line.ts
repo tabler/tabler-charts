@@ -1,19 +1,23 @@
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { fadeMask } from '../components/fade.ts'
 import { feature } from '../features.ts'
 import { round } from '../layout.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
-import { type ChildInput, h } from '../vnode.ts'
+import { h } from '../vnode.ts'
 import {
   type CartesianOptions,
   cartesianLayout,
   categoryInteraction,
+  markerShape,
   plottable,
+  pointMark,
   resolveLabels,
   type Series,
   seriesAttrs,
+  seriesAxes,
   seriesKey,
   seriesLegend,
+  seriesScale,
   seriesTable,
 } from './cartesian.ts'
 import { cleanData, cleanSeries } from './clean.ts'
@@ -71,7 +75,7 @@ function seriesPoints(
 }
 
 /** Render line (and optionally area) series; shared by `line` and `area`. */
-export function renderLines(options: LineOptions, ctx: RenderContext, fill: boolean): ChildInput {
+export function renderLines(options: LineOptions, ctx: RenderContext, fill: boolean): RenderResult {
   const {
     curve = 'monotone',
     points = 'none',
@@ -86,28 +90,37 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   const overhang = points === 'none' ? 2 : pointRadius + 2
   const { series } = options.data
   const count = resolveLabels(options.data).length
+  const axisOf = seriesAxes(options)
+  // Series on the second axis keep out of the stacks.
+  const seconds = series.filter((s) => axisOf(s).second).map(seriesKey)
   const stacks = stacked
     ? stackSeries(series, count, {
         percent: stacked === 'percent',
         nullAsZero: true,
-        hidden: ctx.hidden,
+        hidden: seconds.length ? new Set([...ctx.hidden, ...seconds]) : ctx.hidden,
       })
     : null
   const layout = cartesianLayout(options, ctx, {
     scale: 'point',
     zero: filled || stacks !== null,
+    zero2: filled,
     overhang,
     ...(stacks ? { values: stackBounds(stacks) } : {}),
     ...(stacked === 'percent' ? { tickFormat: { style: 'percent' } } : {}),
   })
-  const { x, y, labels } = layout
-  const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
-  ctx.onHitTest(
-    categoryInteraction(layout, options, ctx, (seriesIndex, i, v) => ({
-      x: x.at(i),
-      y: y(stacks ? (stacks[seriesIndex]?.[i]?.y1 ?? 0) : v),
-    })),
-  )
+  const { x, labels } = layout
+  const scaleOf = (index: number) => seriesScale(layout, series[index])
+  // Areas grow from zero, or from the bottom of the plot when zero is out of view.
+  const baselineOf = (index: number) => {
+    const y = scaleOf(index)
+    return y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
+  }
+  // (series left out of the stacks have empty rows there)
+  const stackOf = (index: number) => (!axisOf(series[index]).second && stacks?.[index]) || null
+  const interaction = categoryInteraction(layout, options, ctx, (seriesIndex, i, v) => {
+    const stack = stackOf(seriesIndex)
+    return { x: x.at(i), y: scaleOf(seriesIndex)(stack ? (stack[i]?.y1 ?? 0) : v) }
+  })
   const gradient = filled && fillStyle === 'gradient'
   const fadeId = `${ctx.id}-fade`
 
@@ -115,16 +128,18 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   const visible = (s: Series) => !ctx.hidden.has(seriesKey(s))
   const all = series.map((s, index) => {
     if (!visible(s)) return []
+    const y = scaleOf(index)
     // Stacked series draw their running total.
-    const stack = stacks?.[index]
+    const stack = stackOf(index)
     if (stack) return stack.map((seg, i): Point => (seg ? [x.at(i), y(seg.y1)] : null))
+    const axis = axisOf(s).axis
     return seriesPoints(
       s,
       labels.length,
       (i) => x.at(i),
       y,
       connectNulls,
-      (v) => plottable(v, options.y),
+      (v) => plottable(v, axis),
     )
   })
   /** Indices drawn per series: a downsampled subset when `decimate` is set. */
@@ -138,8 +153,9 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   }
   /** Area bottom: zero, or the top of the layer below for stacks (downsampled alike). */
   const bottom = (index: number): number | (number | null)[] => {
-    const stack = stacks?.[index]
-    if (!stack) return baseline
+    const stack = stackOf(index)
+    if (!stack) return baselineOf(index)
+    const y = scaleOf(index)
     const bottoms = stack.map((seg) => (seg ? y(seg.y0) : null))
     const keep = kept[index]
     return keep ? keep.map((i) => bottoms[i] ?? null) : bottoms
@@ -166,6 +182,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
       ),
     )
 
+  const shape = markerShape(options)
   const lines = options.data.series.map((s, index) => {
     if (!visible(s)) return null
     const pts = drawn(index)
@@ -180,19 +197,13 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
           'g',
           { class: 'tc-points' },
           dots.map(([cx, cy]) =>
-            h('circle', {
-              key: cx,
-              class: 'tc-point',
-              cx: round(cx),
-              cy: round(cy),
-              r: pointRadius,
-            }),
+            pointMark(shape, index, cx, 'tc-point', round(cx), round(cy), pointRadius),
           ),
         ),
     )
   })
 
-  return [
+  const content = [
     h('defs', { key: 'defs' }, layout.clip.def, gradient && fadeMask(fadeId)),
     layout.background,
     // Layers are keyed: an annotation band or a grid that comes and goes must not
@@ -200,6 +211,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     h('g', { key: 'series', class: 'tc-series-list', 'clip-path': layout.clip.url }, areas, lines),
     layout.foreground,
   ]
+  return { content, interaction }
 }
 
 /**
