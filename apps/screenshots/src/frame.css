@@ -1,0 +1,153 @@
+/* The frame around a chart in a picture. Chart styles come from @tabler/charts/style.css. */
+
+:root {
+  color-scheme: light;
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --border: #e3e7ed;
+  --fg: #182433;
+  --muted: #5f6b7a;
+  --tc-surface: var(--card);
+  font:
+    14px / 1.5 "Inter",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111820;
+  --card: #1a222c;
+  --border: #2a3441;
+  --fg: #e6ebf1;
+  --muted: #9aa6b5;
+}
+
+/* Deterministic pictures: no frame caught in the middle of a transition. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  /* biome-ignore lint/complexity/noImportantStyles: it has to win over every chart style */
+  transition: none !important;
+  /* biome-ignore lint/complexity/noImportantStyles: it has to win over every chart style */
+  animation: none !important;
+  /* biome-ignore lint/complexity/noImportantStyles: it has to win over every chart style */
+  caret-color: transparent !important;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.stage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.screenshot {
+  position: relative;
+  flex: none;
+  width: 1024px;
+  height: 768px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 64px;
+  background: var(--bg) linear-gradient(to top left, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0));
+}
+
+.screenshot-card {
+  width: 640px;
+  max-width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow:
+    0 1px 1px 0 rgb(0 0 0 / 0.02),
+    0 8px 24px -4px rgb(0 0 0 / 0.04),
+    0 24px 40px -8px rgb(0 0 0 / 0.1);
+}
+
+.screenshot-header {
+  padding: 16px 20px 0;
+}
+
+.screenshot-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.screenshot-header p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.screenshot-header p:empty {
+  display: none;
+}
+
+.screenshot-body {
+  padding: 16px 20px 20px;
+}
+
+.screenshot-logo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.55;
+}
+
+.screenshot-logo img {
+  height: 24px;
+}
+
+.screenshot-error {
+  margin: 0;
+  color: #d63939;
+  white-space: pre-wrap;
+}
+
+.chrome {
+  display: flex;
+  gap: 12px;
+}
+
+.chrome a,
+.index a {
+  color: inherit;
+}
+
+.chrome a[aria-current] {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.index {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.index ul {
+  padding: 0;
+  list-style: none;
+  columns: 2;
+}
