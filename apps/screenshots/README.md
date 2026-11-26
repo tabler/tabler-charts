@@ -44,4 +44,4 @@ Many pages take their chart from the playground's examples (`apps/docs/src/showc
 
 To show a tooltip, give the page `hover: { x, y }`, a point of the chart as fractions of its width and height. The capture moves the mouse there and the frame draws a pointer on it. The `tooltip-*` pages are existing pages with a hover added.
 
-A page with more than one chart, or with anything else next to the chart, builds its card by hand with `render(body)` instead of `config`.
+A page with more than one chart, or with anything else next to the chart, builds its card by hand with `render(body)` instead of `config`. `src/dom.ts` has the two helpers for that (`el` and `chart`), and `src/frame.css` the pieces such pages are made of: stat tiles, panels, a table. See `dashboard`, `synced` and `table-sparklines`.
