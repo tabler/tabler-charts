@@ -1,6 +1,5 @@
 import type { DataTable } from '../a11y.ts'
 import type { ChartType, RenderContext, RenderResult, TableContext } from '../chart.ts'
-import { features } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
@@ -249,12 +248,8 @@ function pieType(
     name,
     clean: cleanData(cleanItems),
     prepare: withSlices,
-    render: (options, ctx): RenderResult => {
-      // Set here, not as the module loads: a module with side effects would
-      // stay in every bundle that imports another chart type next to it.
-      features.sweep = sweep
-      return renderPie(options, ctx, defaults)
-    },
+    render: (options, ctx): RenderResult => renderPie(options, ctx, defaults),
+    sweep,
     legend: slicesLegend,
     table: pieTable,
     valueLabels: { marks: 'slice' },

@@ -32,6 +32,18 @@ _Avoid_: hover mark, guide
 The one slice or segment that groups the smallest parts past `maxSlices`, last and in the "other" color.
 _Avoid_: rest, remainder
 
+**Optional feature**:
+Code a chart type uses only when an option asks for it (a time axis, a log scale, annotations…), loaded by importing its entry point.
+_Avoid_: plugin, extension
+
+**Plot area**:
+The rectangle the data is drawn in, inside the axes and the padding.
+_Avoid_: inner rect, chart area
+
+**Start side / end side**:
+The side a chart is read from (the left, or the right in a right-to-left chart) and the side opposite it; the axis beside the plot sits on the start side.
+_Avoid_: mirror image, left/right when the reading direction matters
+
 **Marker**:
 The shape a series' point is drawn as, by its color slot, when point shapes are on (`shapes`, or `patterns: true`).
 _Avoid_: symbol, point shape (for the drawn thing)
