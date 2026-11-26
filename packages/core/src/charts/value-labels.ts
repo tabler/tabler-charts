@@ -26,6 +26,7 @@ const GAP = 4
 
 interface Placed {
   key: string
+  series: number
   text: string
   x: number
   y: number
@@ -41,6 +42,16 @@ const contains = (outer: Rect, inner: Rect): boolean =>
   inner.y >= outer.y - 1 &&
   inner.x + inner.width <= outer.x + outer.width + 1 &&
   inner.y + inner.height <= outer.y + outer.height + 1
+
+/** The `valueLabels` of each series: `true`, `false`, or anything else for the chart's. */
+const own = (config: ChartConfig<object>): unknown[] => {
+  const series = (config as { data?: { series?: unknown } }).data?.series
+  return Array.isArray(series) ? series.map((s) => s?.valueLabels) : []
+}
+
+/** Whether a chart has labels: on the chart, or on one of its series. */
+const wanted = (config: ChartConfig<object>): boolean =>
+  !!config.valueLabels || own(config).includes(true)
 
 /** The labels layer of a chart, or `null` when nothing gets one. */
 export function valueLabels(
@@ -69,7 +80,15 @@ export function valueLabels(
 
   // Candidates in order of priority: every hit's items, and for points only the
   // last one of each series unless all are asked for.
+  // A series' own `valueLabels` wins over the chart's.
+  const series = own(config)
+  const isLabelled = (index: number): boolean => {
+    const on = series[index]
+    return typeof on === 'boolean' ? on : !!option
+  }
   const items: [string, HitItem, Hit][] = []
+  // Marks a label must not cover: every bar and cell but its own, labelled or not.
+  const marks: Rect[] = []
   const last = new Map<number, number>()
   let total = 0
   for (let i = 0; i < interaction.count; i++) {
@@ -77,13 +96,13 @@ export function valueLabels(
     for (const item of hit?.items ?? []) {
       if (item.value === null || item.y === null || !hit) continue
       total += Math.abs(item.value)
+      if (item.box) marks.push(item.box)
+      if (!isLabelled(item.seriesIndex)) continue
       if (!pie && !item.box && options.points !== 'all') last.set(item.seriesIndex, items.length)
       items.push([`${i}-${item.seriesIndex}`, item, hit])
     }
   }
 
-  // Marks a label must not cover: every bar and cell but its own.
-  const marks = items.flatMap(([, item]) => (item.box ? [item.box] : []))
   const placed: Placed[] = []
   items.forEach(([key, item, hit], n) => {
     const { area } = hit
@@ -99,6 +118,7 @@ export function valueLabels(
       }
       return {
         key,
+        series: item.seriesIndex,
         text,
         x,
         y,
@@ -167,7 +187,12 @@ export function valueLabels(
         'text',
         {
           key: p.key,
-          class: ['tc-value-label', p.inside && 'tc-value-label-inside'],
+          class: [
+            'tc-value-label',
+            'tc-series',
+            `tc-series-${p.series + 1}`,
+            p.inside && 'tc-value-label-inside',
+          ],
           style: `transform:translate(${round(p.x)}px,${round(p.y)}px)`,
           'text-anchor': 'middle',
           dy: '0.35em',
@@ -192,4 +217,4 @@ function sliceFits(item: HitItem, area: Rect, share: number, label: Rect): boole
 
 /** The step that adds the labels over the content of charts with `valueLabels`. */
 export const labelsStep: PostStep = (config, content, interaction, ctx) =>
-  config.valueLabels && interaction ? [content, valueLabels(config, interaction, ctx)] : content
+  interaction && wanted(config) ? [content, valueLabels(config, interaction, ctx)] : content

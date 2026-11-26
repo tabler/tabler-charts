@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { type ChartConfig, chartToString } from '../chart.ts'
 import { features } from '../features.ts'
+import '../line.ts'
 import '../value-labels.ts'
 import { bar } from './bar.ts'
 import { heatmap } from './heatmap.ts'
@@ -176,5 +177,67 @@ describe('value labels', () => {
     } finally {
       features.post = saved
     }
+  })
+})
+
+describe('value labels per series', () => {
+  /** The series number in the classes of each label, in order. */
+  const seriesOf = (svg: string): number[] =>
+    [...svg.matchAll(/class="tc-value-label tc-series tc-series-(\d+)/g)].map((m) => Number(m[1]))
+  const revenue = { name: 'Revenue', values: [40, 52, 38, 61] }
+  const perPax = { name: 'Per person', values: [420, 480, 390, 550], type: 'line' }
+
+  test('series.valueLabels: true labels that series alone when the chart option is off', () => {
+    const svg = render({
+      type: bar,
+      valueLabels: undefined,
+      data: { labels, series: [revenue, { ...perPax, valueLabels: true }] },
+    })
+    expect(valueLabels(svg).map((l) => l.text)).toEqual(['550'])
+    expect(seriesOf(svg)).toEqual([2])
+  })
+
+  test('series.valueLabels: false leaves that series out', () => {
+    const svg = render({
+      type: bar,
+      data: { labels, series: [{ ...revenue, valueLabels: false }, perPax] },
+    })
+    expect(valueLabels(svg).map((l) => l.text)).toEqual(['550'])
+  })
+
+  test('each label carries the classes of its series', () => {
+    const svg = render({ type: bar, data: { labels, series: series(2) } })
+    const found = seriesOf(svg)
+    expect(found.length).toBe(valueLabels(svg).length)
+    expect(new Set(found)).toEqual(new Set([1, 2]))
+  })
+
+  test('works for scatter series, and options of the chart still apply', () => {
+    const points = [
+      { x: 1, y: 2 },
+      { x: 2, y: 4 },
+      { x: 3, y: 3 },
+    ]
+    const svg = render({
+      type: scatter,
+      valueLabels: { points: 'all' },
+      data: {
+        series: [
+          { name: 'A', points, valueLabels: false },
+          { name: 'B', points: points.map((p) => ({ ...p, y: p.y + 10 })) },
+        ],
+      },
+    })
+    expect(seriesOf(svg).every((n) => n === 2)).toBe(true)
+    expect(valueLabels(svg)).toHaveLength(3)
+  })
+
+  test('values other than true and false fall back to the chart option', () => {
+    const svg = render({
+      type: line,
+      valueLabels: undefined,
+      data: { labels, series: [{ ...revenue, valueLabels: 'yes' }] },
+    })
+    expect(valueLabels(svg)).toHaveLength(0)
   })
 })

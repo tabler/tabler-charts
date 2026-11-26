@@ -7,7 +7,6 @@
  */
 import type { PostStep } from '../features.ts'
 import { round } from '../layout.ts'
-import type { Child, ChildInput, VNode } from '../vnode.ts'
 
 /**
  * Outlines by color slot (0-based), as x, y pairs in units of the radius,
@@ -70,36 +69,8 @@ export function markerClip(slot: number): Record<string, string | number> | unde
   }
 }
 
-/** The content with the point circles of each series group (`.tc-series-N`) in its slot's shape. */
-function reshape(child: ChildInput, slot: number): ChildInput {
-  if (Array.isArray(child)) return child.map((c) => reshape(c, slot))
-  if (!child || typeof child !== 'object') return child
-  const { attrs } = child
-  const cls = String(attrs.class ?? '')
-  const group = /\btc-series-(\d+)\b/.exec(cls)
-  if (
-    child.tag === 'circle' &&
-    slot >= 0 &&
-    /\btc-point\b/.test(cls) &&
-    !/\btc-bubble\b/.test(cls)
-  ) {
-    const shaped: VNode = {
-      tag: 'path',
-      attrs: {
-        class: `${cls} tc-marker`,
-        d: markerPath(slot, +(attrs.cx ?? 0), +(attrs.cy ?? 0), +(attrs.r ?? 0)),
-      },
-      children: [],
-      key: child.key,
-    }
-    return shaped
-  }
-  return {
-    ...child,
-    children: child.children.map((c) => reshape(c, group ? Number(group[1]) - 1 : slot) as Child),
-  }
-}
-
-/** The step that gives the points of charts with `shapes` (or `patterns: true`) their shapes. */
-export const shapesStep: PostStep = (config, content) =>
-  (config.shapes ?? config.patterns === true) ? reshape(content, -1) : content
+/**
+ * @deprecated Points are drawn in their shapes as the chart renders: this
+ * step leaves the content as it is. It will be removed in the next major.
+ */
+export const shapesStep: PostStep = (_config, content) => content

@@ -46,6 +46,12 @@ export interface ScatterSeries {
   class?: ClassValue
   /** Start hidden (toggle it back from the legend). */
   hidden?: boolean
+  /**
+   * Write values on this series' marks, whatever the chart's `valueLabels`
+   * says: `true` labels it even when the chart option is off, `false` leaves
+   * it out. Needs `@tabler/charts/value-labels` on the core.
+   */
+  valueLabels?: boolean
 }
 
 export interface ScatterOptions {
