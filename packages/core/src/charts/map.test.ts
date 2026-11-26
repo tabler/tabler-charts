@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, chartToString, renderContext } from '../chart.ts'
+import { buildChart, type ChartConfig, chartToString, renderChart } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
 import { world } from '../maps/world.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, highlightOf, tableOf } from '../test-utils.ts'
 import { addMap, type MapData, type MapOptions, map } from './map.ts'
 
 /** Two squares (B with a hole), a country too small for a shape, and the equator through the middle. */
@@ -32,12 +32,7 @@ const render = (config: Partial<ChartConfig<MapOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'm')
 
 function interactionOf(config: Partial<ChartConfig<MapOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'm', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
+  return chartInteraction({ ...base, ...config }, size, 'm')
 }
 
 const styles = (node: ReturnType<typeof render>) =>
@@ -138,7 +133,7 @@ describe('map', () => {
     const a = hitTest(40, 40)
     expect(a).toMatchObject({ index: 0, label: 'A', title: '' })
     expect(a?.items).toMatchObject([{ name: 'Aland', value: 0, text: '0' }])
-    expect(a?.mark?.d).toBe('M20 20L60 20L60 60L20 60Z')
+    expect(highlightOf(a, 'halo')?.d).toBe('M20 20L60 20L60 60L20 60Z')
     expect(hitTest(124, 24)?.label).toBe('B')
     // The hole of B, the sea and a point outside the chart.
     expect(hitTest(140, 40)).toBeNull()
@@ -173,7 +168,7 @@ describe('map', () => {
     const marker = interaction.hitTest(101, 51)
     expect(marker).toMatchObject({ label: 'Null Island', title: '' })
     expect(marker?.items).toMatchObject([{ name: 'Null Island', value: null, text: '' }])
-    expect(marker?.mark?.d).toContain('a7 7 0 1 0 14 0')
+    expect(highlightOf(marker, 'halo')?.d).toContain('a7 7 0 1 0 14 0')
   })
 
   test('shows the scale with the ends of the range', () => {
@@ -199,8 +194,7 @@ describe('map', () => {
 
   test('lists the regions with a value in the table', () => {
     const config = { ...base, data: { B: 1500, A: 2, ZZ: 1 } }
-    const ctx = renderContext(config, size, 'm', () => {}, new Set())
-    expect(map.table?.(config, ctx, 10)).toEqual({
+    expect(tableOf(config, 10)).toEqual({
       columns: ['', 'Value'],
       total: 2,
       rows: [
@@ -208,7 +202,7 @@ describe('map', () => {
         ['Aland', '2'],
       ],
     })
-    expect(map.table?.(config, ctx, 1).rows).toHaveLength(1)
+    expect(tableOf(config, 1)?.rows).toHaveLength(1)
   })
 
   test('finds a map by the name it was added with', () => {
@@ -297,14 +291,10 @@ describe('map', () => {
 
   test('draws the world and finds a country by its coordinates', () => {
     const big = { width: 1000, height: 489 }
-    let interaction: Interaction | undefined
-    const node = buildChart(
+    const { svg: node, interaction } = renderChart(
       { ...base, map: world, data: { PL: 80, DE: 45, SG: 10 } },
       big,
       'm',
-      (i) => {
-        interaction = i
-      },
     )
     expect(findByClass(node, 'tc-region').length).toBeGreaterThan(170)
     expect(findByClass(node, 'tc-region-point').map((r) => r.key)).toEqual(['SG'])

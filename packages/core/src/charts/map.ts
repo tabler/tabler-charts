@@ -1,4 +1,4 @@
-import type { ChartType, DataTable, RenderContext } from '../chart.ts'
+import type { ChartType, DataTable, RenderContext, RenderResult, TableContext } from '../chart.ts'
 import { formatNumber, type NumberFormat } from '../format.ts'
 import type { Hit, Interaction } from '../interaction.ts'
 import {
@@ -287,7 +287,7 @@ interface Entry {
   value: number | null
 }
 
-function renderMap(options: MapOptions, ctx: RenderContext) {
+function renderMap(options: MapOptions, ctx: RenderContext): RenderResult {
   const { width, height, fontSize, locale } = ctx
   if (typeof options.map === 'string' && !maps[options.map]) {
     throw new Error(
@@ -295,7 +295,7 @@ function renderMap(options: MapOptions, ctx: RenderContext) {
     )
   }
   const map = typeof options.map === 'string' ? maps[options.map] : options.map
-  if (!isMap(map)) return null
+  if (!isMap(map)) return { content: null }
   const shapes = shapesOf(map)
   const data = options.data ?? {}
   const value = formatNumber(options.format, locale)
@@ -442,7 +442,8 @@ function renderMap(options: MapOptions, ctx: RenderContext) {
           color: marker ? MARKER : v === null ? EMPTY : paint(position(v)).color,
         },
       ],
-      mark: {
+      highlight: {
+        kind: 'halo',
         d: dot
           ? circlePath(dot.x, dot.y, radius + 3)
           : (shape?.rings ?? [])
@@ -453,8 +454,6 @@ function renderMap(options: MapOptions, ctx: RenderContext) {
                 return `${d}Z`
               })
               .join(''),
-        x: 0,
-        y: 0,
       },
     }
   }
@@ -485,8 +484,6 @@ function renderMap(options: MapOptions, ctx: RenderContext) {
       return null
     },
   }
-  ctx.onHitTest(interaction)
-
   const regions: VNode[] = []
   // A selected shape goes in after the others, where nothing covers its outline.
   const raised: VNode[] = []
@@ -552,7 +549,7 @@ function renderMap(options: MapOptions, ctx: RenderContext) {
   const selectable = options.select === 'single' || options.select === 'multiple'
   const clip = `${ctx.id}-map`
 
-  return [
+  const content = [
     clipped &&
       h(
         'clipPath',
@@ -623,10 +620,11 @@ function renderMap(options: MapOptions, ctx: RenderContext) {
         ),
       ),
   ]
+  return { content, interaction }
 }
 
 /** Table: one row per region with a value, in the order of the data. */
-function mapTable(options: MapOptions, ctx: RenderContext, limit: number): DataTable {
+function mapTable(options: MapOptions, ctx: TableContext, limit: number): DataTable {
   const map = typeof options.map === 'string' ? maps[options.map] : options.map
   const shapes = isMap(map) ? shapesOf(map) : undefined
   const value = formatNumber(options.format, ctx.locale)
