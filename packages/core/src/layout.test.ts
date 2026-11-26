@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { estimateTextWidth, innerRect, insets } from './layout.ts'
+import { estimateTextWidth, type FrameInsets, innerRect, insets, plotFrame } from './layout.ts'
 
 describe('insets()', () => {
   test('expands a number to all sides', () => {
@@ -56,5 +56,52 @@ describe('estimateTextWidth()', () => {
     const width = estimateTextWidth('Revenue', 12)
     expect(width).toBeGreaterThan(40)
     expect(width).toBeLessThan(55)
+  })
+})
+
+describe('plotFrame()', () => {
+  const size = { width: 400, height: 200 }
+  const grow = (pad: FrameInsets): FrameInsets => ({
+    top: pad.top + 5,
+    bottom: pad.bottom + 20,
+    start: pad.start + 40,
+    end: pad.end + 10,
+  })
+
+  test('puts the start side on the left, the range from the left', () => {
+    const frame = plotFrame(size, { left: 30 }, grow)
+    expect(frame.area).toEqual({ x: 70, y: 5, width: 320, height: 175 })
+    expect(frame.side).toBe('left')
+    expect(frame.range()).toEqual([70, 390])
+    expect(frame.range(true)).toEqual([390, 70])
+  })
+
+  test('right to left, the start side and the range move to the right', () => {
+    const frame = plotFrame({ ...size, rtl: true }, { left: 30 }, grow)
+    // The padding stays where it was given: on the left, now the end side.
+    expect(frame.area).toEqual({ x: 40, y: 5, width: 320, height: 175 })
+    expect(frame.side).toBe('right')
+    expect(frame.range()).toEqual([360, 40])
+    expect(frame.range(false)).toEqual([40, 360])
+  })
+
+  test('hands the padding over by reading direction', () => {
+    const seen: FrameInsets[] = []
+    const spy = (pad: FrameInsets) => {
+      seen.push(pad)
+      return pad
+    }
+    plotFrame(size, { left: 1, right: 2, top: 3 }, spy)
+    plotFrame({ ...size, rtl: true }, { left: 1, right: 2, top: 3 }, spy)
+    expect(seen).toMatchObject([
+      { top: 3, bottom: 0, start: 1, end: 2 },
+      { top: 3, bottom: 0, start: 2, end: 1 },
+    ])
+  })
+
+  test('never leaves a negative area', () => {
+    const frame = plotFrame({ width: 20, height: 10 }, 0, grow)
+    expect(frame.area.width).toBe(0)
+    expect(frame.area.height).toBe(0)
   })
 })
