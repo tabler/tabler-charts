@@ -13,7 +13,7 @@ export default definePage({
   subtitle: 'Two charts with one cursor: the same year in both',
   source: `${co2.source}; ${anomaly.source}`,
   width: 720,
-  hover: { x: 0.53, y: 0.45 },
+  hover: { x: 0.74, y: 0.5 },
   render(body) {
     for (const [heading, page] of [
       ['Atmospheric CO₂, annual mean at Mauna Loa', co2],
