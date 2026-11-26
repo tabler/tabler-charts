@@ -73,6 +73,8 @@ describe('built package', () => {
     const { radar } = await import('../dist/radar.js')
     const { heatmap } = await import('../dist/heatmap.js')
     const { calendar } = await import('../dist/calendar.js')
+    const { map } = await import('../dist/map.js')
+    const { world } = await import('../dist/maps/world.js')
     const { candlestick } = await import('../dist/candlestick.js')
     const { sparkline } = await import('../dist/sparkline.js')
     for (const type of [line, area, bar])
@@ -93,6 +95,9 @@ describe('built package', () => {
     expect(
       chartToString({ type: calendar, data: [{ date: '2026-01-05', value: 2 }] }, size),
     ).toContain('tc-calendar-cells')
+    expect(chartToString({ type: map, map: world, data: { PL: 1 } }, size)).toContain(
+      'tc-map-regions',
+    )
     expect(
       chartToString(
         { type: candlestick, data: [{ x: 'a', open: 1, high: 3, low: 0, close: 2 }] },

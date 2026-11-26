@@ -6,19 +6,27 @@ import { area } from './charts/area.ts'
 import { bar } from './charts/bar.ts'
 import { calendar } from './charts/calendar.ts'
 import { candlestick } from './charts/candlestick.ts'
+import { funnel } from './charts/funnel.ts'
 import { gauge } from './charts/gauge.ts'
 import { heatmap } from './charts/heatmap.ts'
 import { line } from './charts/line.ts'
+import { map } from './charts/map.ts'
+import { parliament } from './charts/parliament.ts'
+import { percentageBar } from './charts/percentage-bar.ts'
 import { donut, pie } from './charts/pie.ts'
 import { radar } from './charts/radar.ts'
+import { sankey } from './charts/sankey.ts'
 import { scatter } from './charts/scatter.ts'
 import { sparkline } from './charts/sparkline.ts'
+import { treemap } from './charts/treemap.ts'
 import './annotations.ts'
 import './decimate.ts'
 import './line.ts'
 import './log.ts'
 import { flush } from './scheduler.ts'
+import { missingTypes } from './test-utils.ts'
 import './time.ts'
+import { world } from './maps/world.ts'
 
 /**
  * Randomized DOM-level test: mount charts with random configs, then apply
@@ -56,7 +64,14 @@ const series = (n: number, len: number) =>
   }))
 
 const cartesianTypes: ChartType<object>[] = [line, area, bar] as ChartType<object>[]
-const pieTypes: ChartType<object>[] = [pie, donut] as ChartType<object>[]
+/** Types that take a list of named parts, `{ name, value }`. */
+const pieTypes: ChartType<object>[] = [
+  pie,
+  donut,
+  percentageBar,
+  funnel,
+  treemap,
+] as ChartType<object>[]
 
 /** Whether two chart types share a data shape (so configs can be mixed). */
 const sameFamily = (a: ChartType<object>, b: ChartType<object>): boolean =>
@@ -102,9 +117,62 @@ function randomConfig(): ChartConfig<object> {
     'gauge',
     'heatmap',
     'calendar',
+    'map',
     'candlestick',
     'radar',
+    'parts',
+    'parliament',
+    'sankey',
   ])
+  if (kind === 'parts') {
+    const parts = series(n, 1).map((s) => ({
+      name: s.name,
+      value: s.values[0] ?? 0,
+      hidden: s.hidden,
+      color: s.color,
+    }))
+    const type = pick([percentageBar, funnel, treemap])
+    return {
+      type,
+      ...base,
+      // A treemap tile can hold tiles of its own.
+      data:
+        type === treemap
+          ? parts.map((p, i) => (i % 2 ? { name: p.name, children: parts.slice(0, 2) } : p))
+          : parts,
+      maxSlices: maybe(0.3, pick([1, 3])),
+    } as ChartConfig<object>
+  }
+  if (kind === 'parliament') {
+    return {
+      type: parliament,
+      ...base,
+      data: series(n, 1).map((s) => ({
+        name: s.name,
+        seats: Math.round(Math.abs(s.values[0] ?? 0)) % 400,
+        hidden: s.hidden,
+      })),
+      rows: maybe(0.3, pick([1, 4, 30])),
+    } as ChartConfig<object>
+  }
+  if (kind === 'sankey') {
+    const names = series(Math.max(2, n + 1), 0).map((s) => s.name)
+    return {
+      type: sankey,
+      ...base,
+      data: {
+        nodes: maybe(
+          0.3,
+          names.map((name) => ({ name, hidden: maybe(0.2, true) })),
+        ),
+        links: Array.from({ length: len % 13 }, () => ({
+          from: pick(names),
+          to: pick(names),
+          value: value() ?? 0,
+        })),
+      },
+    } as ChartConfig<object>
+  }
   if (kind === 'candlestick') {
     return {
       type: candlestick,
@@ -153,6 +221,26 @@ function randomConfig(): ChartConfig<object> {
       levels: maybe(0.2, pick([1, 2, 9])),
       colors: maybe(0.2, pick(['diverging', ['#fff', '#000']])),
       max: maybe(0.2, pick([0, 10])),
+    } as ChartConfig<object>
+  }
+  if (kind === 'map') {
+    const codes = ['PL', 'DE', 'US', 'SG', 'FR', 'ZZ', 'BR', 'AU']
+    return {
+      type: map,
+      ...base,
+      map: world,
+      data: Object.fromEntries(series(1, len)[0]?.values.map((v, i) => [codes[i % 8], v]) ?? []),
+      min: maybe(0.2, 0),
+      max: maybe(0.2, pick([0, 10])),
+      colors: maybe(0.3, ['red', 'white', 'green']),
+      mid: maybe(0.2, 0),
+      scale: maybe(0.3, false),
+      markers: maybe(0.5, [
+        { name: 'A', lat: 52, lng: 21 },
+        { name: 'B', lat: -33, lng: 151 },
+        { lat: pick([0, 90, -90, 400]), lng: pick([0, 180, -720]) },
+      ]),
+      lines: maybe(0.5, [{ from: 'A', to: pick(['B', 'C']) }]),
     } as ChartConfig<object>
   }
   if (kind === 'heatmap') {
@@ -441,4 +529,10 @@ describe('randomized DOM sessions', () => {
       }
     }
   })
+})
+
+test('covers every built-in chart type', () => {
+  const seen = new Set<string>()
+  for (let i = 0; i < 2000 && missingTypes(seen).length; i++) seen.add(randomConfig().type.name)
+  expect(missingTypes(seen)).toEqual([])
 })

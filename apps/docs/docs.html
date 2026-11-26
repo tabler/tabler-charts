@@ -151,7 +151,7 @@ const chart = new Chart('#sales', {
             understands are type-checked with it.
           </p>
           <pre><code>import { area, bar, calendar, candlestick, donut, funnel, gauge, heatmap,
-         line, parliament, percentageBar, pie, radar, sankey, scatter, sparkline, treemap } from '@tabler/charts'</code></pre>
+         line, map, parliament, percentageBar, pie, radar, sankey, scatter, sparkline, treemap } from '@tabler/charts'</code></pre>
           <div class="docs-table">
             <table>
               <thead><tr><th>Type</th><th>Data</th><th>Notable options</th></tr></thead>
@@ -169,6 +169,7 @@ const chart = new Chart('#sales', {
                 <tr><td><code>scatter</code></td><td><code>{ series: [{ name, points }] }</code></td><td><code>radius</code>, <code>size</code>; points with <code>size</code> are bubbles</td></tr>
                 <tr><td><code>heatmap</code></td><td><code>{ labels, series }</code> (rows)</td><td><code>min</code>, <code>max</code>, <code>ranges</code>, <code>colors</code></td></tr>
                 <tr><td><code>calendar</code></td><td><code>[{ date, value }]</code></td><td><code>weeks</code>, <code>from</code>, <code>to</code>, <code>weekStart</code>, <code>levels</code>, <code>colors</code> (<code>'diverging'</code>)</td></tr>
+                <tr><td><code>map</code></td><td><code>{ PL: 80, DE: 45 }</code> (a value per region code)</td><td><code>map</code> (a map file, e.g. <code>world</code> from <code>@tabler/charts/maps/world</code>), <code>min</code>, <code>max</code>, <code>colors</code>, <code>markers</code>, <code>lines</code>, <code>scale</code>, <code>zoom</code>, <code>select</code></td></tr>
                 <tr><td><code>candlestick</code></td><td><code>[{ x, open, high, low, close }]</code></td><td>time axis, <code>maxCandleWidth</code></td></tr>
                 <tr><td><code>sparkline</code></td><td><code>number[]</code></td><td><code>variant</code> (<code>'line'</code>, <code>'area'</code>, <code>'bar'</code>, <code>'tristate'</code>), <code>markers: 'minmax'</code></td></tr>
               </tbody>
@@ -202,7 +203,7 @@ const chart = new Chart('#sales', {
                 <tr><td><code>legend</code></td><td>for 2+ series</td><td><code>false</code>, <code>true</code> or <code>{ position: 'bottom' }</code></td></tr>
                 <tr><td><code>tooltip</code></td><td><code>true</code></td><td><code>false</code>, or <code>{ theme, format, footer }</code>: <code>theme: 'light'</code> for a white tooltip instead of the dark one, <code>format</code> and <code>footer</code> for custom content</td></tr>
                 <tr><td><code>crosshair</code></td><td><code>true</code></td><td></td></tr>
-                <tr><td><code>valueLabels</code></td><td><code>false</code></td><td>Values written on the marks; <code>{ points: 'all' }</code> for every point</td></tr>
+                <tr><td><code>valueLabels</code></td><td><code>false</code></td><td>Values written on the marks; <code>{ points: 'all' }</code> for every point. A series' own <code>valueLabels</code> (<code>true</code> or <code>false</code>) overrides it for that series</td></tr>
                 <tr><td><code>animate</code></td><td><code>true</code></td><td>Transitions between data; off under <code>prefers-reduced-motion</code></td></tr>
                 <tr><td><code>sync</code></td><td></td><td>A group name: charts of one group share the hover</td></tr>
                 <tr><td><code>patterns</code></td><td><code>'auto'</code></td><td>Pattern fills so series do not depend on color; <code>'auto'</code> is forced colors only</td></tr>

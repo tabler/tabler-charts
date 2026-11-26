@@ -8,7 +8,7 @@ import { barPath } from '../shapes/bar.ts'
 import { circlePath } from '../shapes/circle.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
 import { h } from '../vnode.ts'
-import { domainOf, type Label, labelKey } from './cartesian.ts'
+import { domainOf, type Label, labelKey, markerShape, pointMark } from './cartesian.ts'
 import { cleanData, label, numbers } from './clean.ts'
 
 export interface SparklineOptions {
@@ -106,7 +106,9 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
       area,
       items: [item],
     }
-    if (value !== null) hit.mark = { d: circlePath(pointRadius + 3), x: px, y: yOf(value) }
+    if (value !== null) {
+      hit.highlight = { kind: 'halo', d: circlePath(pointRadius + 3), x: px, y: yOf(value) }
+    }
     return hit
   }
   const interaction: Interaction = {
@@ -121,7 +123,6 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
       return hitFor(place(Math.max(0, Math.min(count - 1, i))))
     },
   }
-  ctx.onHitTest(interaction)
 
   const marks = []
   if (tristate) {
@@ -179,17 +180,20 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
     marks.push(h('path', { class: 'tc-line', d: linePath(points, { curve }) }))
   }
 
+  const shape = markerShape(options)
   const dotAt = (i: number, cls: string) => {
     const v = values[i]
     return v == null
       ? null
-      : h('circle', {
-          key: `${cls}-${i}`,
-          class: ['tc-point', cls],
-          cx: round(xAt(i)),
-          cy: round(y(v)),
-          r: pointRadius,
-        })
+      : pointMark(
+          shape,
+          0,
+          `${cls}-${i}`,
+          ['tc-point', cls],
+          round(xAt(i)),
+          round(y(v)),
+          pointRadius,
+        )
   }
   const extremes = []
   if (markers === 'minmax') {
@@ -213,7 +217,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
     }
   }
 
-  return [
+  const content = [
     variant === 'area' && h('defs', null, fadeMask(`${ctx.id}-fade`)),
     h(
       'g',
@@ -223,6 +227,7 @@ function renderSparkline(options: SparklineOptions, ctx: RenderContext) {
       last !== -1 && !bars && dotAt(last, 'tc-point-last'),
     ),
   ]
+  return { content, interaction }
 }
 
 /**

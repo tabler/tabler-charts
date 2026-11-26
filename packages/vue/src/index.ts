@@ -32,6 +32,8 @@ import {
   heatmap,
   type LineOptions,
   line,
+  type MapOptions,
+  map,
   type ParliamentOptions,
   type PercentageBarOptions,
   type PieOptions,
@@ -89,6 +91,7 @@ export const CalendarChart: ChartComponent<CalendarOptions> = /* @__PURE__ */ ch
   calendar,
   'CalendarChart',
 )
+export const MapChart: ChartComponent<MapOptions> = /* @__PURE__ */ chartComponent(map, 'MapChart')
 export const CandlestickChart: ChartComponent<CandlestickOptions> = /* @__PURE__ */ chartComponent(
   candlestick,
   'CandlestickChart',

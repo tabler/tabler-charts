@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig, resolveSize } from '../chart.ts'
+import { buildChart, type ChartConfig, resolveLegend, resolveSize } from '../chart.ts'
 import type { Interaction } from '../interaction.ts'
-import { findByClass } from '../test-utils.ts'
+import { chartInteraction, findByClass, tableOf } from '../test-utils.ts'
 import { type PercentageBarOptions, percentageBar } from './percentage-bar.ts'
 
 const size = { width: 400, height: 16 }
@@ -21,14 +21,8 @@ const base: ChartConfig<PercentageBarOptions> = {
 const render = (config: Partial<ChartConfig<PercentageBarOptions>> = {}) =>
   buildChart({ ...base, ...config }, size, 'b')
 
-function interactionOf(config: Partial<ChartConfig<PercentageBarOptions>> = {}): Interaction {
-  let found: Interaction | undefined
-  buildChart({ ...base, ...config }, size, 'b', (i) => {
-    found = i
-  })
-  if (!found) throw new Error('no interaction')
-  return found
-}
+const interactionOf = (config: Partial<ChartConfig<PercentageBarOptions>> = {}): Interaction =>
+  chartInteraction({ ...base, ...config }, size, 'b')
 
 const segmentsOf = (node: ReturnType<typeof render>) =>
   findByClass(node, 'tc-segment').map((s) => ({
@@ -36,16 +30,6 @@ const segmentsOf = (node: ReturnType<typeof render>) =>
     width: Number(s.attrs.width),
     height: Number(s.attrs.height),
   }))
-
-const ctx = () => ({
-  width: 400,
-  height: 16,
-  fontSize: 12,
-  locale: 'en-US',
-  id: 'b',
-  onHitTest() {},
-  hidden: new Set<string>(),
-})
 
 describe('percentage bar', () => {
   test('draws one segment per entry, in palette slots, as wide as its share', () => {
@@ -175,7 +159,7 @@ describe('percentage bar', () => {
 
     test('the legend, the tooltip and the table have the rest as one entry', () => {
       const options = { data: many, maxSlices: 4 }
-      expect(percentageBar.legend?.(options)).toEqual([
+      expect(resolveLegend({ type: percentageBar, ...options }).items).toEqual([
         { key: 'n1', name: 'n1', index: 1 },
         { key: 'n3', name: 'n3', index: 3 },
         { key: 'n5', name: 'n5', index: 5 },
@@ -183,7 +167,7 @@ describe('percentage bar', () => {
       ])
       const hit = interactionOf(options).hitTest(390, 8)
       expect(hit?.items[0]).toMatchObject({ name: 'Others', value: 35, text: '35 (35%)' })
-      expect(percentageBar.table?.(options, ctx(), 100)?.rows).toEqual([
+      expect(tableOf({ type: percentageBar, ...options }, 100)?.rows).toEqual([
         ['n1', '30', '30%'],
         ['n3', '20', '20%'],
         ['n5', '15', '15%'],
@@ -221,7 +205,7 @@ describe('percentage bar', () => {
 
   test('the table lists every segment with its value and share', () => {
     const format = { style: 'currency', currency: 'USD', maximumFractionDigits: 0 } as const
-    expect(percentageBar.table?.({ data, format }, ctx(), 100)).toEqual({
+    expect(tableOf({ type: percentageBar, data, format }, 100)).toEqual({
       columns: ['', 'Value', 'Share'],
       rows: [
         ['Paid', '$50', '50%'],
