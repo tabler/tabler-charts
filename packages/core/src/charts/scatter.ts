@@ -4,15 +4,7 @@ import { axis, axisSize, type Tick, thinTicks } from '../components/axis.ts'
 import { grid } from '../components/grid.ts'
 import { formatDetail, formatNumber } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
-import {
-  estimateTextWidth,
-  type InsetsInput,
-  innerRect,
-  insets,
-  LINE_HEIGHT,
-  mirrorSides,
-  round,
-} from '../layout.ts'
+import { estimateTextWidth, type InsetsInput, LINE_HEIGHT, plotFrame, round } from '../layout.ts'
 import { extent } from '../scales/extent.ts'
 import type { LinearScale } from '../scales/linear.ts'
 import { circlePath } from '../shapes/circle.ts'
@@ -138,28 +130,20 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
   const probeX = ticksOf(valueScale(xDomain, [0, 1], xOptions), xOptions, countX)
   const half = (tick: Tick | undefined) =>
     showX && tick ? Math.ceil(estimateTextWidth(tick.label, fontSize) / 2) : 0
-  // Right to left, the sides are worked out as their mirror image, then swapped.
-  const { rtl } = ctx
-  const reverse = xOptions.reverse ?? rtl === true
-  // The x tick at the value axis' end of the plot, and the one at the other end.
-  const near = reverse === (rtl === true) ? 0 : probeX.length - 1
-  const pad = mirrorSides(insets(options.padding), rtl)
-  const margins = mirrorSides(
-    {
-      top:
-        pad.top + Math.max(showY ? Math.ceil((fontSize * LINE_HEIGHT) / 2) : 0, overhang, EDGE / 2),
-      right: pad.right + Math.max(half(probeX[probeX.length - 1 - near]), overhang, EDGE),
-      bottom:
-        pad.bottom + Math.max(showX ? axisSize('bottom', probeX, fontSize) : 0, overhang, EDGE / 2),
-      left:
-        pad.left +
-        Math.max(showY ? axisSize('left', probeY, fontSize) : 0, half(probeX[near]), overhang),
-    },
-    rtl,
-  )
-  const area = innerRect(width, height, margins)
-  const end = area.x + area.width
-  const x = valueScale(xDomain, reverse ? [end, area.x] : [area.x, end], xOptions)
+  const reverse = xOptions.reverse ?? ctx.rtl === true
+  // The x tick on the start side of the plot, and the one on the end side.
+  const near = reverse === (ctx.rtl === true) ? 0 : probeX.length - 1
+  const { area, side, range } = plotFrame(ctx, options.padding, (pad) => ({
+    top:
+      pad.top + Math.max(showY ? Math.ceil((fontSize * LINE_HEIGHT) / 2) : 0, overhang, EDGE / 2),
+    bottom:
+      pad.bottom + Math.max(showX ? axisSize('bottom', probeX, fontSize) : 0, overhang, EDGE / 2),
+    start:
+      pad.start +
+      Math.max(showY ? axisSize('left', probeY, fontSize) : 0, half(probeX[near]), overhang),
+    end: pad.end + Math.max(half(probeX[probeX.length - 1 - near]), overhang, EDGE),
+  }))
+  const x = valueScale(xDomain, range(reverse), xOptions)
   const y = valueScale(yDomain, [area.y + area.height, area.y], yOptions)
   // Thinned like the ticks of the other charts: on a log axis they crowd at the end of each decade.
   const xTicks = thinTicks(ticksOf(x, xOptions, countX), 'bottom', fontSize)
@@ -296,7 +280,7 @@ function renderScatter(options: ScatterOptions, ctx: RenderContext) {
     h('defs', null, clip.def),
     background,
     h('g', { key: 'series', class: 'tc-series-list', 'clip-path': clip.url }, groups),
-    showY && axis({ position: rtl ? 'right' : 'left', ticks: yTicks, area }),
+    showY && axis({ position: side, ticks: yTicks, area }),
     showX && axis({ position: 'bottom', ticks: xTicks, area }),
   ]
   return { content, interaction }
