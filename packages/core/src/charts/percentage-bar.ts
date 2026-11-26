@@ -1,12 +1,18 @@
 import type { DataTable } from '../a11y.ts'
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult, TableContext } from '../chart.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets, round } from '../layout.ts'
-import { type ChildInput, type ClassValue, h } from '../vnode.ts'
+import { type ClassValue, h } from '../vnode.ts'
 import { cleanItems } from './clean.ts'
 import { groupAttrs, keyOf } from './named.ts'
-import { type Grouped, groupLegend, groupSlices } from './others.ts'
+import {
+  type Grouped,
+  type SliceGrouping,
+  slicesLegend,
+  type WithSlices,
+  withSlices,
+} from './others.ts'
 
 /** One segment of a percentage bar. */
 export interface PercentageBarSegment {
@@ -26,24 +32,14 @@ export interface PercentageBarSegment {
   hidden?: boolean
 }
 
-export interface PercentageBarOptions {
+export interface PercentageBarOptions extends SliceGrouping {
   data: readonly PercentageBarSegment[]
   /**
    * Order of the segments along the bar: as in the data (`'data'`, the
    * default) or the largest first (`'size'`). Colors follow the data either
-   * way, and the segment of the rest always comes last.
+   * way, and Others always comes last.
    */
   order?: 'data' | 'size'
-  /**
-   * The most segments drawn, the one for the rest included: with more entries
-   * than that, the largest `maxSlices - 1` keep a segment of their own and
-   * the others share one, named by `othersLabel`, at the end of the bar.
-   * Defaults to `9` (the eight palette colors and the rest); `0` never
-   * groups.
-   */
-  maxSlices?: number
-  /** Name of the segment that groups the rest. Defaults to `'Others'`. */
-  othersLabel?: string
   /** Space between segments in pixels, drawn as surface. Defaults to `2`. */
   gap?: number
   /** Corner radius of the segments. Defaults to `4`. */
@@ -59,30 +55,28 @@ const HEIGHT = 16
 
 type Segment = Grouped<PercentageBarSegment>
 
-/** The segments of the data: nine at most by default, the one for the rest included. */
-const group = (options: PercentageBarOptions): Segment[] =>
-  groupSlices(options.data, options.maxSlices, options.othersLabel)
+/**
+ * The chart model of a percentage bar: its options, with the segments of the
+ * data (nine at most by default, the one for the rest included).
+ */
+export type PercentageBarModel = WithSlices<PercentageBarOptions>
 
 /** The visible segments in their order along the bar, and their sum. */
 function segmentsOf(
-  options: PercentageBarOptions,
+  options: PercentageBarModel,
   hidden: ReadonlySet<string>,
 ): { segments: Segment[]; total: number } {
-  const count = options.data.length
-  const segments = group(options).filter((segment) => !hidden.has(keyOf(segment.data)))
+  const segments = options.slices.filter((segment) => !hidden.has(keyOf(segment.data)))
   if (options.order === 'size') {
-    // (The rest stays last, whatever its size.)
+    // (Others stays last, whatever its size.)
     segments.sort(
-      (a, b) =>
-        Number(a.index >= count) - Number(b.index >= count) ||
-        b.value - a.value ||
-        a.index - b.index,
+      (a, b) => Number(!!a.others) - Number(!!b.others) || b.value - a.value || a.index - b.index,
     )
   }
   return { segments, total: segments.reduce((sum, segment) => sum + segment.value, 0) }
 }
 
-function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext): ChildInput {
+function renderPercentageBar(options: PercentageBarModel, ctx: RenderContext): RenderResult {
   const { width, height, locale } = ctx
   const gap = Math.max(0, options.gap ?? 2)
   const radius = Math.max(0, options.radius ?? 4)
@@ -135,10 +129,9 @@ function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext):
       items: [item],
       seriesIndex: segment.index,
       // A ring just inside the hovered segment.
-      mark: {
+      highlight: {
+        kind: 'halo',
         d: `M${n(box.x + 1)},${n(box.y + 1)}h${n(box.width - 2)}v${n(box.height - 2)}h${n(2 - box.width)}Z`,
-        x: 0,
-        y: 0,
       },
     }
   }
@@ -155,9 +148,8 @@ function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext):
       return position < 0 ? null : hitFor(position)
     },
   }
-  ctx.onHitTest(interaction)
 
-  return h(
+  const content = h(
     'g',
     { class: 'tc-percentage-bar' },
     // Empty: the track alone, so the chart keeps its place.
@@ -188,9 +180,10 @@ function renderPercentageBar(options: PercentageBarOptions, ctx: RenderContext):
       )
     }),
   )
+  return { content, interaction }
 }
 
-function percentageBarTable(options: PercentageBarOptions, ctx: RenderContext): DataTable {
+function percentageBarTable(options: PercentageBarModel, ctx: TableContext): DataTable {
   const { segments, total } = segmentsOf(options, ctx.hidden)
   const value = formatNumber(options.format, ctx.locale)
   const share = getNumberFormat(ctx.locale, { style: 'percent', maximumFractionDigits: 1 })
@@ -216,7 +209,7 @@ function percentageBarTable(options: PercentageBarOptions, ctx: RenderContext): 
  * })
  * ```
  */
-export const percentageBar: ChartType<PercentageBarOptions> = {
+export const percentageBar: ChartType<PercentageBarOptions, PercentageBarModel> = {
   name: 'percentage-bar',
   // (The options come with the whole config: its size is defaulted here.)
   clean: (options) => {
@@ -227,8 +220,9 @@ export const percentageBar: ChartType<PercentageBarOptions> = {
       height: config.height ?? (config.aspectRatio ? undefined : HEIGHT),
     }
   },
+  prepare: withSlices,
   render: renderPercentageBar,
-  legend: (options) => groupLegend(group(options)),
+  legend: slicesLegend,
   table: percentageBarTable,
   valueLabels: { marks: 'cell' },
 }

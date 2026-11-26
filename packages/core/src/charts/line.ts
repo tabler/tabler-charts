@@ -1,14 +1,16 @@
-import type { ChartType, RenderContext } from '../chart.ts'
+import type { ChartType, RenderContext, RenderResult } from '../chart.ts'
 import { fadeMask } from '../components/fade.ts'
 import { feature } from '../features.ts'
 import { round } from '../layout.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
-import { type ChildInput, h } from '../vnode.ts'
+import { h } from '../vnode.ts'
 import {
   type CartesianOptions,
   cartesianLayout,
   categoryInteraction,
+  markerShape,
   plottable,
+  pointMark,
   resolveLabels,
   type Series,
   seriesAttrs,
@@ -71,7 +73,7 @@ function seriesPoints(
 }
 
 /** Render line (and optionally area) series; shared by `line` and `area`. */
-export function renderLines(options: LineOptions, ctx: RenderContext, fill: boolean): ChildInput {
+export function renderLines(options: LineOptions, ctx: RenderContext, fill: boolean): RenderResult {
   const {
     curve = 'monotone',
     points = 'none',
@@ -102,12 +104,10 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   })
   const { x, y, labels } = layout
   const baseline = y(Math.min(Math.max(0, y.domain[0]), y.domain[1]))
-  ctx.onHitTest(
-    categoryInteraction(layout, options, ctx, (seriesIndex, i, v) => ({
-      x: x.at(i),
-      y: y(stacks ? (stacks[seriesIndex]?.[i]?.y1 ?? 0) : v),
-    })),
-  )
+  const interaction = categoryInteraction(layout, options, ctx, (seriesIndex, i, v) => ({
+    x: x.at(i),
+    y: y(stacks ? (stacks[seriesIndex]?.[i]?.y1 ?? 0) : v),
+  }))
   const gradient = filled && fillStyle === 'gradient'
   const fadeId = `${ctx.id}-fade`
 
@@ -166,6 +166,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
       ),
     )
 
+  const shape = markerShape(options)
   const lines = options.data.series.map((s, index) => {
     if (!visible(s)) return null
     const pts = drawn(index)
@@ -180,19 +181,13 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
           'g',
           { class: 'tc-points' },
           dots.map(([cx, cy]) =>
-            h('circle', {
-              key: cx,
-              class: 'tc-point',
-              cx: round(cx),
-              cy: round(cy),
-              r: pointRadius,
-            }),
+            pointMark(shape, index, cx, 'tc-point', round(cx), round(cy), pointRadius),
           ),
         ),
     )
   })
 
-  return [
+  const content = [
     h('defs', { key: 'defs' }, layout.clip.def, gradient && fadeMask(fadeId)),
     layout.background,
     // Layers are keyed: an annotation band or a grid that comes and goes must not
@@ -200,6 +195,7 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     h('g', { key: 'series', class: 'tc-series-list', 'clip-path': layout.clip.url }, areas, lines),
     layout.foreground,
   ]
+  return { content, interaction }
 }
 
 /**

@@ -110,7 +110,7 @@ export function tooltip(): ChartPlugin {
             }
             // Snap to the category, follow the pointer along the values
             // (a radar spoke runs both ways, so there it follows the pointer).
-            const ax = hit.axis === 'y' || hit.guide ? anchor.x : hit.x
+            const ax = hit.axis === 'y' || hit.highlight?.kind === 'spoke' ? anchor.x : hit.x
             const ay = hit.axis === 'y' ? (hit.y ?? anchor.y) : anchor.y
             // The tooltip may leave the container, up to what would cut it off.
             const clip = room(el)

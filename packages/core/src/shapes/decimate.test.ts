@@ -1,6 +1,6 @@
 import '../decimate.ts'
 import { describe, expect, test } from 'vitest'
-import { buildChart, type ChartConfig } from '../chart.ts'
+import { buildChart, type ChartConfig, renderChart } from '../chart.ts'
 import { area } from '../charts/area.ts'
 import { type LineOptions, line } from '../charts/line.ts'
 import { findByClass } from '../test-utils.ts'
@@ -75,11 +75,12 @@ describe('decimate option', () => {
     expect(segments(findByClass(full, 'tc-line')[0]?.attrs.d)).toBe(5000)
     expect(segments(findByClass(thin, 'tc-line')[0]?.attrs.d)).toBe(200)
     expect(findByClass(thin, 'tc-point')).toHaveLength(400)
-    let count = 0
-    buildChart({ ...base, decimate: 200 }, { width: 600, height: 300 }, 'd', (i) => {
-      count = i.count
-    })
-    expect(count).toBe(5000)
+    const { interaction } = renderChart(
+      { ...base, decimate: 200 },
+      { width: 600, height: 300 },
+      'd',
+    )
+    expect(interaction?.count).toBe(5000)
   })
 
   test('keeps stacked areas aligned with their baselines', () => {

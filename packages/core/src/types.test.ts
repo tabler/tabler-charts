@@ -11,7 +11,9 @@ import { type Chart as DefaultChart, types } from './index.ts'
 describe('public types', () => {
   test('a config takes the options of its chart type', () => {
     expectTypeOf<ChartConfig<PieOptions>['data']>().toEqualTypeOf<readonly PieSlice[]>()
-    expectTypeOf<ChartConfig<LineOptions>['type']>().toEqualTypeOf<ChartType<LineOptions>>()
+    // A config takes a chart type of its options, whatever the type's chart model.
+    expectTypeOf<ChartConfig<LineOptions>['type']>().toEqualTypeOf<ChartType<LineOptions, object>>()
+    expectTypeOf(line).toExtend<ChartConfig<LineOptions>['type']>()
     expectTypeOf({ type: pie, data: [{ name: 'A', value: 1 }] }).toExtend<ChartConfig<PieOptions>>()
 
     // @ts-expect-error `data` is required.

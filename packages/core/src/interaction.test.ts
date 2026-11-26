@@ -1,10 +1,11 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { buildChart, Chart, type ChartConfig } from './chart.ts'
+import { Chart, type ChartConfig } from './chart.ts'
 import { bar } from './charts/bar.ts'
 import { line } from './charts/line.ts'
 import { type Hit, type HitTester, hitKey, type Interaction, toChartPoint } from './interaction.ts'
 import { pointer as pointerPlugin } from './plugins/pointer.ts'
+import { chartInteraction } from './test-utils.ts'
 
 const data = {
   labels: ['Jan', 'Feb', 'Mar', 'Apr'],
@@ -15,15 +16,9 @@ const data = {
 }
 const size = { width: 400, height: 200 }
 
-/** The interaction a chart type registers while rendering. */
-function interactionFor(config: ChartConfig<object>): Interaction {
-  let found: Interaction | undefined
-  buildChart(config, size, 't', (interaction) => {
-    found = interaction
-  })
-  if (!found) throw new Error('no interaction registered')
-  return found
-}
+/** The interaction a chart type answers with. */
+const interactionFor = (config: ChartConfig<object>): Interaction =>
+  chartInteraction(config, size, 't')
 
 /** The pointer hit tester of a chart type. */
 const testerFor = (config: ChartConfig<object>): HitTester => interactionFor(config).hitTest
