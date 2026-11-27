@@ -67,6 +67,18 @@ describe('endLabels', () => {
     expect(findByClass(node, 'tc-end-label-line').length).toBeGreaterThan(0)
   })
 
+  test("a series' own color carries to its label and joining line", () => {
+    const series = base.data.series.map((s, i) => (i === 1 ? { ...s, color: '#123456' } : s))
+    const groups = findByClass(
+      render({ endLabels: true, data: { ...base.data, series } }),
+      'tc-end-label',
+    )
+    const costs = groups.find((g) => textOf(g).includes('Costs')) as VNode
+    const sales = groups.find((g) => textOf(g).includes('Sales')) as VNode
+    expect(costs.attrs.style).toContain('--tc-series-color:#123456')
+    expect(String(sales.attrs.style ?? '')).not.toContain('--tc-series-color')
+  })
+
   test('hidden series get no label', () => {
     const [sales, costs] = base.data.series
     const series = [sales, { ...costs, hidden: true }] as LineOptions['data']['series']

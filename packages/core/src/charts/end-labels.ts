@@ -24,6 +24,8 @@ export interface EndLabelText {
   key: string
   name: string
   value: string
+  /** The series' own color, if it has one. */
+  color?: string
 }
 
 /** Space between a point and its label (the joining line runs through it), and between name and value. */
@@ -49,6 +51,7 @@ function endLabelTexts(
       key: seriesKey(series),
       name: series.name,
       value: own.value === false ? '' : format(last),
+      color: series.color,
     }
   })
 }
@@ -102,7 +105,12 @@ function endLabelLayer(
       const moved = Math.abs(label.y - py) > 1
       return h(
         'g',
-        { key: label.key, class: ['tc-end-label', 'tc-series', `tc-series-${label.index + 1}`] },
+        {
+          key: label.key,
+          class: ['tc-end-label', 'tc-series', `tc-series-${label.index + 1}`],
+          // A map, so values from data cannot inject CSS (see normalizeStyle).
+          style: { '--tc-series-color': label.color },
+        },
         // From past the point's dot to just before the text.
         moved &&
           h('path', {
