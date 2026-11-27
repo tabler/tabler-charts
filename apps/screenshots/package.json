@@ -1,0 +1,21 @@
+{
+  "name": "@tabler/charts-screenshots",
+  "private": true,
+  "type": "module",
+  "description": "One page per chart, for automated screenshots of Tabler Charts",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "capture": "node scripts/capture.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@tabler/charts": "workspace:*"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "sharp": "^0.35.5",
+    "vite": "^8.3.8"
+  }
+}

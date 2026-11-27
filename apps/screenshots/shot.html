@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tabler Charts screenshots</title>
+    <!-- Inter for the pictures: the same face on every machine that runs the capture.
+    Regular, medium and semibold only: the frame's heaviest text is 600, never 700. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Before paint, so ?theme=dark never flashes the light page. -->
+    <script>
+      document.documentElement.dataset.theme =
+        new URLSearchParams(location.search).get('theme') === 'dark' ? 'dark' : 'light'
+    </script>
+  </head>
+  <body>
+    <main class="stage">
+      <div class="screenshot" id="screenshot">
+        <div class="screenshot-card" id="card" data-screenshot-target>
+          <header class="screenshot-header">
+            <div class="screenshot-title" id="title"></div>
+            <p id="subtitle"></p>
+          </header>
+          <div class="screenshot-body" id="body"></div>
+          <footer class="screenshot-source" id="source"></footer>
+        </div>
+        <div class="screenshot-logo" id="logo"></div>
+      </div>
+
+      <!-- Outside the frame on purpose: it never ends up in a picture. -->
+      <nav class="chrome" data-screenshot-chrome>
+        <a href="/">All pages</a>
+        <a href="?theme=light" data-theme-link="light">Light</a>
+        <a href="?theme=dark" data-theme-link="dark">Dark</a>
+      </nav>
+    </main>
+    <script type="module" src="/src/shot.ts"></script>
+  </body>
+</html>
