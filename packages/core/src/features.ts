@@ -1,6 +1,7 @@
 import type { ChartConfig, RenderContext } from './chart.ts'
 import type { annotationLayers, annotationValues } from './charts/annotations.ts'
 import type { dateLabels } from './charts/dates.ts'
+import type { endLabels } from './charts/end-labels.ts'
 import type { logDomain, logTicks } from './charts/log-axis.ts'
 import type { patternFills } from './charts/patterns.ts'
 import type { markerClip, markerPath } from './charts/point-shapes.ts'
@@ -17,7 +18,7 @@ import type { ChildInput } from './vnode.ts'
 
 /**
  * Optional features that chart types look up at render time. Each lives in
- * its own module (`@tabler/charts/time`, `/log`, `/decimate`, `/line`, `/annotations`) and registers
+ * its own module (`@tabler/charts/time`, `/log`, `/decimate`, `/line`, `/annotations`, `/end-labels`) and registers
  * itself when imported; `@tabler/charts` registers all of them, while
  * `@tabler/charts/core` starts empty so unused code never ships.
  */
@@ -43,6 +44,8 @@ export interface Features {
   line?: { linePath: typeof linePath; areaPath: typeof areaPath }
   /** Reference lines and bands behind `annotations` in cartesian charts. */
   annotations?: { layers: typeof annotationLayers; values: typeof annotationValues }
+  /** Names and last values at the end of lines, behind `endLabels`. */
+  'end-labels'?: typeof endLabels
   /** Pattern fills behind `patterns` (and forced colors, with `'auto'`). */
   patterns?: typeof patternFills
   /**

@@ -56,6 +56,12 @@ export interface Series {
    * that could inject CSS are ignored, as for `color`.
    */
   dash?: number | string
+  /**
+   * Dash the line only from this label on (a forecast, provisional figures):
+   * it stays solid up to the label and takes `dash` (`'5 4'` when left out)
+   * after it. Line and area charts.
+   */
+  dashFrom?: Label
   /** Line width in pixels; overrides `--tc-stroke-width` via `--tc-series-width`. */
   width?: number
   /**

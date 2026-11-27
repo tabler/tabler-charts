@@ -11,13 +11,15 @@ type AnnotationLabel = string | number | Date
  * A reference line or band drawn with the series: a target on the value
  * axis (`y: 99.9`), a normal range (`y: [40, 60]`), an event on the category
  * axis (`x: 'Jun'`, or a date on a time axis) or a period (`x: [from, to]`).
+ * With both a single `x` and a single `y` it is a point: a dot at that
+ * category and value, with its label beside it.
  */
 export interface Annotation {
   /** A line at a value, or a band between two values, on the value axis. */
   y?: number | readonly [number, number]
   /** A line at a category (or a date on a time axis), or a band between two, on the category axis. */
   x?: AnnotationLabel | readonly [AnnotationLabel, AnnotationLabel]
-  /** Short text next to the line or inside the band. */
+  /** Short text next to the line or the point, or inside the band. */
   label?: string
   /** Where the label sits along the line or band. Defaults to `'end'` (right, or top). */
   position?: 'start' | 'end'
@@ -144,7 +146,20 @@ export function annotationLayers(
     if (!inside(lo, min, max) && !inside(hi, min, max) && !(lo < min && hi > max)) return undefined
     return { a0: Math.max(lo, min), a1: Math.min(hi, max), vertical }
   }
-  const shapes = annotations.map(geometry)
+  /** Where a point annotation (a single `x` and a single `y`) lands; `undefined` off the plot. */
+  const pointOf = (a: Annotation): readonly [number, number] | undefined => {
+    if (a.x === undefined || a.y === undefined || isPair(a.x) || isPair(a.y)) return undefined
+    const along = categorySpan(scales, a.x)
+    const v = scales.value(a.y)
+    if (!along || !Number.isFinite(v)) return undefined
+    const c = (along[0] + along[1]) / 2
+    const [px, py] = horizontal ? [v, c] : [c, v]
+    return inside(px, x0, x1) && inside(py, y0, y1) ? [px, py] : undefined
+  }
+  const isPoint = (a: Annotation) =>
+    a.x !== undefined && a.y !== undefined && !isPair(a.x) && !isPair(a.y)
+  const dots = annotations.map(pointOf)
+  const shapes = annotations.map((a) => (isPoint(a) ? undefined : geometry(a)))
 
   type Box = [number, number, number, number]
   /** Boxes labels keep clear of: the labels placed so far, and every line. */
@@ -154,6 +169,10 @@ export function annotationLayers(
     if (!g || g.a1 - g.a0 > 0.5) return
     const at = g.a0
     obstacles.push([i, g.vertical ? [at - 1.5, y0, at + 1.5, y1] : [x0, at - 1.5, x1, at + 1.5]])
+  })
+  const DOT = 4
+  dots.forEach((p, i) => {
+    if (p) obstacles.push([i, [p[0] - DOT, p[1] - DOT, p[0] + DOT, p[1] + DOT]])
   })
   const apart = (box: Box, [l, t, r, b]: Box) =>
     box[2] <= l || box[0] >= r || box[3] <= t || box[1] >= b
@@ -166,11 +185,61 @@ export function annotationLayers(
     // Groups are named by axis; the line, band and label inside by what they are.
     const attrs = (part?: string) => ({
       key: part ? `${key}-${part}` : key,
-      class: ['tc-annotation', a.y !== undefined ? 'tc-annotation-y' : 'tc-annotation-x', a.class],
+      class: [
+        'tc-annotation',
+        isPoint(a)
+          ? 'tc-annotation-point'
+          : a.y !== undefined
+            ? 'tc-annotation-y'
+            : 'tc-annotation-x',
+        a.class,
+      ],
       style: { '--tc-annotation-color': a.color },
     })
     const end = a.position !== 'start'
 
+    const dot = dots[index]
+    if (dot) {
+      const [px, py] = dot
+      let text: VNode | undefined
+      if (a.label) {
+        const w = estimateTextWidth(a.label, fontSize * 0.92)
+        const off = DOT + pad
+        const mid = py + fontSize * 0.35
+        // Beside the dot, then above or below it, then at its corners.
+        const spots: [number, number][] = [
+          [px + off, mid],
+          [px - off - w, mid],
+          [px - w / 2, py - off],
+          [px - w / 2, py + off + fontSize * 0.8],
+          [px + off, py + off + fontSize * 0.8],
+          [px + off, py - off],
+          [px - off - w, py + off + fontSize * 0.8],
+          [px - off - w, py - off],
+        ]
+        const box = ([x, y]: [number, number]): Box => [x, y - fontSize, x + w, y + fontSize * 0.25]
+        const within = (s: [number, number]) => s[0] >= x0 && s[0] + w <= x1
+        const spot =
+          spots.find((s) => within(s) && clear(box(s), index)) ??
+          spots.find((s) => within(s) && clearOfLabels(box(s))) ??
+          (spots[0] as [number, number])
+        placed.push(box(spot))
+        text = h(
+          'text',
+          { class: 'tc-annotation-label', x: round(spot[0]), y: round(spot[1]) },
+          a.label,
+        )
+      }
+      lines.push(
+        h(
+          'g',
+          attrs(),
+          h('circle', { class: 'tc-annotation-dot', cx: round(px), cy: round(py), r: DOT }),
+          text,
+        ),
+      )
+      return
+    }
     const shape = shapes[index]
     if (!shape) return
     const { a0, a1, vertical } = shape

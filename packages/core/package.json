@@ -42,6 +42,9 @@
     "./dist/patterns.js",
     "./dist/patterns.cjs",
     "./src/patterns.ts",
+    "./dist/end-labels.js",
+    "./dist/end-labels.cjs",
+    "./src/end-labels.ts",
     "./dist/value-labels.js",
     "./dist/value-labels.cjs",
     "./src/value-labels.ts",
@@ -96,6 +99,10 @@
     "./decimate": {
       "import": "./dist/decimate.js",
       "require": "./dist/decimate.cjs"
+    },
+    "./end-labels": {
+      "import": "./dist/end-labels.js",
+      "require": "./dist/end-labels.cjs"
     },
     "./export": {
       "import": "./dist/export.js",

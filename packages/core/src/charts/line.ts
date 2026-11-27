@@ -3,11 +3,12 @@ import { fadeMask } from '../components/fade.ts'
 import { feature } from '../features.ts'
 import { round } from '../layout.ts'
 import { areaPath, type Curve, linePath, type Point } from '../shapes/path.ts'
-import { h } from '../vnode.ts'
+import { h, type VNode } from '../vnode.ts'
 import {
   type CartesianOptions,
   cartesianLayout,
   categoryInteraction,
+  labelKey,
   markerShape,
   plottable,
   pointMark,
@@ -21,6 +22,7 @@ import {
   seriesTable,
 } from './cartesian.ts'
 import { cleanData, cleanSeries } from './clean.ts'
+import type { EndLabelOptions } from './end-labels.ts'
 import { type StackMode, stackBounds, stackSeries } from './stack.ts'
 
 export interface LineOptions extends CartesianOptions {
@@ -51,6 +53,13 @@ export interface LineOptions extends CartesianOptions {
    * navigation still use every value. Off by default.
    */
   decimate?: number
+  /**
+   * Name each line at its end: the series name and its last value beside the
+   * last point, past the edge of the plot, moved apart where lines end close
+   * together (a thin line then joins a label to its point). Needs
+   * `@tabler/charts/end-labels` on the core. Defaults to `false`.
+   */
+  endLabels?: boolean | EndLabelOptions
 }
 
 /** Points in pixels for a series; `null` for missing values. */
@@ -100,7 +109,9 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
         hidden: seconds.length ? new Set([...ctx.hidden, ...seconds]) : ctx.hidden,
       })
     : null
-  const layout = cartesianLayout(options, ctx, {
+  // End labels stand past the end of the lines: the plot leaves them room there.
+  const ends = options.endLabels ? feature('end-labels')(options, ctx, overhang) : null
+  const layout = cartesianLayout(ends?.options ?? options, ctx, {
     scale: 'point',
     zero: filled || stacks !== null,
     zero2: filled,
@@ -183,15 +194,49 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
     )
 
   const shape = markerShape(options)
+  const keys = labels.map(labelKey)
+  /** Clip paths that cut the lines with `dashFrom` in two. */
+  const cuts: VNode[] = []
   const lines = options.data.series.map((s, index) => {
     if (!visible(s)) return null
     const pts = drawn(index)
     const valid = pts.filter((p): p is readonly [number, number] => p != null)
     const dots = points === 'all' ? valid : points === 'last' ? valid.slice(-1) : []
+    const d = linePath(pts, { curve })
+    // The same path twice, each clipped to its side of the label: the curve stays whole.
+    const from = s.dashFrom == null ? -1 : keys.indexOf(labelKey(s.dashFrom))
+    const cut = from > 0 && from < keys.length - 1
+    const { dash = '5 4' } = s
+    if (cut) {
+      const at = round(x.at(from))
+      // Everything on one side of the label, far beyond the plot.
+      const side = (part: string, before: boolean) =>
+        h(
+          'clipPath',
+          { key: `${part}-${seriesKey(s)}`, id: `${ctx.id}-${part}-${index}` },
+          h('rect', { x: before ? at - 1e5 : at, y: -1e5, width: 1e5, height: 2e5 }),
+        )
+      const forward = x.at(0) <= at
+      cuts.push(side('solid', forward), side('dashed', !forward))
+    }
     return h(
       'g',
-      seriesAttrs(s, index),
-      h('path', { class: 'tc-line', d: linePath(pts, { curve }) }),
+      seriesAttrs(cut ? { ...s, dash: undefined } : s, index),
+      h('path', {
+        key: 'line',
+        class: 'tc-line',
+        d,
+        'clip-path': cut ? `url(#${ctx.id}-solid-${index})` : undefined,
+      }),
+      cut &&
+        h('path', {
+          key: 'dashed',
+          class: 'tc-line tc-line-dashed',
+          d,
+          'clip-path': `url(#${ctx.id}-dashed-${index})`,
+          // A map, so values from data cannot inject CSS (see normalizeStyle).
+          style: { '--tc-series-dash': Number.isFinite(dash) ? `${dash}px` : dash },
+        }),
       dots.length > 0 &&
         h(
           'g',
@@ -204,12 +249,14 @@ export function renderLines(options: LineOptions, ctx: RenderContext, fill: bool
   })
 
   const content = [
-    h('defs', { key: 'defs' }, layout.clip.def, gradient && fadeMask(fadeId)),
+    h('defs', { key: 'defs' }, layout.clip.def, gradient && fadeMask(fadeId), cuts),
     layout.background,
     // Layers are keyed: an annotation band or a grid that comes and goes must not
     // shift the series list onto another node (that would recreate every series).
     h('g', { key: 'series', class: 'tc-series-list', 'clip-path': layout.clip.url }, areas, lines),
     layout.foreground,
+    // Where each line ends: its last point (the running total in a stack).
+    ends?.layer(all, layout.area),
   ]
   return { content, interaction }
 }
