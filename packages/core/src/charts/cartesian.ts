@@ -134,6 +134,12 @@ export interface CategoryAxisOptions {
   /** Format a label for display (axis ticks for categories, tooltips and the table). */
   format?: (label: Label, index: number) => string
   /**
+   * Turn the labels 90°, reading bottom to top, so that many or long
+   * categories all keep their label. Categories along the bottom only: not
+   * on a time axis, nor in horizontal bars.
+   */
+  rotate?: boolean
+  /**
    * `'time'` treats labels as dates or timestamps: line and area charts place
    * points at their real distance in time, with calendar-aware ticks.
    * Labels must be in ascending order. Needs `@tabler/charts/time` (included
@@ -472,6 +478,7 @@ export function finishLayout(
 ): CartesianLayout {
   const { area, x, y, xTicks, yTicks, y2Ticks, horizontal: flip } = plot
   const xOptions = options.x ?? {}
+  const rotate = turned(options, !flip && !time && xOptions.show !== false)
   // The second value axis stands on the other side.
   const opposite = side === 'left' ? 'right' : 'left'
   // Annotations: bands under the series, lines above them (and below the axes).
@@ -488,7 +495,13 @@ export function finishLayout(
     axis({ position: flip ? 'bottom' : side, ticks: yTicks, area }),
   ]
   const categories = ((xOptions.show !== false && plot.labels.length > 0) || xOptions.line) && [
-    axis({ position: flip ? side : 'bottom', ticks: xTicks, area, line: xOptions.line === true }),
+    axis({
+      position: flip ? side : 'bottom',
+      ticks: xTicks,
+      area,
+      line: xOptions.line === true,
+      rotate,
+    }),
   ]
   // Titles stand past the labels of their axis, or at the plot's edge when it is hidden.
   const seconds = !!y2Ticks &&
@@ -497,7 +510,9 @@ export function finishLayout(
     text: string | undefined,
     position: 'left' | 'right' | 'bottom',
     ticks: readonly Tick[] | false,
-  ) => !!text && axisTitle(position, ticks || [], area, text, ctx.fontSize)
+  ) =>
+    !!text &&
+    axisTitle(position, ticks || [], area, text, ctx.fontSize, position === 'bottom' && rotate)
   const titles = [
     title(options.y?.title, flip ? 'bottom' : side, !!values && yTicks),
     title(xOptions.title, flip ? side : 'bottom', xTicks),
@@ -523,6 +538,10 @@ export function finishLayout(
     clip: plotClip(ctx, area, overhang),
   }
 }
+
+/** Whether the category labels are turned 90° (`x.rotate`), when the axis can take it. */
+const turned = (options: CartesianOptions, able: boolean): boolean =>
+  able && options.x?.rotate === true
 
 /** Compute scales, ticks, grid and axes shared by line, area and bar charts. */
 export function cartesianLayout(
@@ -569,13 +588,22 @@ export function cartesianLayout(
         ticks: (scale) => bandTicks(scale, (_: BandKey, i) => labelAt(i)),
       }
   const edgeLabels = xAxis.edges
+  const rotate = turned(options, showX && !timed)
+  // Every label, to measure the longest when they are turned.
+  const allX: Tick[] = rotate
+    ? labels.map((_, i) => ({ value: i, position: 0, label: labelAt(i) }))
+    : []
 
   // Margins: labels outside the plot, half a line above the top tick,
   // half of the first/last x label for point scales.
   const halfLine = Math.ceil((fontSize * LINE_HEIGHT) / 2)
   // The label at the value axis' end of the plot, and the one at the other end.
   const edgeWidth = (last: boolean) =>
-    showX ? estimateTextWidth(edgeLabels[last ? edgeLabels.length - 1 : 0] ?? '', fontSize) : 0
+    rotate
+      ? fontSize * LINE_HEIGHT
+      : showX
+        ? estimateTextWidth(edgeLabels[last ? edgeLabels.length - 1 : 0] ?? '', fontSize)
+        : 0
   const firstLabel = edgeWidth(reverse !== rtl)
   const lastLabel = edgeWidth(reverse === rtl)
   const edgeX = layout.scale === 'point'
@@ -607,8 +635,13 @@ export function cartesianLayout(
         pad.bottom +
         Math.max(
           // Without an x axis, the lowest value label still needs half a line.
-          (showX ? axisSize('bottom', [probeY[0] as Tick], fontSize) : showY ? halfLine : 0) +
-            axisTitleSize(xOptions.title, fontSize),
+          (rotate
+            ? axisSize('bottom', allX, fontSize, { rotate })
+            : showX
+              ? axisSize('bottom', [probeY[0] as Tick], fontSize)
+              : showY
+                ? halfLine
+                : 0) + axisTitleSize(xOptions.title, fontSize),
           overhang,
           EDGE / 2,
         ),
@@ -623,7 +656,12 @@ export function cartesianLayout(
   // Nice ticks can outnumber the count asked for: on a short plot, thin them
   // like category labels so none overlap (the grid follows the ticks kept).
   const yTicks = thinTicks(value.ticks(y), 'left', fontSize, 4)
-  const xTicks = showX ? thinTicks(xAxis.ticks(x), 'bottom', fontSize) : []
+  // Turned labels take the height of their letters along the axis, and little air between them.
+  const xTicks = showX
+    ? rotate
+      ? thinTicks(xAxis.ticks(x), 'left', fontSize / LINE_HEIGHT, 2)
+      : thinTicks(xAxis.ticks(x), 'bottom', fontSize)
+    : []
   const plot: Omit<CartesianLayout, 'background' | 'foreground' | 'clip'> = {
     area,
     labels,

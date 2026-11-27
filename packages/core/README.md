@@ -102,7 +102,7 @@ A feature you use but did not import throws an error that names the import.
 Series take `name`, `values`, and optionally `id` (stable identity), `color`, `dash`, `width`, `class` and `hidden`. In line and area charts `dashFrom: '2025'` dashes a line only from that label on (a forecast): solid before it, `dash` (`'5 4'` by default) after.
 
 Cartesian charts share two axes:
-- `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`, `title`.
+- `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`, `title`, `rotate` (labels turned 90°, so that many or long categories all keep theirs).
 - `y`: `min`, `max`, `zero`, `nice`, `ticks`, `format`, `scale: 'log'`, `grid`, `show`, `title`.
 - `y2`: the same as `y`, for series with `axis: 'y2'`.
 
