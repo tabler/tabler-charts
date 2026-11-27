@@ -1,5 +1,21 @@
 # @tabler/charts
 
+## 0.4.0
+
+### Minor Changes
+
+- 7e4f979: Three additions for charts that carry a forecast and read without a legend:
+  
+  - `series.dashFrom` (line and area charts) dashes a line only from a label on: solid before it, `dash` (`'5 4'` by default) after.
+  - `endLabels` (line and area charts) names each line at its end, with its last value, beside the plot; labels of lines that end close together are moved apart and joined to their points. On the core it needs `@tabler/charts/end-labels`.
+  - An annotation with both a single `x` and a single `y` is now a point: a dot at that category and value, with its label beside it. Before, such an annotation drew the line at `y` and ignored `x`.
+- b656e49: `labels: true` on pie and donut charts names every slice beside the chart, with its share, in a column on the side the slice is on; a thin line joins each label to its slice. Labels of small neighboring slices are moved apart so none overlap, and the pie gets smaller to leave them room. `labels: { value: 'value' }` writes the values instead of the shares, `{ value: false }` the names alone. A chart too small for the labels is drawn without them. On the core it needs `@tabler/charts/slice-labels`.
+- d531942: `x.rotate: true` turns the category labels below a line, area or vertical bar chart 90°, reading bottom to top, so that a chart with many or long categories keeps a label on every one instead of dropping some. The plot leaves room for the longest label. It does nothing on a time axis or in horizontal bars.
+
+### Patch Changes
+
+- 1a214e2: A point annotation whose label has no room in the plot (a narrow chart, say) now leaves the label out and keeps its dot, instead of drawing the label over the plot's edge and over other labels.
+
 ## 0.3.0
 
 ### Minor Changes

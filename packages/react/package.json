@@ -1,6 +1,6 @@
 {
   "name": "@tabler/charts-react",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "React components and hook for @tabler/charts, with SSR.",
   "keywords": [
     "charts",
