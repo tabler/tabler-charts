@@ -98,6 +98,8 @@ export interface AxisOptions {
   tickPadding?: number
   /** Draw the axis line along the plot edge. Defaults to `false`. */
   line?: boolean
+  /** Turn the labels of an axis below the plot 90°, reading bottom to top. */
+  rotate?: boolean
 }
 
 /** Pixels an axis occupies perpendicular to the plot edge (for margins). */
@@ -105,15 +107,16 @@ export function axisSize(
   position: AxisPosition,
   ticks: readonly Tick[],
   fontSize: number,
-  options: { tickSize?: number; tickPadding?: number } = {},
+  options: { tickSize?: number; tickPadding?: number; rotate?: boolean } = {},
 ): number {
-  const { tickSize = 0, tickPadding = 8 } = options
+  const { tickSize = 0, tickPadding = 8, rotate } = options
   if (ticks.length === 0) return 0
-  // Beside the plot, labels are as wide as their text: a little slack covers
-  // fonts wider than the estimate, so they do not touch the chart's edge.
-  const labels = isHorizontal(position)
-    ? fontSize * LINE_HEIGHT
-    : ticks.reduce((max, t) => Math.max(max, estimateTextWidth(t.label, fontSize)), 0) + 3
+  // Beside the plot (and turned below it), labels are as wide as their text: a little slack
+  // covers fonts wider than the estimate, so they do not touch the chart's edge.
+  const labels =
+    isHorizontal(position) && !rotate
+      ? fontSize * LINE_HEIGHT
+      : ticks.reduce((max, t) => Math.max(max, estimateTextWidth(t.label, fontSize)), 0) + 3
   return Math.ceil(labels + tickSize + tickPadding)
 }
 
@@ -136,8 +139,9 @@ export function axisTitle(
   area: Rect,
   title: string,
   fontSize: number,
+  rotate?: boolean,
 ): VNode {
-  const reach = axisSize(position, ticks, fontSize) + TITLE_GAP
+  const reach = axisSize(position, ticks, fontSize, { rotate }) + TITLE_GAP
   const sign = position === 'left' ? -1 : 1
   const side = reach + (fontSize * LINE_HEIGHT) / 2
   return h(
@@ -163,7 +167,7 @@ export function axisTitle(
  * transition when the scale changes.
  */
 export function axis(options: AxisOptions): VNode {
-  const { position, ticks, area, tickSize = 0, tickPadding = 8, line = false } = options
+  const { position, ticks, area, tickSize = 0, tickPadding = 8, line = false, rotate } = options
   const horizontal = isHorizontal(position)
   const sign = position === 'top' || position === 'left' ? -1 : 1
   const offset = sign * (tickSize + tickPadding)
@@ -178,9 +182,11 @@ export function axis(options: AxisOptions): VNode {
           ? area.x
           : area.x + area.width
 
-  const label = horizontal
-    ? { y: offset, dy: position === 'top' ? '0em' : '0.71em', 'text-anchor': 'middle' }
-    : { x: offset, dy: '0.32em', 'text-anchor': position === 'left' ? 'end' : 'start' }
+  const label = rotate
+    ? { transform: 'rotate(-90)', x: -offset, dy: '0.32em', 'text-anchor': 'end' }
+    : horizontal
+      ? { y: offset, dy: position === 'top' ? '0em' : '0.71em', 'text-anchor': 'middle' }
+      : { x: offset, dy: '0.32em', 'text-anchor': position === 'left' ? 'end' : 'start' }
 
   const tickLine = horizontal ? { y2: sign * tickSize } : { x2: sign * tickSize }
 
