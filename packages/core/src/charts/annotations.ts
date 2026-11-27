@@ -219,16 +219,18 @@ export function annotationLayers(
         ]
         const box = ([x, y]: [number, number]): Box => [x, y - fontSize, x + w, y + fontSize * 0.25]
         const within = (s: [number, number]) => s[0] >= x0 && s[0] + w <= x1
+        // A label with no room in the plot is left out: the dot stays.
         const spot =
           spots.find((s) => within(s) && clear(box(s), index)) ??
-          spots.find((s) => within(s) && clearOfLabels(box(s))) ??
-          (spots[0] as [number, number])
-        placed.push(box(spot))
-        text = h(
-          'text',
-          { class: 'tc-annotation-label', x: round(spot[0]), y: round(spot[1]) },
-          a.label,
-        )
+          spots.find((s) => within(s) && clearOfLabels(box(s)))
+        if (spot) {
+          placed.push(box(spot))
+          text = h(
+            'text',
+            { class: 'tc-annotation-label', x: round(spot[0]), y: round(spot[1]) },
+            a.label,
+          )
+        }
       }
       lines.push(
         h(
