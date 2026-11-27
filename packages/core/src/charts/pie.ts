@@ -1,5 +1,6 @@
 import type { DataTable } from '../a11y.ts'
 import type { ChartType, RenderContext, RenderResult, TableContext } from '../chart.ts'
+import { feature } from '../features.ts'
 import { formatNumber, getNumberFormat, type NumberFormat } from '../format.ts'
 import type { Hit, HitItem, Interaction } from '../interaction.ts'
 import { type InsetsInput, innerRect, insets } from '../layout.ts'
@@ -9,6 +10,7 @@ import { type ClassValue, h } from '../vnode.ts'
 import { cleanData, cleanItems } from './clean.ts'
 import { groupAttrs, keyOf } from './named.ts'
 import { type SliceGrouping, slicesLegend, type WithSlices, withSlices } from './others.ts'
+import type { SliceLabelOptions } from './slice-labels.ts'
 
 /** One slice of a pie or donut. */
 export interface PieSlice {
@@ -47,6 +49,14 @@ export interface PieOptions extends SliceGrouping {
   center?: false | { value?: string; label?: string }
   /** Extra space around the pie, in pixels. */
   padding?: InsetsInput
+  /**
+   * Name every slice beside the chart, with its share, joined to the slice
+   * by a line: `true`, or `{ value: 'value' }` for the values and
+   * `{ value: false }` for the names alone. The pie gets smaller to leave the
+   * labels room; a chart too small for them goes without. Needs
+   * `@tabler/charts/slice-labels` on the core.
+   */
+  labels?: boolean | SliceLabelOptions
 }
 
 /** The chart model of a pie: its options, with the slices as drawn (the rest grouped). */
@@ -84,23 +94,44 @@ function renderPie(
 ) {
   const { width, height, locale } = ctx
   const gap = options.gap ?? 2
-  const area = innerRect(width, height, insets(options.padding, 0))
+  const { slices, total } = layoutSlices(options, ctx.hidden)
+  const drawn = slices.filter((slice) => slice.value > 0)
+  const value = formatNumber(options.format, locale)
+  const share = getNumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 })
+  const frame = innerRect(width, height, insets(options.padding, 0))
+  const shown = options.labels === true ? 'share' : options.labels ? options.labels.value : false
+  const labelled = options.labels
+    ? feature('slice-labels')(
+        drawn.map((slice) => ({
+          key: keyOf(slice.data),
+          index: slice.index,
+          name: slice.data.name,
+          value:
+            shown === false
+              ? ''
+              : shown === 'value'
+                ? value(slice.value)
+                : share.format(slice.value / total),
+          angle: (slice.startAngle + slice.endAngle) / 2,
+          weight: slice.value,
+        })),
+        frame,
+        ctx.fontSize,
+      )
+    : null
+  const area = labelled?.area ?? frame
   const outer = Math.max(0, Math.min(area.width, area.height) / 2 - HALO)
   const ratio = Math.min(0.95, Math.max(0, options.innerRadius ?? defaults.inner))
   const inner = outer * ratio
   const cornerRadius = options.cornerRadius ?? defaults.corner
   const cx = area.x + area.width / 2
   const cy = area.y + area.height / 2
-  const { slices, total } = layoutSlices(options, ctx.hidden)
-  const drawn = slices.filter((slice) => slice.value > 0)
   // A single slice is a full ring: no gap to cut.
   // Rings get a pad angle, which keeps a constant gap width along the whole
   // edge. In a full pie every slice meets at the center, so a pad angle would
   // widen into a wedge: the gap is a surface-colored stroke instead.
   const strokeGap = inner === 0 && drawn.length > 1 ? gap : 0
   const padAngle = inner > 0 && drawn.length > 1 ? padAngleForGap(gap, inner, outer) : 0
-  const value = formatNumber(options.format, locale)
-  const share = getNumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 })
 
   const geometry = (slice: Slice, r0 = inner, r1 = outer) => ({
     innerRadius: r0,
@@ -200,6 +231,7 @@ function renderPie(
         groups,
       ),
     ),
+    labelled?.layer(cx, cy, outer),
     showCenter &&
       h(
         'g',

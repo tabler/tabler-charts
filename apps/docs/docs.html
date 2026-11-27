@@ -206,6 +206,7 @@ const chart = new Chart('#sales', {
                 <tr><td><code>crosshair</code></td><td><code>true</code></td><td></td></tr>
                 <tr><td><code>valueLabels</code></td><td><code>false</code></td><td>Values written on the marks; <code>{ points: 'all' }</code> for every point. A series' own <code>valueLabels</code> (<code>true</code> or <code>false</code>) overrides it for that series</td></tr>
                 <tr><td><code>endLabels</code></td><td><code>false</code></td><td>Line and area charts: each line named at its end, with its last value, beside the plot; <code>{ format, value: false }</code> formats the values or leaves them out</td></tr>
+                <tr><td><code>labels</code></td><td><code>false</code></td><td>Pie and donut charts: every slice named beside the chart with its share, joined to it by a line; <code>{ value: 'value' }</code> writes the values, <code>{ value: false }</code> the names alone</td></tr>
                 <tr><td><code>animate</code></td><td><code>true</code></td><td>Transitions between data; off under <code>prefers-reduced-motion</code></td></tr>
                 <tr><td><code>sync</code></td><td></td><td>A group name: charts of one group share the hover</td></tr>
                 <tr><td><code>patterns</code></td><td><code>'auto'</code></td><td>Pattern fills so series do not depend on color; <code>'auto'</code> is forced colors only</td></tr>
@@ -372,7 +373,7 @@ import '@tabler/charts/time' // only if you use x: { type: 'time' }
 new Chart('#el', { type: line, data, plugins: [highlight(), tooltip()] })</code></pre>
           <p>
             Optional features register themselves when imported: <code>/time</code>, <code>/log</code>,
-            <code>/decimate</code>, <code>/annotations</code>, <code>/value-labels</code>, <code>/end-labels</code>,
+            <code>/decimate</code>, <code>/annotations</code>, <code>/value-labels</code>, <code>/end-labels</code>, <code>/slice-labels</code>,
             <code>/patterns</code>, <code>/hydrate</code>, <code>/export</code>. A feature you use but
             did not import throws an error that names the import.
           </p>

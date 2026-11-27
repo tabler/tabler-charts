@@ -45,6 +45,9 @@
     "./dist/end-labels.js",
     "./dist/end-labels.cjs",
     "./src/end-labels.ts",
+    "./dist/slice-labels.js",
+    "./dist/slice-labels.cjs",
+    "./src/slice-labels.ts",
     "./dist/value-labels.js",
     "./dist/value-labels.cjs",
     "./src/value-labels.ts",
@@ -175,6 +178,10 @@
     "./scatter": {
       "import": "./dist/scatter.js",
       "require": "./dist/scatter.cjs"
+    },
+    "./slice-labels": {
+      "import": "./dist/slice-labels.js",
+      "require": "./dist/slice-labels.cjs"
     },
     "./sparkline": {
       "import": "./dist/sparkline.js",

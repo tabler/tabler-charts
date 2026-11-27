@@ -2,7 +2,7 @@
  * `@tabler/charts`: everything from `@tabler/charts/core`, with a `Chart`
  * that installs the built-in plugins (tooltip, legend, keyboard, …) and
  * every optional feature registered (time and log axes, decimation,
- * annotations, pattern fills, value labels, end labels, point shapes). The one exception
+ * annotations, pattern fills, value labels, end labels, slice labels, point shapes). The one exception
  * is the `download` menu's saver: `import '@tabler/charts/export'` adds it,
  * so charts that never offer a download do not carry the export code.
  */
@@ -13,6 +13,7 @@ import { endLabels } from './charts/end-labels.ts'
 import { logDomain, logTicks } from './charts/log-axis.ts'
 import { patternFills } from './charts/patterns.ts'
 import { markerClip, markerPath } from './charts/point-shapes.ts'
+import { sliceLabels } from './charts/slice-labels.ts'
 import { timeAxis } from './charts/time-axis.ts'
 import { labelsStep } from './charts/value-labels.ts'
 import { addPost, register } from './features.ts'
@@ -32,6 +33,7 @@ register({
   line: { linePath, areaPath },
   annotations: { layers: annotationLayers, values: annotationValues },
   'end-labels': endLabels,
+  'slice-labels': sliceLabels,
   patterns: patternFills,
   'point-shapes': markerPath,
   swatch: markerClip,
