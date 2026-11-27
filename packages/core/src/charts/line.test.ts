@@ -192,3 +192,58 @@ describe('line', () => {
     expect(chartToString({ ...base, points: 'last' }, size)).toMatchSnapshot()
   })
 })
+
+describe('series.dashFrom', () => {
+  const dashed = (dashFrom: unknown, dash?: number | string) =>
+    render({
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+        series: [{ name: 'Sales', values: [10, 30, 20, 40], dashFrom, dash } as never],
+      },
+    })
+
+  test('draws the line twice, clipped at the label: solid before, dashed after', () => {
+    const node = dashed('Mar')
+    const [solid, tail] = findByClass(node, 'tc-line')
+    expect(findByClass(node, 'tc-line')).toHaveLength(2)
+    expect(solid?.attrs.d).toBe(tail?.attrs.d)
+    expect(solid?.attrs['clip-path']).toBe('url(#t-solid-0)')
+    expect(tail?.attrs['clip-path']).toBe('url(#t-dashed-0)')
+    expect(String(tail?.attrs.style)).toContain('--tc-series-dash:5 4')
+    // The two clips meet at the label.
+    const html = chartToString(
+      {
+        ...base,
+        data: {
+          labels: base.data.labels,
+          series: [{ name: 'S', values: [1, 2, 3, 4], dashFrom: 'Mar' }],
+        },
+      },
+      size,
+    )
+    expect(html.match(/<clipPath id="[^"]+-(solid|dashed)-0"/g)).toHaveLength(2)
+  })
+
+  test('takes the dash of the series, and keeps it off the solid part', () => {
+    const node = dashed('Feb', 2)
+    expect(String(findByClass(node, 'tc-line-dashed')[0]?.attrs.style)).toContain('2px')
+    // Only the dashed part carries the dash: the series group does not.
+    const html = chartToString(
+      {
+        ...base,
+        data: {
+          labels: base.data.labels,
+          series: [{ name: 'S', values: [1, 2, 3, 4], dashFrom: 'Feb', dash: 2 }],
+        },
+      },
+      size,
+    )
+    expect(html.match(/--tc-series-dash/g)).toHaveLength(1)
+  })
+
+  test('a label that is not on the axis, or at its ends, leaves the line whole', () => {
+    for (const label of ['May', 'Jan', 'Apr', null, {}]) {
+      expect(findByClass(dashed(label), 'tc-line')).toHaveLength(1)
+    }
+  })
+})

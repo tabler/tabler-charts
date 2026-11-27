@@ -69,6 +69,7 @@ Chart types have their own entries (`@tabler/charts/line`, `/bar`, `/pie` …). 
 | `@tabler/charts/log` | `y: { scale: 'log' }` |
 | `@tabler/charts/decimate` | `decimate: 500` on line and area charts (LTTB downsampling) |
 | `@tabler/charts/annotations` | `annotations` on line, area, bar and candlestick charts |
+| `@tabler/charts/end-labels` | `endLabels` on line and area charts: each line named at its end |
 | `@tabler/charts/hydrate` | Taking over server-rendered markup node by node (otherwise it is replaced) |
 | `@tabler/charts/export` | `exportSVG()`, `exportImage()`, `downloadChart()`, and the `download` menu option (also with the default `Chart`) |
 
@@ -98,10 +99,10 @@ A feature you use but did not import throws an error that names the import.
 
 `types` (from `@tabler/charts`) has every type by its name, for charts declared in markup (`types[name]`); it brings all of them into the bundle.
 
-Series take `name`, `values`, and optionally `id` (stable identity), `color`, `dash`, `width`, `class` and `hidden`.
+Series take `name`, `values`, and optionally `id` (stable identity), `color`, `dash`, `width`, `class` and `hidden`. In line and area charts `dashFrom: '2025'` dashes a line only from that label on (a forecast): solid before it, `dash` (`'5 4'` by default) after.
 
 Cartesian charts share two axes:
-- `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`, `title`.
+- `x`: `format`, `type: 'time'`, `utc`, `grid`, `line`, `show`, `title`, `rotate` (labels turned 90°, so that many or long categories all keep theirs).
 - `y`: `min`, `max`, `zero`, `nice`, `ticks`, `format`, `scale: 'log'`, `grid`, `show`, `title`.
 - `y2`: the same as `y`, for series with `axis: 'y2'`.
 
@@ -140,6 +141,7 @@ annotations: [
   { y: 99.9, label: 'SLA' },             // a line at a value
   { y: [40, 60], label: 'Normal' },      // a band between values
   { x: 'Jun', label: 'Launch' },         // a line at a category (or a date)
+  { x: 'Jun', y: 42, label: 'Peak' },    // a point: a dot with its label
 ]
 ```
 
@@ -172,6 +174,14 @@ Regions take one hue from the empty shade to the full color (`--tc-heat-color` a
 For charts declared in markup or JSON, register the map under a name and pass that name: `addMap('world', world)`, then `map: 'world'`.
 
 `world` is the countries of [Natural Earth](https://www.naturalearthdata.com/) (public domain) in the Miller projection, 27 kB gzipped. `pnpm generate:maps` rebuilds it.
+
+### End labels
+
+`endLabels: true` on a line or area chart names each line at its end: the series name and its last value beside the last point, past the edge of the plot, which leaves them room. Labels of lines that end close together are moved apart, and a thin line in the series color joins a moved label to its point. `endLabels: { format }` formats the values (the axis format by default) and `{ value: false }` writes the names only. With them a chart often reads without its legend (`legend: false`). On the core, `import '@tabler/charts/end-labels'` enables them.
+
+```js
+new Chart('#el', { type: line, data, endLabels: true, legend: false })
+```
 
 ### Value labels
 

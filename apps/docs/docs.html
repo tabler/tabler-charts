@@ -128,7 +128,8 @@ const chart = new Chart('#sales', {
           <p>
             A series takes <code>name</code> and <code>values</code>, and optionally <code>id</code>
             (a stable identity when names change), <code>color</code>, <code>dash</code>,
-            <code>width</code>, <code>class</code> and <code>hidden</code>.
+            <code>width</code>, <code>class</code> and <code>hidden</code>. In line and area charts
+            <code>dashFrom: '2025'</code> dashes a line only from that label on (a forecast).
           </p>
           <p>
             Other types have the shape of their data: a pie or donut takes
@@ -204,6 +205,7 @@ const chart = new Chart('#sales', {
                 <tr><td><code>tooltip</code></td><td><code>true</code></td><td><code>false</code>, or <code>{ theme, format, footer }</code>: <code>theme: 'light'</code> for a white tooltip instead of the dark one, <code>format</code> and <code>footer</code> for custom content</td></tr>
                 <tr><td><code>crosshair</code></td><td><code>true</code></td><td></td></tr>
                 <tr><td><code>valueLabels</code></td><td><code>false</code></td><td>Values written on the marks; <code>{ points: 'all' }</code> for every point. A series' own <code>valueLabels</code> (<code>true</code> or <code>false</code>) overrides it for that series</td></tr>
+                <tr><td><code>endLabels</code></td><td><code>false</code></td><td>Line and area charts: each line named at its end, with its last value, beside the plot; <code>{ format, value: false }</code> formats the values or leaves them out</td></tr>
                 <tr><td><code>animate</code></td><td><code>true</code></td><td>Transitions between data; off under <code>prefers-reduced-motion</code></td></tr>
                 <tr><td><code>sync</code></td><td></td><td>A group name: charts of one group share the hover</td></tr>
                 <tr><td><code>patterns</code></td><td><code>'auto'</code></td><td>Pattern fills so series do not depend on color; <code>'auto'</code> is forced colors only</td></tr>
@@ -230,12 +232,14 @@ const chart = new Chart('#sales', {
     { y: 99.9, label: 'SLA' },              // a line at a value
     { y: [40, 60], label: 'Normal' },       // a band between values
     { x: 'Jun', label: 'Launch' },          // a line at a category (or a date)
+    { x: 'Jun', y: 42, label: 'Peak' },     // a point: a dot with its label
   ],
 })</code></pre>
           <p>
             <code>y</code> also takes <code>max</code>, <code>zero</code>, <code>nice</code>,
             <code>scale: 'log'</code>, <code>grid</code> and <code>show</code>;
-            <code>x</code> takes <code>utc</code>, <code>grid</code>, <code>line</code> and <code>show</code>.
+            <code>x</code> takes <code>utc</code>, <code>grid</code>, <code>line</code>, <code>show</code> and
+            <code>rotate</code> (labels turned 90°, so that many or long categories all keep theirs).
           </p>
           <p>
             Both axes take a <code>title</code>: <code>y.title</code> is turned 90° beside the value
@@ -368,7 +372,7 @@ import '@tabler/charts/time' // only if you use x: { type: 'time' }
 new Chart('#el', { type: line, data, plugins: [highlight(), tooltip()] })</code></pre>
           <p>
             Optional features register themselves when imported: <code>/time</code>, <code>/log</code>,
-            <code>/decimate</code>, <code>/annotations</code>, <code>/value-labels</code>,
+            <code>/decimate</code>, <code>/annotations</code>, <code>/value-labels</code>, <code>/end-labels</code>,
             <code>/patterns</code>, <code>/hydrate</code>, <code>/export</code>. A feature you use but
             did not import throws an error that names the import.
           </p>

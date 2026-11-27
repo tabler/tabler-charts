@@ -467,6 +467,12 @@
   vector-effect: non-scaling-stroke;
 }
 
+.tc-annotation-dot {
+  fill: var(--tc-annotation-color);
+  stroke: var(--tc-surface);
+  stroke-width: 1.5px;
+}
+
 .tc-annotation-band {
   fill: var(--tc-annotation-color);
   fill-opacity: 0.1;
@@ -507,6 +513,27 @@
   stroke-linejoin: round;
   transition: transform var(--tc-duration) var(--tc-easing);
   animation: tc-fade-in var(--tc-duration) var(--tc-easing);
+}
+
+/* -- End labels ------------------------------------------------------------- */
+
+/* Names and last values past the end of the lines (endLabels); a thin line in
+   the series color joins a label that was moved to its point. */
+.tc-end-label-text {
+  fill: var(--tc-text-color);
+  transition: transform var(--tc-duration) var(--tc-easing);
+}
+
+.tc-end-label-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-end-label-line {
+  fill: none;
+  stroke: var(--tc-series-color);
+  stroke-width: 1px;
+  transition: d var(--tc-duration) var(--tc-easing);
 }
 
 /* -- Point shapes ------------------------------------------------------------ */
@@ -1228,6 +1255,9 @@
   .tc-treemap-label {
     fill: CanvasText;
     stroke: Canvas;
+  }
+  .tc-end-label-text {
+    fill: CanvasText;
   }
   .tc-tick-label,
   .tc-axis-title,

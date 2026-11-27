@@ -345,3 +345,42 @@ describe('bar', () => {
     expect(chartToString(base, size)).toMatchSnapshot()
   })
 })
+
+describe('x.rotate', () => {
+  const countries = Array.from({ length: 20 }, (_, i) => `Country number ${i + 1}`)
+  const many = (x: object) =>
+    buildChart(
+      {
+        ...base,
+        data: { labels: countries, series: [{ name: 'A', values: countries.map((_, i) => i) }] },
+        x,
+      },
+      { width: 600, height: 300 },
+      'b',
+    )
+  const xAxis = (node: ReturnType<typeof many>) => findByClass(node, 'tc-axis-x')[0] as never
+  const xLabels = (node: ReturnType<typeof many>) => findByClass(xAxis(node), 'tc-tick-label')
+
+  test('turns the labels 90° and keeps one per category', () => {
+    expect(xLabels(many({})).length).toBeLessThan(countries.length)
+    const turned = xLabels(many({ rotate: true }))
+    expect(turned).toHaveLength(countries.length)
+    expect(turned[0]?.attrs.transform).toBe('rotate(-90)')
+    expect(turned[0]?.attrs['text-anchor']).toBe('end')
+  })
+
+  test('leaves room below the plot for the longest label', () => {
+    // The axis sits on the bottom edge of the plot: `translate(x, edge)`.
+    const edge = (node: ReturnType<typeof many>) =>
+      Number(
+        /,(-?[\d.]+)px\)/.exec(String(findByClass(xAxis(node), 'tc-tick')[0]?.attrs.style))?.[1],
+      )
+    expect(edge(many({}))).toBeGreaterThan(250)
+    expect(edge(many({ rotate: true }))).toBeLessThan(edge(many({})) - 50)
+  })
+
+  test('is ignored in horizontal bars', () => {
+    const node = buildChart({ ...base, orientation: 'horizontal', x: { rotate: true } }, size, 'b')
+    expect(JSON.stringify(node)).not.toContain('rotate(-90)')
+  })
+})

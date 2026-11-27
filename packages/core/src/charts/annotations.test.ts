@@ -187,3 +187,42 @@ describe('annotations', () => {
     expect(topTick(node)).toBeGreaterThanOrEqual(5)
   })
 })
+
+describe('point annotations', () => {
+  const dots = (node: VNode) => findByClass(node, 'tc-annotation-dot')
+
+  test('a single x and y is a dot at that category and value, with its label', () => {
+    const node = render({ annotations: [{ x: 'Q2', y: 30, label: 'Peak' }] })
+    const [dot] = dots(node)
+    const d = String(findByClass(node, 'tc-line')[0]?.attrs.d)
+    // The dot sits on the line's second point.
+    expect(d).toContain(`${dot?.attrs.cx},${dot?.attrs.cy}`)
+    expect(lines(node)).toHaveLength(0)
+    expect(labels(node)).toEqual(['Peak'])
+    expect(findByClass(node, 'tc-annotation-point')).toHaveLength(1)
+  })
+
+  test('its value is part of the value axis', () => {
+    expect(topTick(render({ annotations: [{ x: 'Q2', y: 95 }] }))).toBeGreaterThanOrEqual(95)
+  })
+
+  test('a point off the axes is left out; ranges are still bands', () => {
+    expect(dots(render({ annotations: [{ x: 'Q9', y: 30 }] }))).toHaveLength(0)
+    const node = render({ annotations: [{ x: ['Q1', 'Q2'], y: 30 }] })
+    expect(dots(node)).toHaveLength(0)
+  })
+
+  test('labels of two points do not cover each other', () => {
+    const node = render({
+      annotations: [
+        { x: 'Q2', y: 30, label: 'First label' },
+        { x: 'Q2', y: 29, label: 'Second label' },
+      ],
+    })
+    const [a, b] = findByClass(node, 'tc-annotation-label')
+    const apart =
+      Math.abs(num(a?.attrs.y) - num(b?.attrs.y)) >= 12 ||
+      Math.abs(num(a?.attrs.x) - num(b?.attrs.x)) >= estimateTextWidth('First label', 11)
+    expect(apart).toBe(true)
+  })
+})
