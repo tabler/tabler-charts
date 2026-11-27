@@ -70,6 +70,7 @@ Chart types have their own entries (`@tabler/charts/line`, `/bar`, `/pie` …). 
 | `@tabler/charts/decimate` | `decimate: 500` on line and area charts (LTTB downsampling) |
 | `@tabler/charts/annotations` | `annotations` on line, area, bar and candlestick charts |
 | `@tabler/charts/end-labels` | `endLabels` on line and area charts: each line named at its end |
+| `@tabler/charts/slice-labels` | `labels` on pie and donut charts: each slice named beside the chart |
 | `@tabler/charts/hydrate` | Taking over server-rendered markup node by node (otherwise it is replaced) |
 | `@tabler/charts/export` | `exportSVG()`, `exportImage()`, `downloadChart()`, and the `download` menu option (also with the default `Chart`) |
 
@@ -82,7 +83,7 @@ A feature you use but did not import throws an error that names the import.
 | `line` | `{ labels, series }` | `curve` (`'monotone'`, `'linear'`, `'step'` …), `points` (`'none'`, `'last'`, `'all'`), `area`, `stacked`, `connectNulls`, `decimate` |
 | `area` | `{ labels, series }` | as `line`, filled; `fill: 'gradient' \| 'solid'` |
 | `bar` | `{ labels, series }` | `stacked` (`true` or `'percent'`), `orientation: 'horizontal'`, `radius`, `gap`, `maxBarWidth`; `series[].type: 'line' \| 'area'` mixes in lines |
-| `pie`, `donut` | `[{ name, value }]` | `innerRadius`, `gap`, `cornerRadius`, `center` (text in the middle), `maxSlices` (the rest is grouped into `othersLabel`) |
+| `pie`, `donut` | `[{ name, value }]` | `labels` (names beside the slices), `innerRadius`, `gap`, `cornerRadius`, `center` (text in the middle), `maxSlices` (the rest is grouped into `othersLabel`) |
 | `gauge` | a number, a ring or rings | `max`, `startAngle`, `angle` (`270` for a dial), `thickness`, `center` |
 | `radar` | `{ labels, series }` | `grid: 'polygon' \| 'circle'`, `fill`, `points`, `r` (radial axis), `labelWidth` (long spoke labels wrap at their spaces, by default past a quarter of the width) |
 | `sankey` | `{ nodes?, links: [{ from, to, value }] }` | `nodeWidth`, `nodePadding`, `align: 'justify' \| 'left'`, `format`; nodes with a `color` make the legend |
@@ -181,6 +182,14 @@ For charts declared in markup or JSON, register the map under a name and pass th
 
 ```js
 new Chart('#el', { type: line, data, endLabels: true, legend: false })
+```
+
+### Slice labels
+
+`labels: true` on a pie or donut names every slice beside the chart: the name and the slice's share, in a column on the side the slice is on, joined to it by a thin line. Labels of small neighboring slices are moved apart so none overlap, and the pie gets smaller to leave them room. `labels: { value: 'value' }` writes the values (in the chart's `format`) instead of the shares, `{ value: false }` the names alone. With them a chart reads without its legend (`legend: false`). A chart too narrow or too low for them is drawn without labels; when one side holds more slices than lines of text fit, the smallest go without. Style them with `.tc-slice-label-text`, `.tc-slice-label-name` and `.tc-slice-label-line`. On the core, `import '@tabler/charts/slice-labels'` enables them.
+
+```js
+new Chart('#el', { type: donut, data, labels: true, legend: false })
 ```
 
 ### Value labels
