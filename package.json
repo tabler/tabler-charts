@@ -26,6 +26,8 @@
     "examples:build": "pnpm -r --filter \"./examples/**\" build",
     "visual": "playwright test",
     "visual:update": "playwright test --update-snapshots",
+    "screenshots": "pnpm --filter @tabler/charts-screenshots capture",
+    "screenshots:dev": "pnpm --filter @tabler/charts-screenshots dev",
     "changeset": "changeset",
     "changeset:version": "changeset version && pnpm install --lockfile-only --no-frozen-lockfile"
   },

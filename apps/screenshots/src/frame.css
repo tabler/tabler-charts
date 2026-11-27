@@ -1,0 +1,369 @@
+/* The frame around a chart in a picture. Chart styles come from @tabler/charts/style.css. */
+
+:root {
+  color-scheme: light;
+  --bg: #f4f6fa;
+  --card: #ffffff;
+  --border: #e6e9ef;
+  --fg: #1c2634;
+  --muted: #6b7686;
+
+  /* The pictures' palette: softer than the library's defaults, in a fixed
+     order checked for color-vision deficiency between neighbours. Pages name
+     these (C.blue in page.ts) so a series keeps its color in dark mode too. */
+  --c-blue: #4c82d9;
+  --c-coral: #e5785a;
+  --c-teal: #2fa394;
+  --c-amber: #d99a2b;
+  --c-violet: #8b7fd6;
+  --c-green: #5d9e4e;
+  --c-rose: #de7ea1;
+  --c-slate: #9aa4b2;
+  --c-ink: #56606e;
+  /* Softer takes on the rest of Tabler's named colors, for charts taken from
+     the playground's examples (showcase.ts), which name their series that way. */
+  --c-azure: #6aa7e0;
+  --c-indigo: #6878d6;
+  --c-orange: #e58f4e;
+  --c-yellow: #e0b84a;
+  --c-lime: #8fb551;
+  --c-cyan: #4aa9bd;
+  --c-red: #d9605f;
+
+  --tc-color-1: var(--c-blue);
+  --tc-color-2: var(--c-coral);
+  --tc-color-3: var(--c-teal);
+  --tc-color-4: var(--c-amber);
+  --tc-color-5: var(--c-violet);
+  --tc-color-6: var(--c-green);
+  --tc-color-7: var(--c-rose);
+  --tc-color-8: var(--c-coral);
+  --tc-color-other: var(--c-slate);
+  --tc-surface: var(--card);
+  --tc-text-color: var(--fg);
+  --tc-text-muted: var(--muted);
+  --tc-grid-color: #edf0f4;
+  --tc-baseline-color: #d5dae2;
+  font:
+    14px / 1.5 "Inter",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-feature-settings: "cv11";
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #10161d;
+  --card: #1a222c;
+  --border: #283240;
+  --fg: #e6ebf1;
+  --muted: #94a0af;
+
+  --c-blue: #5a8de0;
+  --c-coral: #dd7250;
+  --c-teal: #33a595;
+  --c-amber: #b58126;
+  --c-violet: #8579d4;
+  --c-green: #5a994a;
+  --c-rose: #cf6f94;
+  --c-slate: #6f7b8b;
+  --c-ink: #aab4c1;
+  --c-azure: #5f9ad3;
+  --c-indigo: #6373cf;
+  --c-orange: #d5803f;
+  --c-yellow: #c9a23a;
+  --c-lime: #7fa446;
+  --c-cyan: #409cb0;
+  --c-red: #d15a59;
+
+  --tc-grid-color: #252f3b;
+  --tc-baseline-color: #3a4655;
+}
+
+/* Deterministic pictures: no frame caught in the middle of a transition. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  /* biome-ignore lint/complexity/noImportantStyles: it has to win over every chart style */
+  transition: none !important;
+  /* biome-ignore lint/complexity/noImportantStyles: it has to win over every chart style */
+  animation: none !important;
+  /* biome-ignore lint/complexity/noImportantStyles: it has to win over every chart style */
+  caret-color: transparent !important;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.stage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.screenshot {
+  position: relative;
+  flex: none;
+  width: 1024px;
+  height: 768px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 64px;
+  background: var(--bg) linear-gradient(to top left, rgb(0 0 0 / 0.04), rgb(0 0 0 / 0));
+}
+
+.screenshot-card {
+  width: 640px;
+  max-width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow:
+    0 1px 1px 0 rgb(0 0 0 / 0.02),
+    0 8px 24px -4px rgb(0 0 0 / 0.04),
+    0 24px 40px -8px rgb(0 0 0 / 0.1);
+}
+
+.screenshot-header {
+  padding: 16px 20px 0;
+}
+
+.screenshot-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.screenshot-header p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.screenshot-header p:empty {
+  display: none;
+}
+
+.screenshot-body {
+  padding: 16px 20px 20px;
+}
+
+.screenshot-source {
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.screenshot-source:empty {
+  display: none;
+}
+
+/* Labels that sit on a fill: white on the fill, where the library's default is
+   text color with a surface halo that reads over any mark. */
+.tc-chart .tc-treemap-label,
+.tc-chart-pie .tc-value-label {
+  fill: #ffffff;
+  stroke: none;
+}
+
+.tc-chart .tc-treemap-value {
+  fill-opacity: 0.8;
+  font-weight: 400;
+}
+
+/* A row of stat tiles, each with a number and a sparkline. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 3), 1fr);
+  gap: 12px;
+}
+
+.tile {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.tile-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tile-value {
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-change {
+  margin: -4px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.screenshot-logo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+}
+
+/* A neutral gray mark and text, as Tabler's own screenshots have: a watermark,
+   not the live brand color. */
+.screenshot-logo img {
+  height: 24px;
+  filter: grayscale(1);
+}
+
+/* A drawn mouse pointer, its tip on the hovered point: above the chart, below
+   nothing, and never in the way of the real mouse. */
+.screenshot-pointer {
+  position: absolute;
+  z-index: 10;
+  width: 20px;
+  height: 24px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 24'%3E%3Cpath d='M2 1.5v17.2l4.6-4.1 2.9 6.9 2.9-1.2-2.9-6.8h6.1z' fill='%23111' stroke='%23fff' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.35));
+  transform: translate(-2px, -1px);
+}
+
+.tile-change[data-trend="up"] {
+  color: var(--c-teal);
+}
+
+.tile-change[data-trend="down"] {
+  color: var(--c-coral);
+}
+
+/* A dashboard: tiles on top, panels with a chart each below. */
+.panels {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.panel-title {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* Charts stacked in one card, each under its own small heading. */
+.stack-title {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stack-title:not(:first-child) {
+  margin-top: 16px;
+}
+
+/* A table with a sparkline in every row. */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th {
+  padding: 0 12px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: 0;
+}
+
+.table :is(th, td):first-child {
+  padding-left: 0;
+}
+
+.table :is(th, td):last-child {
+  width: 200px;
+  padding-right: 0;
+}
+
+.table .numeric {
+  text-align: right;
+}
+
+.table .muted {
+  color: var(--muted);
+}
+
+.table strong {
+  font-weight: 500;
+}
+
+.screenshot-error {
+  margin: 0;
+  color: #d63939;
+  white-space: pre-wrap;
+}
+
+.chrome {
+  display: flex;
+  gap: 12px;
+}
+
+.chrome a,
+.index a {
+  color: inherit;
+}
+
+.chrome a[aria-current] {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.index {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.index ul {
+  padding: 0;
+  list-style: none;
+  columns: 2;
+}

@@ -155,7 +155,8 @@ export const society: Group = {
         },
         stacked: 'percent',
         curve: 'linear',
-        annotations: [{ y: 50, color: C.gray }],
+        // A percent stack runs from 0 to 1 on the value axis: half is 0.5.
+        annotations: [{ y: 0.5, color: C.gray }],
       },
     },
     {

@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "isolatedDeclarations": false,
+    "declaration": false,
+    "types": ["node"],
+    "paths": {
+      "@tabler/charts": ["../../packages/core/src/index.ts"],
+      "@tabler/charts/maps/world": ["../../packages/core/src/maps/world.ts"]
+    }
+  },
+  "include": ["src", "scripts", "vite.config.ts"]
+}
