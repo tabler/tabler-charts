@@ -225,4 +225,23 @@ describe('point annotations', () => {
       Math.abs(num(a?.attrs.x) - num(b?.attrs.x)) >= estimateTextWidth('First label', 11)
     expect(apart).toBe(true)
   })
+
+  test('a label with no room in the plot is left out, its dot is not', () => {
+    const node = buildChart(
+      {
+        type: line,
+        data,
+        id: 'a',
+        locale: 'en-US',
+        annotations: [
+          { x: 'Q2', y: 30, label: 'A label far wider than this little plot' },
+          { x: 'Q3', y: 20, label: 'Another label far wider than the plot' },
+        ],
+      } as ChartConfig<object>,
+      { width: 120, height: 100 },
+      'a',
+    )
+    expect(dots(node)).toHaveLength(2)
+    expect(labels(node)).toEqual([])
+  })
 })
