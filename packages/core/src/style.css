@@ -536,6 +536,23 @@
   transition: d var(--tc-duration) var(--tc-easing);
 }
 
+/* Names beside the slices of a pie or donut (labels), each joined to its slice by a line. */
+.tc-slice-label-text {
+  fill: var(--tc-text-color);
+  transition: transform var(--tc-duration) var(--tc-easing);
+}
+
+.tc-slice-label-name {
+  font-weight: 600;
+}
+
+.tc-slice-label-line {
+  fill: none;
+  stroke: var(--tc-baseline-color);
+  stroke-width: 1px;
+  transition: d var(--tc-duration) var(--tc-easing);
+}
+
 /* -- Point shapes ------------------------------------------------------------ */
 
 /* With shapes (or patterns: true) points take the shape of their slot and morph
@@ -1256,8 +1273,12 @@
     fill: CanvasText;
     stroke: Canvas;
   }
-  .tc-end-label-text {
+  .tc-end-label-text,
+  .tc-slice-label-text {
     fill: CanvasText;
+  }
+  .tc-slice-label-line {
+    stroke: GrayText;
   }
   .tc-tick-label,
   .tc-axis-title,

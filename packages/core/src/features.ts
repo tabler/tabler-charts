@@ -5,6 +5,7 @@ import type { endLabels } from './charts/end-labels.ts'
 import type { logDomain, logTicks } from './charts/log-axis.ts'
 import type { patternFills } from './charts/patterns.ts'
 import type { markerClip, markerPath } from './charts/point-shapes.ts'
+import type { sliceLabels } from './charts/slice-labels.ts'
 import type { timeAxis } from './charts/time-axis.ts'
 import type { downloadChart } from './export-chart.ts'
 import type { Interaction } from './interaction.ts'
@@ -18,7 +19,7 @@ import type { ChildInput } from './vnode.ts'
 
 /**
  * Optional features that chart types look up at render time. Each lives in
- * its own module (`@tabler/charts/time`, `/log`, `/decimate`, `/line`, `/annotations`, `/end-labels`) and registers
+ * its own module (`@tabler/charts/time`, `/log`, `/decimate`, `/line`, `/annotations`, `/end-labels`, `/slice-labels`) and registers
  * itself when imported; `@tabler/charts` registers all of them, while
  * `@tabler/charts/core` starts empty so unused code never ships.
  */
@@ -46,6 +47,8 @@ export interface Features {
   annotations?: { layers: typeof annotationLayers; values: typeof annotationValues }
   /** Names and last values at the end of lines, behind `endLabels`. */
   'end-labels'?: typeof endLabels
+  /** Names beside the slices of a pie, behind its `labels`. */
+  'slice-labels'?: typeof sliceLabels
   /** Pattern fills behind `patterns` (and forced colors, with `'auto'`). */
   patterns?: typeof patternFills
   /**

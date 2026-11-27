@@ -1,4 +1,4 @@
-import { area, bar, heatmap, type Label } from '@tabler/charts'
+import { area, bar, donut, heatmap, type Label } from '@tabler/charts'
 import { C, common, type Group, years } from './types.ts'
 
 const LETTERS = 'abcdefghijklmnopqrstuvwxyz'.split('')
@@ -27,6 +27,34 @@ export const culture: Group = {
   description:
     'Box office, music formats and bestsellers: wide rankings, a stacked area of a changing industry, a 26-column heatmap.',
   items: [
+    {
+      title: 'Weekend box office by film',
+      note: 'Share of the weekend gross in a donut with `labels: true`: every slice named beside the chart with its share and joined to it by a line, so the chart reads without a legend.',
+      source: 'Box Office Mojo, weekend of 8–10 February 2019 (approximate)',
+      span: 2,
+      config: {
+        type: donut,
+        ...common,
+        aspectRatio: 2,
+        legend: false,
+        labels: true,
+        maxSlices: 11,
+        center: false,
+        data: [
+          { name: 'The Lego Movie 2', value: 22.46 },
+          { name: 'How to Train Your Dragon', value: 11.29 },
+          { name: 'Cold Pursuit', value: 10.24 },
+          { name: 'Instant Family', value: 8.55 },
+          { name: 'The Kid Who Would Be King', value: 7.16 },
+          { name: 'On the Basis of Sex', value: 6.01 },
+          { name: 'Alita', value: 4.37 },
+          { name: 'Total Dhamaal', value: 3.74 },
+          { name: 'Bumblebee', value: 2.52 },
+          { name: 'Green Book', value: 1.95 },
+          { name: 'Other', value: 21.7, color: C.gray },
+        ],
+      },
+    },
     {
       title: 'Highest-grossing films',
       note: 'Worldwide box office, not adjusted for inflation, in billions of dollars.',

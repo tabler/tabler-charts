@@ -29,6 +29,7 @@ export default defineConfig({
     'src/patterns.ts',
     'src/value-labels.ts',
     'src/end-labels.ts',
+    'src/slice-labels.ts',
     'src/point-shapes.ts',
     'src/hydrate.ts',
     'src/morph.ts',
