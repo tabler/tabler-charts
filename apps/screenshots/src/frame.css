@@ -204,7 +204,7 @@ body {
 
 .tile-value {
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
   font-variant-numeric: tabular-nums;
 }
@@ -273,7 +273,7 @@ body {
 
 .panel-title {
   margin-bottom: 8px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Charts stacked in one card, each under its own small heading. */
@@ -332,7 +332,7 @@ body {
 }
 
 .table strong {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .screenshot-error {
