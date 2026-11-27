@@ -1,4 +1,13 @@
 import { area, bar, candlestick, type Label, line } from '@tabler/charts'
+import {
+  between,
+  EU_BALANCE,
+  GROWTH,
+  HOUSEHOLD_ASSETS,
+  LONG_RUN,
+  PRODUCTIVITY,
+  quarters,
+} from './poland.ts'
 import { C, common, type Group, MONTHS, span, years } from './types.ts'
 
 const usd = { style: 'currency', currency: 'USD' } as const
@@ -6,6 +15,13 @@ const pct =
   (digits = 1) =>
   (v: number) =>
     `${v.toFixed(digits)}%`
+
+/** `+€197.5bn`, `−€232.1bn`. */
+const eurBn = (v: number) => (v ? `${v > 0 ? '+' : '−'}€${Math.abs(v)}bn` : '0')
+/** The highlight color of the charts about Poland, and the gray of everything else in them. */
+const CRIMSON = '#a8283a'
+const PALE = '#ccd1d7'
+const AVERAGES = new Set(['OECD', 'EU-27'])
 
 const SP500 = [
   3.0, 13.6, 3.5, -38.5, 23.5, 12.8, 0.0, 13.4, 29.6, 11.4, -0.7, 9.5, 19.4, -6.2, 28.9, 16.3, 26.9,
@@ -290,6 +306,182 @@ export const economy: Group = {
           { x: '2026', y: 100.6, label: 'Japan 2026: 100.6%', color: C.blue },
           { x: '2026', y: 87.6, label: 'EU-27 2026: 87.6%', color: C.green },
           { x: '2026', y: 76.3, label: 'Germany 2026: 76.3%', color: C.pink },
+        ],
+      },
+    },
+    {
+      title: 'What drives Polish GDP growth',
+      note: 'Contributions to annual growth in percentage points: stacked bars with negative segments growing down from zero, and the growth rate as a line series over them (`type: "line"`) with a value label on its last quarter. Investment added 1.2 pp in Q2 2026.',
+      source: 'Statistics Poland, quarterly national accounts, Q2 2026 (approximate)',
+      span: 2,
+      config: {
+        type: bar,
+        ...common,
+        aspectRatio: 2.2,
+        stacked: true,
+        data: {
+          labels: quarters(2021, 2, GROWTH.gdp.length),
+          series: [
+            { name: 'Investment', color: CRIMSON, values: GROWTH.investment },
+            { name: 'Private consumption', color: '#9dbde3', values: GROWTH.privateConsumption },
+            { name: 'Public consumption', color: '#c5b8e8', values: GROWTH.publicConsumption },
+            { name: 'Net exports', color: '#f0cd8c', values: GROWTH.netExports },
+            { name: 'Inventories', color: PALE, values: GROWTH.inventories },
+            {
+              name: 'GDP growth',
+              type: 'line',
+              color: 'currentColor',
+              values: GROWTH.gdp,
+              valueLabels: true,
+            },
+          ],
+        },
+        curve: 'linear',
+        gap: 0,
+        radius: 0,
+        valueLabels: { format: pct(1) },
+        y: { ticks: 5 },
+        x: { format: (l: Label) => (String(l).startsWith('Q2') ? String(l) : '') },
+      },
+    },
+    {
+      title: 'Five centuries of GDP per capita',
+      note: 'International dollars at purchasing power parity, 1500–2008, a value for every year on a time axis: every line named at its end with its last value (`endLabels`), a point on the last year, and a line at the year the IMF series starts.',
+      source: 'Maddison Project Database; IMF from 1990 (approximate)',
+      span: 2,
+      config: {
+        type: line,
+        ...common,
+        aspectRatio: 2.2,
+        legend: false,
+        data: {
+          labels: years(span(1500, 2008)),
+          series: Object.entries(LONG_RUN).map(([name, anchors], i) => ({
+            name,
+            color: [C.gray, '#d9a441', CRIMSON][i],
+            values: between(anchors, 1500, 2008, 0),
+          })),
+        },
+        curve: 'linear',
+        points: 'last',
+        pointRadius: 3,
+        endLabels: true,
+        y: { max: 60000, ticks: 6 },
+        x: { type: 'time', utc: true },
+        annotations: [{ x: Date.UTC(1990, 0, 1), label: 'IMF from 1990', position: 'start' }],
+      },
+    },
+    {
+      title: 'Financial assets of Polish households pass PLN 4 trillion',
+      note: 'Quarterly, Q1 2005 – Q1 2026, PLN trillion: a single line on a time axis with point annotations on its first and last quarter, and a unit in the tick format.',
+      source: 'National Bank of Poland, financial accounts, Q1 2026 (approximate)',
+      span: 2,
+      config: {
+        type: line,
+        ...common,
+        aspectRatio: 2.2,
+        legend: false,
+        data: {
+          labels: span(0, 84).map((q) => Date.UTC(2005, q * 3, 1)),
+          series: [
+            {
+              name: 'Financial assets',
+              color: CRIMSON,
+              values: between(HOUSEHOLD_ASSETS, 0, 84, 2),
+            },
+          ],
+        },
+        curve: 'linear',
+        y: { min: 0, max: 4.5, format: (v: number) => (v ? `PLN ${v} tn` : '0') },
+        x: { type: 'time', utc: true },
+        annotations: [
+          { x: Date.UTC(2005, 0, 1), y: 0.69, label: 'PLN 0.69 tn', color: CRIMSON },
+          {
+            x: Date.UTC(2026, 0, 1),
+            y: 4.1,
+            label: 'PLN 4.10 tn, 5.9× the Q1 2005 level',
+            color: CRIMSON,
+          },
+        ],
+      },
+    },
+    {
+      title: 'Polish labour productivity is a fifth below the OECD average',
+      note: 'GDP per hour worked, USD at purchasing power parity. One bar per country, colored by group: three stacked series with gaps (`null`) outside their own bars, which also makes the legend. Labels turned 90° keep every country named (`x.rotate`). A line at the OECD average and a point annotation on Poland.',
+      source: 'OECD Compendium of Productivity Indicators, 2025 (approximate)',
+      span: 2,
+      config: {
+        type: bar,
+        ...common,
+        aspectRatio: 2,
+        stacked: true,
+        data: {
+          labels: PRODUCTIVITY.map(([name]) => name),
+          series: [
+            {
+              name: 'Poland',
+              color: CRIMSON,
+              values: PRODUCTIVITY.map(([name, v]) => (name === 'Poland' ? v : null)),
+            },
+            {
+              name: 'OECD and EU-27 averages',
+              color: C.gray,
+              values: PRODUCTIVITY.map(([name, v]) => (AVERAGES.has(name) ? v : null)),
+            },
+            {
+              name: 'Other OECD countries',
+              color: PALE,
+              values: PRODUCTIVITY.map(([name, v]) =>
+                name === 'Poland' || AVERAGES.has(name) ? null : v,
+              ),
+            },
+          ],
+        },
+        y: { format: (v: number) => `$${v}` },
+        x: { rotate: true },
+        annotations: [
+          { y: 65, label: 'OECD average: $65.0' },
+          { x: 'Poland', y: 52.1, label: '$52.1, −20%', color: CRIMSON },
+        ],
+      },
+    },
+    {
+      title: 'Poland is the largest net beneficiary of the EU budget',
+      note: 'Net balance with the EU budget, 2004–2025, EUR billion at current prices: horizontal bars growing left for the net payers, colored by group with three stacked series, and value labels on the Poland series only (`series[].valueLabels`).',
+      source: 'European Commission, EU spending and revenue, 2025 (approximate)',
+      span: 2,
+      config: {
+        type: bar,
+        ...common,
+        aspectRatio: 1,
+        orientation: 'horizontal',
+        stacked: true,
+        data: {
+          labels: EU_BALANCE.map(([name]) => name),
+          series: [
+            {
+              name: 'Poland',
+              color: CRIMSON,
+              values: EU_BALANCE.map(([name, v]) => (name === 'Poland' ? v : null)),
+              valueLabels: true,
+            },
+            {
+              name: 'Net beneficiaries',
+              color: PALE,
+              values: EU_BALANCE.map(([name, v]) => (name !== 'Poland' && v > 0 ? v : null)),
+            },
+            {
+              name: 'Net payers',
+              color: C.gray,
+              values: EU_BALANCE.map(([, v]) => (v < 0 ? v : null)),
+            },
+          ],
+        },
+        y: { format: eurBn, min: -400, max: 300, ticks: 7 },
+        x: { grid: true },
+        annotations: [
+          { x: 'Spain', y: 132.7, label: eurBn(132.7) },
+          { x: 'Germany', y: -232.1, label: eurBn(-232.1) },
         ],
       },
     },
