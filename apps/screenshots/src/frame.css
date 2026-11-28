@@ -209,6 +209,15 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* A tile's name with a short note at the other end of the line. */
+.tile-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 500;
+}
+
 .tile-change {
   margin: -4px 0 10px;
   color: var(--muted);
@@ -333,6 +342,12 @@ body {
 
 .table strong {
   font-weight: 500;
+}
+
+/* The data table's row headings: the browser's bold is 700, heavier than
+   anything else in the frame. */
+.tc-table tbody th {
+  font-weight: 600;
 }
 
 .screenshot-error {
